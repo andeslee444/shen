@@ -1,0 +1,246 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs26 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \{\
+  "schema_version": "1.0.0",\
+  "axes": \{\
+    "cold_heat": \{ "min": -10, "max": 10, "description": "Negative=cold, positive=heat" \},\
+    "def_excess": \{ "min": -10, "max": 10, "description": "Negative=deficient (low reserve), positive=excess (wired/tense)" \},\
+    "damp_dry": \{ "min": -10, "max": 10, "description": "Negative=damp/heavy, positive=dry/thirsty" \},\
+    "qi_stagnation": \{ "min": 0, "max": 10, "description": "Higher=more qi constraint/stuck" \},\
+    "shen_unsettled": \{ "min": 0, "max": 10, "description": "Higher=more sleep/mind unsettled" \}\
+  \},\
+  "flags": [\
+    "reflux",\
+    "loose_stool",\
+    "constipation",\
+    "sticky_stool",\
+    "night_sweats",\
+    "wake_thirsty_hot"\
+  ],\
+  "notes": \{\
+    "scoring_style": "Add deltas from selected options; axes can be normalized later. Flags are booleans (true if triggered).",\
+    "primary_type_rule": "Primary principles are derived from cold_heat and def_excess + (optional) yin_yang inference. Modifier is strongest among damp_dry (damp/dry) or qi_stagnation or shen_unsettled based on thresholds.",\
+    "recommended_thresholds": \{\
+      "cold_heat_cold": -3,\
+      "cold_heat_warm": 3,\
+      "def_excess_deficient": -3,\
+      "def_excess_excess": 3,\
+      "damp_dry_damp": -3,\
+      "damp_dry_dry": 3,\
+      "qi_stagnation_high": 4,\
+      "shen_unsettled_high": 4\
+    \}\
+  \},\
+  "questions": [\
+    \{\
+      "id": "q1_run_temp",\
+      "title": "Do you generally run cold or run hot?",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "always_cold", "label": "Always cold", "delta": \{ "cold_heat": -4 \} \},\
+        \{ "id": "often_cold", "label": "Often cold", "delta": \{ "cold_heat": -2 \} \},\
+        \{ "id": "neutral", "label": "Neutral", "delta": \{\} \},\
+        \{ "id": "often_hot", "label": "Often hot", "delta": \{ "cold_heat": 2 \} \},\
+        \{ "id": "always_hot", "label": "Always hot", "delta": \{ "cold_heat": 4 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q2_drinks_feel_best",\
+      "title": "What drinks feel best most of the time? (What feels best to your body, not just habit.)",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "hot_tea", "label": "Hot tea", "delta": \{ "cold_heat": -2 \} \},\
+        \{ "id": "warm_water", "label": "Warm water", "delta": \{ "cold_heat": -1 \} \},\
+        \{ "id": "room_temp", "label": "Room temp", "delta": \{\} \},\
+        \{ "id": "iced", "label": "Iced", "delta": \{ "cold_heat": 1 \} \},\
+        \{ "id": "anything_cold", "label": "Anything cold", "delta": \{ "cold_heat": 2 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q3_sweat_night",\
+      "title": "Sweat + nights: which is more you?",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "hardly_sweat", "label": "Hardly sweat", "delta": \{ "def_excess": -1, "cold_heat": -1 \} \},\
+        \{ "id": "sweat_easily", "label": "Sweat easily", "delta": \{ "def_excess": 1, "cold_heat": 1 \} \},\
+        \{ "id": "night_sweats", "label": "Night sweats", "delta": \{ "def_excess": -1, "cold_heat": 1, "damp_dry": 1 \}, "flags": ["night_sweats"] \},\
+        \{ "id": "wake_thirsty_hot", "label": "Wake up thirsty/hot", "delta": \{ "cold_heat": 2, "damp_dry": 2 \}, "flags": ["wake_thirsty_hot"] \},\
+        \{ "id": "normal", "label": "Normal", "delta": \{\} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q4_energy_pattern",\
+      "title": "Your energy pattern is\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "low_all_day", "label": "Low all day", "delta": \{ "def_excess": -4 \} \},\
+        \{ "id": "am_better_crash", "label": "AM better then crash", "delta": \{ "def_excess": -2 \} \},\
+        \{ "id": "pm_better", "label": "PM better", "delta": \{ "def_excess": -1, "shen_unsettled": 1 \} \},\
+        \{ "id": "wired_but_tired", "label": "Wired but tired", "delta": \{ "def_excess": 2, "shen_unsettled": 2, "qi_stagnation": 1 \} \},\
+        \{ "id": "steady", "label": "Steady", "delta": \{\} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q5_stress_response",\
+      "title": "When you\'92re stressed, your body does what first?",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "shuts_down_fatigue", "label": "Shuts down (fatigue)", "delta": \{ "def_excess": -2 \} \},\
+        \{ "id": "tightens_neck_jaw", "label": "Tightens (neck/jaw)", "delta": \{ "qi_stagnation": 3, "def_excess": 1 \} \},\
+        \{ "id": "gets_hot_irritable", "label": "Gets hot/irritable", "delta": \{ "cold_heat": 2, "qi_stagnation": 2, "def_excess": 1 \} \},\
+        \{ "id": "gets_bloated", "label": "Gets bloated", "delta": \{ "damp_dry": -2, "qi_stagnation": 2 \} \},\
+        \{ "id": "gets_anxious", "label": "Gets anxious", "delta": \{ "shen_unsettled": 3, "def_excess": 1, "qi_stagnation": 1 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q6_after_meals",\
+      "title": "After meals, you\'92re most likely to feel\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "light_normal", "label": "Light/normal", "delta": \{\} \},\
+        \{ "id": "sleepy_heavy", "label": "Sleepy heavy", "delta": \{ "damp_dry": -3, "def_excess": -1 \} \},\
+        \{ "id": "bloated_gassy", "label": "Bloated/gassy", "delta": \{ "damp_dry": -2, "qi_stagnation": 1 \} \},\
+        \{ "id": "acid_reflux", "label": "Acid/reflux", "delta": \{ "cold_heat": 1, "qi_stagnation": 1 \}, "flags": ["reflux"] \},\
+        \{ "id": "hungry_again_quickly", "label": "Hungry again quickly", "delta": \{ "cold_heat": 1, "def_excess": 1 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q7_stools_usually",\
+      "title": "Your stools are usually\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "loose_soft", "label": "Loose/soft", "delta": \{ "cold_heat": -1, "damp_dry": -2, "def_excess": -1 \}, "flags": ["loose_stool"] \},\
+        \{ "id": "normal", "label": "Normal", "delta": \{\} \},\
+        \{ "id": "constipated_dry", "label": "Constipated/dry", "delta": \{ "cold_heat": 1, "damp_dry": 3 \}, "flags": ["constipation"] \},\
+        \{ "id": "alternating", "label": "Alternating", "delta": \{ "qi_stagnation": 2, "damp_dry": -1 \} \},\
+        \{ "id": "sticky_hard_to_wipe", "label": "Sticky, hard to wipe", "delta": \{ "damp_dry": -3 \}, "flags": ["sticky_stool"] \}\
+      ]\
+    \},\
+    \{\
+      "id": "q8_cravings",\
+      "title": "Cravings you relate to most:",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "sweet", "label": "Sweet", "delta": \{ "damp_dry": -1 \} \},\
+        \{ "id": "salty", "label": "Salty", "delta": \{ "damp_dry": -1 \} \},\
+        \{ "id": "spicy", "label": "Spicy", "delta": \{ "cold_heat": 1 \} \},\
+        \{ "id": "greasy_fried", "label": "Greasy/fried", "delta": \{ "damp_dry": -2 \} \},\
+        \{ "id": "cold_foods", "label": "Cold foods (ice cream, smoothies)", "delta": \{ "cold_heat": 1 \} \}\
+      ],\
+      "weight": 0.6,\
+      "notes": "Cravings are noisy. If your engine supports weights, apply 0.6x to these deltas."\
+    \},\
+    \{\
+      "id": "q9_body_tends",\
+      "title": "Your body tends to be\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "puffy_heavy", "label": "Puffy/heavy", "delta": \{ "damp_dry": -4 \} \},\
+        \{ "id": "normal", "label": "Normal", "delta": \{\} \},\
+        \{ "id": "dry_skin_lips_eyes", "label": "Dry (skin/lips/eyes)", "delta": \{ "damp_dry": 4 \} \},\
+        \{ "id": "mucusy", "label": "Mucusy", "delta": \{ "damp_dry": -3 \} \},\
+        \{ "id": "swollen_legs_face_sometimes", "label": "Swollen legs/face sometimes", "delta": \{ "damp_dry": -3 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q10_thirst_mouth",\
+      "title": "Thirst & mouth:",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "rarely_thirsty", "label": "Rarely thirsty", "delta": \{ "cold_heat": -1, "damp_dry": -1 \} \},\
+        \{ "id": "sip_a_lot", "label": "Sip a lot", "delta": \{ "damp_dry": 1 \} \},\
+        \{ "id": "very_thirsty", "label": "Very thirsty", "delta": \{ "cold_heat": 1, "damp_dry": 3 \} \},\
+        \{ "id": "dry_mouth_at_night", "label": "Dry mouth at night", "delta": \{ "damp_dry": 4, "shen_unsettled": 1 \} \},\
+        \{ "id": "thirst_small_sips", "label": "Thirst but small sips", "delta": \{ "damp_dry": -1, "cold_heat": 1 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q11_mood_flow",\
+      "title": "Mood/flow: you relate most to\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "easygoing", "label": "Easygoing", "delta": \{\} \},\
+        \{ "id": "overthinking", "label": "Overthinking", "delta": \{ "shen_unsettled": 2, "qi_stagnation": 1 \} \},\
+        \{ "id": "irritable_snappy", "label": "Irritable/snappy", "delta": \{ "qi_stagnation": 3, "cold_heat": 1 \} \},\
+        \{ "id": "sad_low", "label": "Sad/low", "delta": \{ "def_excess": -1, "shen_unsettled": 1 \} \},\
+        \{ "id": "restless", "label": "Restless", "delta": \{ "shen_unsettled": 3, "def_excess": 1 \} \}\
+      ]\
+    \},\
+    \{\
+      "id": "q12_sleep",\
+      "title": "Sleep is usually\'85",\
+      "type": "single_select",\
+      "options": [\
+        \{ "id": "sleep_good", "label": "Fall asleep easy, stay asleep", "delta": \{\} \},\
+        \{ "id": "trouble_falling", "label": "Trouble falling asleep", "delta": \{ "shen_unsettled": 3, "qi_stagnation": 1, "def_excess": 1 \} \},\
+        \{ "id": "wake_at_night", "label": "Wake at night", "delta": \{ "shen_unsettled": 2, "damp_dry": 1 \} \},\
+        \{ "id": "vivid_dreams", "label": "Vivid dreams", "delta": \{ "shen_unsettled": 2, "qi_stagnation": 1 \} \},\
+        \{ "id": "wake_tired", "label": "Wake tired", "delta": \{ "def_excess": -2, "shen_unsettled": 1 \} \}\
+      ]\
+    \}\
+  ],\
+  "derived_outputs": \{\
+    "principles": \{\
+      "cold_heat": \{\
+        "cold": \{ "when": \{ "cold_heat": \{ "lte": -3 \} \}, "label": "Cold" \},\
+        "neutral": \{ "when": \{ "cold_heat": \{ "between": [-2, 2] \} \}, "label": "Neutral" \},\
+        "warm": \{ "when": \{ "cold_heat": \{ "gte": 3 \} \}, "label": "Warm" \}\
+      \},\
+      "def_excess": \{\
+        "deficient": \{ "when": \{ "def_excess": \{ "lte": -3 \} \}, "label": "Deficient" \},\
+        "balanced": \{ "when": \{ "def_excess": \{ "between": [-2, 2] \} \}, "label": "Balanced" \},\
+        "excess": \{ "when": \{ "def_excess": \{ "gte": 3 \} \}, "label": "Excess" \}\
+      \},\
+      "damp_dry": \{\
+        "damp": \{ "when": \{ "damp_dry": \{ "lte": -3 \} \}, "label": "Damp (Heavy)" \},\
+        "neutral": \{ "when": \{ "damp_dry": \{ "between": [-2, 2] \} \}, "label": "Neutral" \},\
+        "dry": \{ "when": \{ "damp_dry": \{ "gte": 3 \} \}, "label": "Dry (Thirsty)" \}\
+      \}\
+    \},\
+    "modifier_selection": \{\
+      "rule": "Choose the single strongest modifier among: Damp/Dry (if |damp_dry|>=3), Qi Stagnation (if qi_stagnation>=4), Shen (if shen_unsettled>=4). Break ties by higher absolute magnitude; if still tied, prioritize shen_unsettled > qi_stagnation > damp/dry."\
+    \},\
+    "nickname_mapping": [\
+      \{\
+        "when": \{ "cold_heat": \{ "lte": -3 \}, "def_excess": \{ "lte": -3 \} \},\
+        "nickname": "Low Flame"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "lte": -3 \}, "def_excess": \{ "between": [-2, 2] \} \},\
+        "nickname": "Cool Core"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "between": [-2, 2] \}, "def_excess": \{ "lte": -3 \} \},\
+        "nickname": "Low Battery"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "between": [-2, 2] \}, "def_excess": \{ "between": [-2, 2] \} \},\
+        "nickname": "Steady Core"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "between": [-2, 2] \}, "def_excess": \{ "gte": 3 \} \},\
+        "nickname": "Busy Mind"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "gte": 3 \}, "def_excess": \{ "between": [-2, 2] \} \},\
+        "nickname": "High Flame"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "gte": 3 \}, "def_excess": \{ "gte": 3 \} \},\
+        "nickname": "Overclocked"\
+      \},\
+      \{\
+        "when": \{ "cold_heat": \{ "gte": 3 \}, "def_excess": \{ "lte": -3 \} \},\
+        "nickname": "Bright but Thin"\
+      \}\
+    ]\
+  \}\
+\}\
+}

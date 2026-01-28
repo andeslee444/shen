@@ -1,0 +1,828 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs26 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 \{\
+  "$schema": "https://json-schema.org/draft/2020-12/schema",\
+  "$id": "https://terrain.app/schemas/content-pack.schema.json",\
+  "title": "Terrain TCM Content Pack Schema",\
+  "type": "object",\
+  "required": ["pack", "ingredients", "routines", "movements", "lessons", "programs", "terrain_profiles"],\
+  "additionalProperties": false,\
+  "properties": \{\
+    "pack": \{ "$ref": "#/$defs/PackMeta" \},\
+    "ingredients": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/Ingredient" \}\
+    \},\
+    "routines": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/Routine" \}\
+    \},\
+    "movements": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/Movement" \}\
+    \},\
+    "lessons": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/Lesson" \}\
+    \},\
+    "programs": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/Program" \}\
+    \},\
+    "terrain_profiles": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/TerrainProfile" \}\
+    \}\
+  \},\
+\
+  "$defs": \{\
+    "PackMeta": \{\
+      "type": "object",\
+      "required": ["version", "default_locale", "updated_at", "review"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "version": \{\
+          "type": "string",\
+          "description": "Semantic version for the content pack, e.g. 1.0.0"\
+        \},\
+        "default_locale": \{\
+          "type": "string",\
+          "description": "BCP-47 locale, e.g. en-US"\
+        \},\
+        "supported_locales": \{\
+          "type": "array",\
+          "items": \{ "type": "string" \},\
+          "default": []\
+        \},\
+        "updated_at": \{\
+          "type": "string",\
+          "format": "date-time"\
+        \},\
+        "review": \{ "$ref": "#/$defs/ReviewMeta" \}\
+      \}\
+    \},\
+\
+    "ReviewMeta": \{\
+      "type": "object",\
+      "required": ["status", "reviewed_by"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "status": \{\
+          "type": "string",\
+          "enum": ["draft", "internally_reviewed", "practitioner_reviewed", "influencer_reviewed", "published"]\
+        \},\
+        "reviewed_by": \{\
+          "type": "array",\
+          "description": "People or entities who reviewed the pack overall.",\
+          "items": \{ "$ref": "#/$defs/Reviewer" \}\
+        \},\
+        "notes": \{ "type": "string" \}\
+      \}\
+    \},\
+\
+    "Reviewer": \{\
+      "type": "object",\
+      "required": ["name", "role"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "name": \{ "type": "string" \},\
+        "role": \{\
+          "type": "string",\
+          "enum": ["practitioner", "influencer", "editor", "nutritionist", "medical_reviewer", "other"]\
+        \},\
+        "credentials": \{ "type": "string" \},\
+        "url": \{ "type": "string" \}\
+      \}\
+    \},\
+\
+    "Id": \{\
+      "type": "string",\
+      "pattern": "^[a-z0-9_\\\\-\\\\.]\{3,64\}$",\
+      "description": "Stable ID used for cross-references. Use lowercase snake/kebab-case."\
+    \},\
+\
+    "LocalizedString": \{\
+      "type": "object",\
+      "description": "Map of locale -> string. Always include default locale in content pack.",\
+      "patternProperties": \{\
+        "^[a-z]\{2\}(-[A-Z]\{2\})?$": \{ "type": "string" \}\
+      \},\
+      "additionalProperties": false\
+    \},\
+\
+    "Goals": \{\
+      "type": "array",\
+      "items": \{\
+        "type": "string",\
+        "enum": ["sleep", "digestion", "energy", "stress", "skin", "menstrual_comfort"]\
+      \},\
+      "uniqueItems": true\
+    \},\
+\
+    "AxisTag": \{\
+      "type": "string",\
+      "enum": [\
+        "warming",\
+        "cooling",\
+        "supports_deficiency",\
+        "reduces_excess",\
+        "moves_qi",\
+        "calms_shen",\
+        "dries_damp",\
+        "moistens_dryness",\
+        "supports_digestion",\
+        "gentle_for_acute"\
+      ],\
+      "description": "High-level effect tags used for personalization + filtering."\
+    \},\
+\
+    "AxisTags": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/AxisTag" \},\
+      "uniqueItems": true\
+    \},\
+\
+    "SeasonTag": \{\
+      "type": "string",\
+      "enum": ["spring", "summer", "late_summer", "autumn", "winter", "all_year"]\
+    \},\
+\
+    "Seasons": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/SeasonTag" \},\
+      "uniqueItems": true\
+    \},\
+\
+    "RegionTag": \{\
+      "type": "string",\
+      "enum": [\
+        "cantonese_home_soups",\
+        "northern_winter_warmth",\
+        "fujian_min_style",\
+        "sichuan_flavor_notes",\
+        "jiangnan_gentle",\
+        "taiwanese_home_style",\
+        "pan_chinese_common"\
+      ],\
+      "description": "Short, culturally respectful provenance/usage tags."\
+    \},\
+\
+    "Regions": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/RegionTag" \},\
+      "uniqueItems": true\
+    \},\
+\
+    "SafetyFlag": \{\
+      "type": "string",\
+      "enum": [\
+        "pregnancy_caution",\
+        "breastfeeding_caution",\
+        "gerd_caution",\
+        "blood_thinner_caution",\
+        "bp_meds_caution",\
+        "thyroid_meds_caution",\
+        "diabetes_meds_caution",\
+        "caffeine",\
+        "high_histamine",\
+        "allergen_common"\
+      ],\
+      "description": "Used to surface soft warnings; not medical advice."\
+    \},\
+\
+    "SafetyFlags": \{\
+      "type": "array",\
+      "items": \{ "$ref": "#/$defs/SafetyFlag" \},\
+      "uniqueItems": true\
+    \},\
+\
+    "MediaAsset": \{\
+      "type": "object",\
+      "required": ["type", "uri"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "type": \{ "type": "string", "enum": ["image", "video", "lottie", "svg"] \},\
+        "uri": \{ "type": "string", "description": "Local bundle path or CDN URL." \},\
+        "alt": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "credit": \{ "$ref": "#/$defs/LocalizedString" \}\
+      \}\
+    \},\
+\
+    "Ingredient": \{\
+      "type": "object",\
+      "required": [\
+        "id",\
+        "name",\
+        "category",\
+        "tags",\
+        "goals",\
+        "how_to_use",\
+        "why_it_helps",\
+        "cautions",\
+        "cultural_context",\
+        "review"\
+      ],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+\
+        "name": \{\
+          "type": "object",\
+          "required": ["common", "pinyin"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "common": \{ "$ref": "#/$defs/LocalizedString" \},\
+            "pinyin": \{ "type": "string" \},\
+            "hanzi": \{ "type": "string", "description": "Optional Chinese characters." \},\
+            "other_names": \{\
+              "type": "array",\
+              "items": \{ "$ref": "#/$defs/LocalizedString" \},\
+              "default": []\
+            \}\
+          \}\
+        \},\
+\
+        "category": \{\
+          "type": "string",\
+          "enum": ["spice", "root", "fruit", "grain", "legume", "fungus", "tea", "protein", "aromatic", "other"]\
+        \},\
+\
+        "tags": \{ "$ref": "#/$defs/AxisTags" \},\
+        "goals": \{ "$ref": "#/$defs/Goals" \},\
+\
+        "seasons": \{ "$ref": "#/$defs/Seasons" \},\
+        "regions": \{ "$ref": "#/$defs/Regions" \},\
+\
+        "media": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/MediaAsset" \},\
+          "default": []\
+        \},\
+\
+        "why_it_helps": \{\
+          "type": "object",\
+          "required": ["plain", "tcm"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "plain": \{ "$ref": "#/$defs/LocalizedString", "description": "Plain-language effect." \},\
+            "tcm": \{\
+              "$ref": "#/$defs/LocalizedString",\
+              "description": "Light TCM framing; avoid diagnostic claims."\
+            \},\
+            "best_for_terrain": \{\
+              "type": "array",\
+              "items": \{ "$ref": "#/$defs/Id" \},\
+              "description": "List of TerrainProfile IDs this ingredient commonly suits."\
+            \}\
+          \}\
+        \},\
+\
+        "how_to_use": \{\
+          "type": "object",\
+          "required": ["quick_uses"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "quick_uses": \{\
+              "type": "array",\
+              "description": "Short, actionable uses (Muji-minimal).",\
+              "items": \{\
+                "type": "object",\
+                "required": ["text"],\
+                "additionalProperties": false,\
+                "properties": \{\
+                  "text": \{ "$ref": "#/$defs/LocalizedString" \},\
+                  "prep_time_min": \{ "type": "integer", "minimum": 0 \},\
+                  "method_tags": \{\
+                    "type": "array",\
+                    "items": \{\
+                      "type": "string",\
+                      "enum": ["simmer", "steep", "stir_in", "top", "broth", "congee", "oatmeal", "saute", "bake"]\
+                    \},\
+                    "uniqueItems": true,\
+                    "default": []\
+                  \}\
+                \}\
+              \}\
+            \},\
+            "typical_amount": \{\
+              "$ref": "#/$defs/LocalizedString",\
+              "description": "Non-medical, kitchen-friendly guidance (e.g., '1\'962 slices')."\
+            \}\
+          \}\
+        \},\
+\
+        "cautions": \{\
+          "type": "object",\
+          "required": ["flags", "text"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "flags": \{ "$ref": "#/$defs/SafetyFlags" \},\
+            "text": \{ "$ref": "#/$defs/LocalizedString" \}\
+          \}\
+        \},\
+\
+        "cultural_context": \{\
+          "type": "object",\
+          "required": ["blurb"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "blurb": \{ "$ref": "#/$defs/LocalizedString" \},\
+            "common_in": \{ "$ref": "#/$defs/Regions" \}\
+          \}\
+        \},\
+\
+        "related_routines": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "description": "Routine IDs that include or pair well with this ingredient.",\
+          "default": []\
+        \},\
+\
+        "review": \{ "$ref": "#/$defs/ContentReviewMeta" \}\
+      \}\
+    \},\
+\
+    "ContentReviewMeta": \{\
+      "type": "object",\
+      "required": ["status"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "status": \{\
+          "type": "string",\
+          "enum": ["draft", "internally_reviewed", "practitioner_reviewed", "influencer_reviewed", "published"]\
+        \},\
+        "reviewers": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Reviewer" \},\
+          "default": []\
+        \},\
+        "last_reviewed_at": \{ "type": "string", "format": "date-time" \}\
+      \}\
+    \},\
+\
+    "Routine": \{\
+      "type": "object",\
+      "required": [\
+        "id",\
+        "type",\
+        "title",\
+        "duration_min",\
+        "difficulty",\
+        "tags",\
+        "goals",\
+        "steps",\
+        "ingredient_refs",\
+        "why",\
+        "swaps",\
+        "cautions",\
+        "review"\
+      ],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+        "type": \{ "type": "string", "enum": ["eat_drink"] \},\
+\
+        "title": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "subtitle": \{ "$ref": "#/$defs/LocalizedString" \},\
+\
+        "duration_min": \{ "type": "integer", "minimum": 1, "maximum": 60 \},\
+        "difficulty": \{ "type": "string", "enum": ["easy", "medium"] \},\
+\
+        "tags": \{ "$ref": "#/$defs/AxisTags" \},\
+        "goals": \{ "$ref": "#/$defs/Goals" \},\
+        "seasons": \{ "$ref": "#/$defs/Seasons" \},\
+\
+        "terrain_fit": \{\
+          "type": "array",\
+          "description": "TerrainProfile IDs this routine commonly suits.",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \},\
+\
+        "ingredient_refs": \{\
+          "type": "array",\
+          "description": "Ingredient IDs used or strongly paired.",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "minItems": 0\
+        \},\
+\
+        "steps": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/RoutineStep" \},\
+          "minItems": 1\
+        \},\
+\
+        "why": \{\
+          "type": "object",\
+          "required": ["one_line", "expanded"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "one_line": \{ "$ref": "#/$defs/LocalizedString" \},\
+            "expanded": \{\
+              "type": "object",\
+              "required": ["plain", "tcm"],\
+              "additionalProperties": false,\
+              "properties": \{\
+                "plain": \{ "$ref": "#/$defs/LocalizedString" \},\
+                "tcm": \{ "$ref": "#/$defs/LocalizedString" \}\
+              \}\
+            \}\
+          \}\
+        \},\
+\
+        "swaps": \{\
+          "type": "array",\
+          "description": "Alternative routine IDs or ingredient swap suggestions.",\
+          "items": \{ "$ref": "#/$defs/SwapOption" \},\
+          "default": []\
+        \},\
+\
+        "avoid_for_hours": \{\
+          "type": "integer",\
+          "minimum": 0,\
+          "maximum": 12,\
+          "default": 0,\
+          "description": "If >0, app can show 'avoid X for N hours' guidance."\
+        \},\
+\
+        "avoid_notes": \{\
+          "$ref": "#/$defs/LocalizedString",\
+          "description": "Short note describing what to avoid; displayed mainly in Right Now."\
+        \},\
+\
+        "cautions": \{\
+          "type": "object",\
+          "required": ["flags", "text"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "flags": \{ "$ref": "#/$defs/SafetyFlags" \},\
+            "text": \{ "$ref": "#/$defs/LocalizedString" \}\
+          \}\
+        \},\
+\
+        "media": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/MediaAsset" \},\
+          "default": []\
+        \},\
+\
+        "review": \{ "$ref": "#/$defs/ContentReviewMeta" \}\
+      \}\
+    \},\
+\
+    "RoutineStep": \{\
+      "type": "object",\
+      "required": ["text"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "text": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "timer_seconds": \{ "type": "integer", "minimum": 0, "default": 0 \},\
+        "ingredient_refs": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \}\
+      \}\
+    \},\
+\
+    "SwapOption": \{\
+      "type": "object",\
+      "required": ["label", "type"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "label": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "type": \{ "type": "string", "enum": ["routine_ref", "ingredient_swap_note"] \},\
+        "routine_ref": \{ "$ref": "#/$defs/Id" \},\
+        "note": \{ "$ref": "#/$defs/LocalizedString" \}\
+      \},\
+      "allOf": [\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "routine_ref" \} \} \},\
+          "then": \{ "required": ["routine_ref"] \}\
+        \},\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "ingredient_swap_note" \} \} \},\
+          "then": \{ "required": ["note"] \}\
+        \}\
+      ]\
+    \},\
+\
+    "Movement": \{\
+      "type": "object",\
+      "required": [\
+        "id",\
+        "title",\
+        "duration_min",\
+        "intensity",\
+        "tags",\
+        "goals",\
+        "frames",\
+        "why",\
+        "cautions",\
+        "review"\
+      ],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+        "title": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "subtitle": \{ "$ref": "#/$defs/LocalizedString" \},\
+\
+        "duration_min": \{ "type": "integer", "minimum": 1, "maximum": 30 \},\
+        "intensity": \{ "type": "string", "enum": ["restorative", "gentle", "moderate"] \},\
+\
+        "tags": \{ "$ref": "#/$defs/AxisTags" \},\
+        "goals": \{ "$ref": "#/$defs/Goals" \},\
+        "seasons": \{ "$ref": "#/$defs/Seasons" \},\
+\
+        "terrain_fit": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \},\
+\
+        "frames": \{\
+          "type": "array",\
+          "minItems": 2,\
+          "items": \{ "$ref": "#/$defs/MovementFrame" \},\
+          "description": "Illustrated step frames (SVG/Lottie recommended)."\
+        \},\
+\
+        "why": \{\
+          "type": "object",\
+          "required": ["one_line", "expanded"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "one_line": \{ "$ref": "#/$defs/LocalizedString" \},\
+            "expanded": \{\
+              "type": "object",\
+              "required": ["plain", "tcm"],\
+              "additionalProperties": false,\
+              "properties": \{\
+                "plain": \{ "$ref": "#/$defs/LocalizedString" \},\
+                "tcm": \{ "$ref": "#/$defs/LocalizedString" \}\
+              \}\
+            \}\
+          \}\
+        \},\
+\
+        "cautions": \{\
+          "type": "object",\
+          "required": ["flags", "text"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "flags": \{ "$ref": "#/$defs/SafetyFlags" \},\
+            "text": \{ "$ref": "#/$defs/LocalizedString" \}\
+          \}\
+        \},\
+\
+        "review": \{ "$ref": "#/$defs/ContentReviewMeta" \}\
+      \}\
+    \},\
+\
+    "MovementFrame": \{\
+      "type": "object",\
+      "required": ["asset", "cue"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "asset": \{ "$ref": "#/$defs/MediaAsset" \},\
+        "cue": \{ "$ref": "#/$defs/LocalizedString", "description": "One-line instruction per frame." \},\
+        "seconds": \{ "type": "integer", "minimum": 1, "maximum": 120, "default": 10 \}\
+      \}\
+    \},\
+\
+    "Lesson": \{\
+      "type": "object",\
+      "required": ["id", "title", "topic", "body", "takeaway", "cta", "review"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+        "title": \{ "$ref": "#/$defs/LocalizedString" \},\
+\
+        "topic": \{\
+          "type": "string",\
+          "enum": ["cold_heat", "damp_dry", "shen", "qi_flow", "seasonality", "methods", "safety"],\
+          "description": "Field Guide topic."\
+        \},\
+\
+        "body": \{\
+          "type": "array",\
+          "minItems": 1,\
+          "items": \{ "$ref": "#/$defs/LessonBlock" \}\
+        \},\
+\
+        "takeaway": \{\
+          "type": "object",\
+          "required": ["one_line"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "one_line": \{ "$ref": "#/$defs/LocalizedString" \}\
+          \}\
+        \},\
+\
+        "cta": \{\
+          "type": "object",\
+          "required": ["label", "action"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "label": \{ "$ref": "#/$defs/LocalizedString" \},\
+            "action": \{\
+              "type": "string",\
+              "enum": ["open_today", "open_right_now", "open_ingredients", "open_routine", "open_movement"]\
+            \},\
+            "ref_id": \{ "$ref": "#/$defs/Id", "description": "Optional routine/movement/ingredient ref." \}\
+          \}\
+        \},\
+\
+        "review": \{ "$ref": "#/$defs/ContentReviewMeta" \}\
+      \}\
+    \},\
+\
+    "LessonBlock": \{\
+      "type": "object",\
+      "required": ["type"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "type": \{ "type": "string", "enum": ["paragraph", "bullets", "callout", "image"] \},\
+        "text": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "bullets": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/LocalizedString" \},\
+          "default": []\
+        \},\
+        "asset": \{ "$ref": "#/$defs/MediaAsset" \}\
+      \},\
+      "allOf": [\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "paragraph" \} \} \},\
+          "then": \{ "required": ["text"] \}\
+        \},\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "callout" \} \} \},\
+          "then": \{ "required": ["text"] \}\
+        \},\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "bullets" \} \} \},\
+          "then": \{ "required": ["bullets"] \}\
+        \},\
+        \{\
+          "if": \{ "properties": \{ "type": \{ "const": "image" \} \} \},\
+          "then": \{ "required": ["asset"] \}\
+        \}\
+      ]\
+    \},\
+\
+    "Program": \{\
+      "type": "object",\
+      "required": ["id", "title", "summary", "duration_days", "days", "tags", "goals", "review"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+        "title": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "summary": \{ "$ref": "#/$defs/LocalizedString" \},\
+\
+        "duration_days": \{ "type": "integer", "minimum": 3, "maximum": 30 \},\
+\
+        "tags": \{ "$ref": "#/$defs/AxisTags" \},\
+        "goals": \{ "$ref": "#/$defs/Goals" \},\
+        "seasons": \{ "$ref": "#/$defs/Seasons" \},\
+\
+        "terrain_fit": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \},\
+\
+        "days": \{\
+          "type": "array",\
+          "minItems": 3,\
+          "items": \{ "$ref": "#/$defs/ProgramDay" \}\
+        \},\
+\
+        "paywall_tier": \{\
+          "type": "string",\
+          "enum": ["free", "paid"],\
+          "default": "paid"\
+        \},\
+\
+        "review": \{ "$ref": "#/$defs/ContentReviewMeta" \}\
+      \}\
+    \},\
+\
+    "ProgramDay": \{\
+      "type": "object",\
+      "required": ["day_index", "routine_full", "routine_lite", "routine_minimum", "movement_full", "movement_lite", "movement_minimum"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "day_index": \{ "type": "integer", "minimum": 1, "maximum": 30 \},\
+\
+        "routine_full": \{ "$ref": "#/$defs/Id" \},\
+        "routine_lite": \{ "$ref": "#/$defs/Id" \},\
+        "routine_minimum": \{ "$ref": "#/$defs/Id" \},\
+\
+        "movement_full": \{ "$ref": "#/$defs/Id" \},\
+        "movement_lite": \{ "$ref": "#/$defs/Id" \},\
+        "movement_minimum": \{ "$ref": "#/$defs/Id" \},\
+\
+        "lesson_ref": \{ "$ref": "#/$defs/Id" \}\
+      \}\
+    \},\
+\
+    "TerrainProfile": \{\
+      "type": "object",\
+      "required": ["id", "label", "nickname", "modifier", "superpower", "trap", "signature_ritual", "principles", "recommended_tags", "avoid_tags"],\
+      "additionalProperties": false,\
+      "properties": \{\
+        "id": \{ "$ref": "#/$defs/Id" \},\
+\
+        "label": \{\
+          "type": "object",\
+          "required": ["primary"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "primary": \{ "$ref": "#/$defs/LocalizedString", "description": "e.g., 'Cold + Deficient'" \},\
+            "secondary": \{ "$ref": "#/$defs/LocalizedString", "description": "Optional additional label." \}\
+          \}\
+        \},\
+\
+        "nickname": \{\
+          "$ref": "#/$defs/LocalizedString",\
+          "description": "Human nickname shown in parentheses, e.g., 'Low Flame'."\
+        \},\
+\
+        "modifier": \{\
+          "type": "object",\
+          "required": ["key", "display"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "key": \{ "type": "string", "enum": ["damp", "dry", "stagnation", "shen", "none"] \},\
+            "display": \{ "$ref": "#/$defs/LocalizedString", "description": "e.g., 'Damp (Heavy)'" \}\
+          \}\
+        \},\
+\
+        "principles": \{\
+          "type": "object",\
+          "required": ["yin_yang", "cold_heat", "def_excess", "interior_exterior"],\
+          "additionalProperties": false,\
+          "properties": \{\
+            "yin_yang": \{ "type": "string", "enum": ["yin_leaning", "yang_leaning", "balanced"] \},\
+            "cold_heat": \{ "type": "string", "enum": ["cold", "neutral", "warm"] \},\
+            "def_excess": \{ "type": "string", "enum": ["deficient", "balanced", "excess"] \},\
+            "interior_exterior": \{ "type": "string", "enum": ["interior", "exterior_prone", "balanced"] \}\
+          \}\
+        \},\
+\
+        "superpower": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "trap": \{ "$ref": "#/$defs/LocalizedString" \},\
+        "signature_ritual": \{ "$ref": "#/$defs/LocalizedString" \},\
+\
+        "truths": \{\
+          "type": "array",\
+          "minItems": 2,\
+          "maxItems": 4,\
+          "items": \{ "$ref": "#/$defs/LocalizedString" \},\
+          "description": "Short, identity-resonant truths."\
+        \},\
+\
+        "recommended_tags": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/AxisTag" \},\
+          "minItems": 1,\
+          "uniqueItems": true\
+        \},\
+\
+        "avoid_tags": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/AxisTag" \},\
+          "uniqueItems": true,\
+          "default": []\
+        \},\
+\
+        "starter_ingredients": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \},\
+\
+        "starter_movements": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \},\
+\
+        "starter_routines": \{\
+          "type": "array",\
+          "items": \{ "$ref": "#/$defs/Id" \},\
+          "default": []\
+        \}\
+      \}\
+    \}\
+  \}\
+\}\
+}
