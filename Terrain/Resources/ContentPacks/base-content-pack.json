@@ -1,0 +1,381 @@
+{
+  "pack": {
+    "version": "1.0.0",
+    "default_locale": "en-US",
+    "supported_locales": ["en-US"],
+    "updated_at": "2025-01-28T00:00:00Z",
+    "review": {
+      "status": "draft",
+      "reviewed_by": []
+    }
+  },
+  "ingredients": [
+    {
+      "id": "ginger",
+      "name": {
+        "common": { "en-US": "Ginger" },
+        "pinyin": "shēng jiāng",
+        "hanzi": "生姜"
+      },
+      "category": "root",
+      "tags": ["warming", "supports_digestion"],
+      "goals": ["digestion", "energy"],
+      "seasons": ["all_year"],
+      "regions": ["pan_chinese_common"],
+      "why_it_helps": {
+        "plain": { "en-US": "Warms the stomach and supports digestion. Helps with nausea and cold symptoms." },
+        "tcm": { "en-US": "Warms the Middle Jiao, disperses cold, and harmonizes the Stomach." }
+      },
+      "how_to_use": {
+        "quick_uses": [
+          { "text": { "en-US": "Add 2-3 slices to hot water for tea" }, "prep_time_min": 5, "method_tags": ["steep"] },
+          { "text": { "en-US": "Grate into congee or soup" }, "prep_time_min": 1, "method_tags": ["stir_in"] }
+        ],
+        "typical_amount": { "en-US": "2-3 slices fresh or 1/2 tsp dried" }
+      },
+      "cautions": {
+        "flags": [],
+        "text": { "en-US": "Use moderately if you run warm or have acid reflux." }
+      },
+      "cultural_context": {
+        "blurb": { "en-US": "A kitchen staple across China, ginger is commonly used in home cooking to warm dishes and aid digestion." },
+        "common_in": ["pan_chinese_common"]
+      },
+      "review": { "status": "draft" }
+    },
+    {
+      "id": "red-dates",
+      "name": {
+        "common": { "en-US": "Red Dates" },
+        "pinyin": "hóng zǎo",
+        "hanzi": "红枣",
+        "other_names": [{ "en-US": "Jujube" }]
+      },
+      "category": "fruit",
+      "tags": ["supports_deficiency", "warming"],
+      "goals": ["energy", "sleep"],
+      "seasons": ["autumn", "winter"],
+      "regions": ["northern_winter_warmth", "pan_chinese_common"],
+      "why_it_helps": {
+        "plain": { "en-US": "Nourishes and supports energy. Gently calming and helps with sleep." },
+        "tcm": { "en-US": "Tonifies Qi and Blood, calms the Shen, and strengthens the Spleen." }
+      },
+      "how_to_use": {
+        "quick_uses": [
+          { "text": { "en-US": "Add 3-5 dates to hot water or tea" }, "prep_time_min": 5, "method_tags": ["steep"] },
+          { "text": { "en-US": "Simmer in soups or congee" }, "prep_time_min": 30, "method_tags": ["simmer", "congee"] }
+        ],
+        "typical_amount": { "en-US": "3-5 dates" }
+      },
+      "cautions": {
+        "flags": [],
+        "text": { "en-US": "Limit if you have excess dampness or feel bloated." }
+      },
+      "cultural_context": {
+        "blurb": { "en-US": "Red dates are a beloved tonic in Chinese homes, often added to soups and teas for nourishment." },
+        "common_in": ["northern_winter_warmth", "cantonese_home_soups"]
+      },
+      "review": { "status": "draft" }
+    },
+    {
+      "id": "goji-berry",
+      "name": {
+        "common": { "en-US": "Goji Berry" },
+        "pinyin": "gǒu qǐ zǐ",
+        "hanzi": "枸杞子",
+        "other_names": [{ "en-US": "Wolfberry" }]
+      },
+      "category": "fruit",
+      "tags": ["supports_deficiency", "moistens_dryness"],
+      "goals": ["energy", "skin"],
+      "seasons": ["all_year"],
+      "regions": ["pan_chinese_common"],
+      "why_it_helps": {
+        "plain": { "en-US": "Supports eye health and gently nourishes. Good for dryness." },
+        "tcm": { "en-US": "Nourishes Liver and Kidney Yin, benefits the eyes, and moistens dryness." }
+      },
+      "how_to_use": {
+        "quick_uses": [
+          { "text": { "en-US": "Add a small handful to tea or oatmeal" }, "prep_time_min": 1, "method_tags": ["steep", "oatmeal"] },
+          { "text": { "en-US": "Simmer in soups" }, "prep_time_min": 30, "method_tags": ["simmer"] }
+        ],
+        "typical_amount": { "en-US": "1-2 tablespoons" }
+      },
+      "cautions": {
+        "flags": [],
+        "text": { "en-US": "Use moderately if you have loose stools or feel cold." }
+      },
+      "cultural_context": {
+        "blurb": { "en-US": "A common addition to soups and teas, goji berries are valued for their gentle nourishing properties." },
+        "common_in": ["pan_chinese_common", "cantonese_home_soups"]
+      },
+      "review": { "status": "draft" }
+    },
+    {
+      "id": "green-tea",
+      "name": {
+        "common": { "en-US": "Green Tea" },
+        "pinyin": "lǜ chá",
+        "hanzi": "绿茶"
+      },
+      "category": "tea",
+      "tags": ["cooling", "moves_qi"],
+      "goals": ["energy", "digestion"],
+      "seasons": ["spring", "summer"],
+      "regions": ["jiangnan_gentle", "pan_chinese_common"],
+      "why_it_helps": {
+        "plain": { "en-US": "Gently energizing without the jitters. Cooling and supports mental clarity." },
+        "tcm": { "en-US": "Clears heat, promotes urination, and calms the mind while promoting alertness." }
+      },
+      "how_to_use": {
+        "quick_uses": [
+          { "text": { "en-US": "Steep in hot (not boiling) water for 2-3 minutes" }, "prep_time_min": 3, "method_tags": ["steep"] }
+        ],
+        "typical_amount": { "en-US": "1-2 teaspoons loose leaf or 1 tea bag" }
+      },
+      "cautions": {
+        "flags": ["caffeine"],
+        "text": { "en-US": "Contains caffeine. Avoid late in the day if sensitive to caffeine." }
+      },
+      "cultural_context": {
+        "blurb": { "en-US": "Green tea is a daily staple in many Chinese households, enjoyed for its subtle flavor and health benefits." },
+        "common_in": ["jiangnan_gentle", "pan_chinese_common"]
+      },
+      "review": { "status": "draft" }
+    },
+    {
+      "id": "mung-bean",
+      "name": {
+        "common": { "en-US": "Mung Bean" },
+        "pinyin": "lǜ dòu",
+        "hanzi": "绿豆"
+      },
+      "category": "legume",
+      "tags": ["cooling", "dries_damp"],
+      "goals": ["skin", "digestion"],
+      "seasons": ["summer", "late_summer"],
+      "regions": ["cantonese_home_soups", "pan_chinese_common"],
+      "why_it_helps": {
+        "plain": { "en-US": "Cooling and cleansing. Great for hot weather and skin issues." },
+        "tcm": { "en-US": "Clears heat, resolves toxins, and promotes urination to clear dampness." }
+      },
+      "how_to_use": {
+        "quick_uses": [
+          { "text": { "en-US": "Cook into a sweet soup with rock sugar" }, "prep_time_min": 45, "method_tags": ["simmer"] },
+          { "text": { "en-US": "Add to congee" }, "prep_time_min": 30, "method_tags": ["congee"] }
+        ],
+        "typical_amount": { "en-US": "1/4 cup dried" }
+      },
+      "cautions": {
+        "flags": [],
+        "text": { "en-US": "Use less if you run cold or have weak digestion." }
+      },
+      "cultural_context": {
+        "blurb": { "en-US": "Mung bean soup is a classic summer refresher in Cantonese cuisine, valued for its cooling properties." },
+        "common_in": ["cantonese_home_soups", "taiwaneseHomeStyle"]
+      },
+      "review": { "status": "draft" }
+    }
+  ],
+  "routines": [
+    {
+      "id": "warm-start-congee-full",
+      "type": "eat_drink",
+      "title": { "en-US": "Warm Start Congee" },
+      "subtitle": { "en-US": "Nourishing breakfast to warm your center" },
+      "duration_min": 15,
+      "difficulty": "easy",
+      "tags": ["warming", "supports_digestion", "supports_deficiency"],
+      "goals": ["digestion", "energy"],
+      "seasons": ["all_year"],
+      "terrain_fit": ["cold_deficient_low_flame", "cold_balanced_cool_core", "neutral_deficient_low_battery"],
+      "ingredient_refs": ["ginger", "rice"],
+      "steps": [
+        { "text": { "en-US": "Bring 4 cups water to a boil" }, "timer_seconds": 0 },
+        { "text": { "en-US": "Add 1/2 cup rice and 2 slices fresh ginger" }, "timer_seconds": 0 },
+        { "text": { "en-US": "Reduce heat and simmer, stirring occasionally" }, "timer_seconds": 600 },
+        { "text": { "en-US": "Add salt to taste and top with scallions" }, "timer_seconds": 0 },
+        { "text": { "en-US": "Eat slowly, savoring the warmth" }, "timer_seconds": 0 }
+      ],
+      "why": {
+        "one_line": { "en-US": "Congee is easily digestible and warming to the center." },
+        "expanded": {
+          "plain": { "en-US": "The long cooking breaks down the rice, making nutrients readily available. Ginger adds warming properties that support digestion." },
+          "tcm": { "en-US": "Congee supports the Spleen and Stomach, which are responsible for transforming food into usable energy (Qi). Morning warmth protects digestive fire." }
+        }
+      },
+      "swaps": [
+        { "label": { "en-US": "Ginger Honey Tea" }, "type": "routine_ref", "routine_ref": "ginger-honey-tea-lite" }
+      ],
+      "avoid_for_hours": 0,
+      "cautions": { "flags": [], "text": { "en-US": "" } },
+      "review": { "status": "draft" }
+    },
+    {
+      "id": "ginger-honey-tea-lite",
+      "type": "eat_drink",
+      "title": { "en-US": "Ginger Honey Tea" },
+      "subtitle": { "en-US": "Quick warming drink" },
+      "duration_min": 5,
+      "difficulty": "easy",
+      "tags": ["warming", "supports_digestion"],
+      "goals": ["digestion", "energy"],
+      "seasons": ["all_year"],
+      "terrain_fit": ["cold_deficient_low_flame", "cold_balanced_cool_core"],
+      "ingredient_refs": ["ginger"],
+      "steps": [
+        { "text": { "en-US": "Slice 3-4 thin pieces of fresh ginger" }, "timer_seconds": 0 },
+        { "text": { "en-US": "Place in a mug and pour hot water over" }, "timer_seconds": 0 },
+        { "text": { "en-US": "Let steep for 3-5 minutes" }, "timer_seconds": 180 },
+        { "text": { "en-US": "Add honey to taste and sip slowly" }, "timer_seconds": 0 }
+      ],
+      "why": {
+        "one_line": { "en-US": "Fresh ginger tea warms the stomach and supports digestion." },
+        "expanded": {
+          "plain": { "en-US": "The honey adds gentle sweetness and has soothing properties. Best consumed warm, not hot." },
+          "tcm": { "en-US": "Ginger warms the Middle Jiao and helps disperse cold. Honey moistens and harmonizes." }
+        }
+      },
+      "swaps": [],
+      "avoid_for_hours": 2,
+      "avoid_notes": { "en-US": "Avoid cold drinks for 2 hours to preserve warming effect" },
+      "cautions": { "flags": ["gerd_caution"], "text": { "en-US": "Use less ginger if you have acid reflux." } },
+      "review": { "status": "draft" }
+    }
+  ],
+  "movements": [
+    {
+      "id": "morning-qi-flow-full",
+      "title": { "en-US": "Morning Qi Flow" },
+      "subtitle": { "en-US": "Wake up your body gently" },
+      "duration_min": 7,
+      "intensity": "gentle",
+      "tags": ["moves_qi", "warming"],
+      "goals": ["energy", "stress"],
+      "seasons": ["all_year"],
+      "terrain_fit": ["cold_deficient_low_flame", "neutral_deficient_low_battery", "neutral_balanced_steady_core"],
+      "frames": [
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-1" }, "cue": { "en-US": "Stand with feet hip-width apart, arms relaxed" }, "seconds": 10 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-2" }, "cue": { "en-US": "Inhale deeply, raising arms overhead" }, "seconds": 8 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-3" }, "cue": { "en-US": "Exhale slowly, folding forward" }, "seconds": 10 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-4" }, "cue": { "en-US": "Inhale, rise halfway with flat back" }, "seconds": 8 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-5" }, "cue": { "en-US": "Exhale, fold deeper" }, "seconds": 10 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-6" }, "cue": { "en-US": "Inhale, roll up slowly, arms rising" }, "seconds": 10 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-7" }, "cue": { "en-US": "Gentle twist to the right" }, "seconds": 15 },
+        { "asset": { "type": "svg", "uri": "movements/qi-flow-8" }, "cue": { "en-US": "Gentle twist to the left" }, "seconds": 15 }
+      ],
+      "why": {
+        "one_line": { "en-US": "Gentle movement in the morning wakes up your body and gets energy flowing." },
+        "expanded": {
+          "plain": { "en-US": "Stretching and breathing help release overnight tension and prepare your body for the day." },
+          "tcm": { "en-US": "Morning movement helps circulate Qi that can become stagnant during sleep. Twists support the Liver's function of ensuring smooth flow." }
+        }
+      },
+      "cautions": { "flags": [], "text": { "en-US": "Move gently and don't force any positions." } },
+      "review": { "status": "draft" }
+    }
+  ],
+  "lessons": [
+    {
+      "id": "understanding-cold-heat",
+      "title": { "en-US": "Understanding Cold & Heat" },
+      "topic": "cold_heat",
+      "body": [
+        { "type": "paragraph", "text": { "en-US": "In TCM, 'cold' and 'heat' don't just refer to temperature—they describe patterns in how your body functions." } },
+        { "type": "paragraph", "text": { "en-US": "Someone who 'runs cold' might feel chilly easily, prefer warm drinks, and have slower digestion. Someone who 'runs hot' might feel warm, prefer cool drinks, and have a faster metabolism." } },
+        { "type": "callout", "text": { "en-US": "These patterns aren't fixed—they can change with seasons, stress, and lifestyle." } },
+        { "type": "bullets", "bullets": [
+          { "en-US": "Cold signs: feeling chilly, pale complexion, preferring warm drinks, loose stools" },
+          { "en-US": "Heat signs: feeling warm, flushed face, preferring cool drinks, constipation" }
+        ] }
+      ],
+      "takeaway": { "one_line": { "en-US": "Understanding your temperature tendency helps you choose foods and habits that balance your body." } },
+      "cta": { "label": { "en-US": "See your routine" }, "action": "open_today" },
+      "review": { "status": "draft" }
+    }
+  ],
+  "programs": [],
+  "terrain_profiles": [
+    {
+      "id": "cold_deficient_low_flame",
+      "label": {
+        "primary": { "en-US": "Cold + Deficient" }
+      },
+      "nickname": { "en-US": "Low Flame" },
+      "modifier": { "key": "none", "display": { "en-US": "" } },
+      "principles": {
+        "yin_yang": "yin_leaning",
+        "cold_heat": "cold",
+        "def_excess": "deficient",
+        "interior_exterior": "interior"
+      },
+      "superpower": { "en-US": "When you're consistent, you become steady. Warmth and routine unlock your best energy." },
+      "trap": { "en-US": "Cold inputs and skipping meals drain you faster than you expect." },
+      "signature_ritual": { "en-US": "Warm start within 30 minutes of waking." },
+      "truths": [
+        { "en-US": "Your system does better with gentle build-up than big pushes." },
+        { "en-US": "Cooked food stabilizes you—raw/cold hits harder for you than most." },
+        { "en-US": "Movement works best for you when it warms you up, not when it exhausts you." }
+      ],
+      "recommended_tags": ["warming", "supports_deficiency", "supports_digestion"],
+      "avoid_tags": ["cooling"],
+      "starter_ingredients": ["ginger", "red-dates", "cinnamon"],
+      "starter_movements": ["morning-qi-flow-full"],
+      "starter_routines": ["warm-start-congee-full"]
+    },
+    {
+      "id": "neutral_balanced_steady_core",
+      "label": {
+        "primary": { "en-US": "Neutral + Balanced" }
+      },
+      "nickname": { "en-US": "Steady Core" },
+      "modifier": { "key": "none", "display": { "en-US": "" } },
+      "principles": {
+        "yin_yang": "balanced",
+        "cold_heat": "neutral",
+        "def_excess": "balanced",
+        "interior_exterior": "balanced"
+      },
+      "superpower": { "en-US": "You adapt well. With the right ritual, you can fine-tune sleep, digestion, and energy quickly." },
+      "trap": { "en-US": "When your schedule gets chaotic, your body follows." },
+      "signature_ritual": { "en-US": "A daily anchor: one warm drink + one short movement." },
+      "truths": [
+        { "en-US": "You're responsive—small routines keep you aligned." },
+        { "en-US": "Your biggest lever is consistency, not strictness." },
+        { "en-US": "You can tolerate variety, but your body loves rhythm." }
+      ],
+      "recommended_tags": ["supports_digestion", "moves_qi"],
+      "avoid_tags": [],
+      "starter_ingredients": ["green-tea", "ginger", "goji-berry"],
+      "starter_movements": ["morning-qi-flow-full"],
+      "starter_routines": ["ginger-honey-tea-lite"]
+    },
+    {
+      "id": "warm_excess_overclocked",
+      "label": {
+        "primary": { "en-US": "Warm + Excess" }
+      },
+      "nickname": { "en-US": "Overclocked" },
+      "modifier": { "key": "none", "display": { "en-US": "" } },
+      "principles": {
+        "yin_yang": "yang_leaning",
+        "cold_heat": "warm",
+        "def_excess": "excess",
+        "interior_exterior": "interior"
+      },
+      "superpower": { "en-US": "You have intensity. When it's directed, you're powerful and sharp." },
+      "trap": { "en-US": "You can overrun your nervous system—sleep becomes the first casualty." },
+      "signature_ritual": { "en-US": "A nightly downshift: breath + screens off." },
+      "truths": [
+        { "en-US": "Your body runs hot under stress." },
+        { "en-US": "You need deliberate cooling signals, not more stimulation." },
+        { "en-US": "Your best days start with calm, not urgency." }
+      ],
+      "recommended_tags": ["cooling", "calms_shen", "reduces_excess"],
+      "avoid_tags": ["warming"],
+      "starter_ingredients": ["mung-bean", "green-tea", "goji-berry"],
+      "starter_movements": [],
+      "starter_routines": []
+    }
+  ]
+}
