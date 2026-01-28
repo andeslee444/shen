@@ -67,12 +67,16 @@ When implementing features, follow these principles from the PRD:
 
 ## MCP Servers Available
 
-- `puppeteer` - Browser automation
+- `puppeteer` - Browser automation (prefer Playwright when possible)
 - `browser-tools-mcp` - Browser debugging
 - `supabase` - Database operations
 - `shadcn-ui` - UI component library
 - `filesystem` - File operations
 - `@21st-dev/magic` - UI component generation
+
+## Testing Preferences
+
+- **Browser automation**: Prefer Playwright over Puppeteer for testing and browser automation tasks
 
 ## Next Steps for Development
 
