@@ -1,0 +1,694 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		/* App */
+		E10000010000000000000001 /* TerrainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000001 /* TerrainApp.swift */; };
+		E10000010000000000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000002 /* MainTabView.swift */; };
+
+		/* Core/Models/Content */
+		E10000020000000000000001 /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000001 /* Ingredient.swift */; };
+		E10000020000000000000002 /* Lesson.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000002 /* Lesson.swift */; };
+		E10000020000000000000003 /* Movement.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000003 /* Movement.swift */; };
+		E10000020000000000000004 /* Program.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000004 /* Program.swift */; };
+		E10000020000000000000005 /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000005 /* Routine.swift */; };
+		E10000020000000000000006 /* TerrainProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000006 /* TerrainProfile.swift */; };
+
+		/* Core/Models/User */
+		E10000030000000000000001 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000001 /* UserProfile.swift */; };
+		E10000030000000000000002 /* UserCabinet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000002 /* UserCabinet.swift */; };
+		E10000030000000000000003 /* DailyLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000003 /* DailyLog.swift */; };
+		E10000030000000000000004 /* ProgressRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000004 /* ProgressRecord.swift */; };
+
+		/* Core/Models/Shared */
+		E10000040000000000000001 /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000001 /* LocalizedString.swift */; };
+		E10000040000000000000002 /* Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000002 /* Tags.swift */; };
+		E10000040000000000000003 /* SafetyFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000003 /* SafetyFlags.swift */; };
+		E10000040000000000000004 /* MediaAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000004 /* MediaAsset.swift */; };
+
+		/* Core/Engine */
+		E10000050000000000000001 /* TerrainScoringEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000050000000000000001 /* TerrainScoringEngine.swift */; };
+
+		/* Core/Services */
+		E10000060000000000000001 /* ContentPackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000001 /* ContentPackService.swift */; };
+
+		/* Features/Onboarding */
+		E10000070000000000000001 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000001 /* WelcomeView.swift */; };
+		E10000070000000000000002 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000002 /* GoalsView.swift */; };
+		E10000070000000000000003 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000003 /* QuizView.swift */; };
+		E10000070000000000000004 /* TerrainRevealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000004 /* TerrainRevealView.swift */; };
+		E10000070000000000000005 /* SafetyGateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000005 /* SafetyGateView.swift */; };
+		E10000070000000000000006 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000006 /* NotificationsView.swift */; };
+		E10000070000000000000007 /* OnboardingCoordinatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000007 /* OnboardingCoordinatorView.swift */; };
+
+		/* Features/Today */
+		E10000080000000000000001 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000001 /* TodayView.swift */; };
+		E10000080000000000000002 /* DailyCheckInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000002 /* DailyCheckInSheet.swift */; };
+		E10000080000000000000003 /* RoutineDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000003 /* RoutineDetailSheet.swift */; };
+		E10000080000000000000004 /* MovementPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000004 /* MovementPlayerSheet.swift */; };
+
+		/* Features/RightNow */
+		E10000090000000000000001 /* RightNowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000090000000000000001 /* RightNowView.swift */; };
+
+		/* Features/Ingredients */
+		E100000A0000000000000001 /* IngredientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000001 /* IngredientsView.swift */; };
+
+		/* Features/Learn */
+		E100000B0000000000000001 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000B0000000000000001 /* LearnView.swift */; };
+
+		/* Features/Progress */
+		E100000C0000000000000001 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000C0000000000000001 /* ProgressView.swift */; };
+
+		/* DesignSystem/Theme */
+		E100000D0000000000000001 /* TerrainTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000D0000000000000001 /* TerrainTheme.swift */; };
+
+		/* DesignSystem/Components */
+		E100000E0000000000000001 /* TerrainButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000001 /* TerrainButton.swift */; };
+		E100000E0000000000000002 /* TerrainCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000002 /* TerrainCard.swift */; };
+		E100000E0000000000000003 /* TerrainTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000003 /* TerrainTextField.swift */; };
+
+		/* Resources */
+		E100000F0000000000000001 /* base-content-pack.json in Resources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000001 /* base-content-pack.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		E00000000000000000000001 /* Terrain.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Terrain.app; sourceTree = BUILT_PRODUCTS_DIR; };
+
+		/* App */
+		E20000010000000000000001 /* TerrainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainApp.swift; sourceTree = "<group>"; };
+		E20000010000000000000002 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+
+		/* Core/Models/Content */
+		E20000020000000000000001 /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
+		E20000020000000000000002 /* Lesson.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Lesson.swift; sourceTree = "<group>"; };
+		E20000020000000000000003 /* Movement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Movement.swift; sourceTree = "<group>"; };
+		E20000020000000000000004 /* Program.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Program.swift; sourceTree = "<group>"; };
+		E20000020000000000000005 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
+		E20000020000000000000006 /* TerrainProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainProfile.swift; sourceTree = "<group>"; };
+
+		/* Core/Models/User */
+		E20000030000000000000001 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		E20000030000000000000002 /* UserCabinet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCabinet.swift; sourceTree = "<group>"; };
+		E20000030000000000000003 /* DailyLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLog.swift; sourceTree = "<group>"; };
+		E20000030000000000000004 /* ProgressRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRecord.swift; sourceTree = "<group>"; };
+
+		/* Core/Models/Shared */
+		E20000040000000000000001 /* LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
+		E20000040000000000000002 /* Tags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tags.swift; sourceTree = "<group>"; };
+		E20000040000000000000003 /* SafetyFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyFlags.swift; sourceTree = "<group>"; };
+		E20000040000000000000004 /* MediaAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAsset.swift; sourceTree = "<group>"; };
+
+		/* Core/Engine */
+		E20000050000000000000001 /* TerrainScoringEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainScoringEngine.swift; sourceTree = "<group>"; };
+
+		/* Core/Services */
+		E20000060000000000000001 /* ContentPackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPackService.swift; sourceTree = "<group>"; };
+
+		/* Features/Onboarding */
+		E20000070000000000000001 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		E20000070000000000000002 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
+		E20000070000000000000003 /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
+		E20000070000000000000004 /* TerrainRevealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainRevealView.swift; sourceTree = "<group>"; };
+		E20000070000000000000005 /* SafetyGateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyGateView.swift; sourceTree = "<group>"; };
+		E20000070000000000000006 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
+		E20000070000000000000007 /* OnboardingCoordinatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinatorView.swift; sourceTree = "<group>"; };
+
+		/* Features/Today */
+		E20000080000000000000001 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		E20000080000000000000002 /* DailyCheckInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCheckInSheet.swift; sourceTree = "<group>"; };
+		E20000080000000000000003 /* RoutineDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDetailSheet.swift; sourceTree = "<group>"; };
+		E20000080000000000000004 /* MovementPlayerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementPlayerSheet.swift; sourceTree = "<group>"; };
+
+		/* Features/RightNow */
+		E20000090000000000000001 /* RightNowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightNowView.swift; sourceTree = "<group>"; };
+
+		/* Features/Ingredients */
+		E200000A0000000000000001 /* IngredientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientsView.swift; sourceTree = "<group>"; };
+
+		/* Features/Learn */
+		E200000B0000000000000001 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
+
+		/* Features/Progress */
+		E200000C0000000000000001 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+
+		/* DesignSystem/Theme */
+		E200000D0000000000000001 /* TerrainTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainTheme.swift; sourceTree = "<group>"; };
+
+		/* DesignSystem/Components */
+		E200000E0000000000000001 /* TerrainButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainButton.swift; sourceTree = "<group>"; };
+		E200000E0000000000000002 /* TerrainCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainCard.swift; sourceTree = "<group>"; };
+		E200000E0000000000000003 /* TerrainTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainTextField.swift; sourceTree = "<group>"; };
+
+		/* Resources */
+		E200000F0000000000000001 /* base-content-pack.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "base-content-pack.json"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				E40000000000000000000002 /* Terrain */,
+				E40000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E40000000000000000000002 /* Terrain */ = {
+			isa = PBXGroup;
+			children = (
+				E40000010000000000000001 /* App */,
+				E40000020000000000000001 /* Core */,
+				E40000030000000000000001 /* Features */,
+				E40000040000000000000001 /* DesignSystem */,
+				E40000050000000000000001 /* Resources */,
+			);
+			path = ".";
+			sourceTree = "<group>";
+		};
+		E40000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E00000000000000000000001 /* Terrain.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E40000010000000000000001 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				E20000010000000000000001 /* TerrainApp.swift */,
+				E20000010000000000000002 /* MainTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000001 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				E40000020000000000000002 /* Models */,
+				E40000020000000000000005 /* Engine */,
+				E40000020000000000000006 /* Services */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000002 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E40000020000000000000003 /* Content */,
+				E40000020000000000000004 /* User */,
+				E40000020000000000000007 /* Shared */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000003 /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				E20000020000000000000001 /* Ingredient.swift */,
+				E20000020000000000000002 /* Lesson.swift */,
+				E20000020000000000000003 /* Movement.swift */,
+				E20000020000000000000004 /* Program.swift */,
+				E20000020000000000000005 /* Routine.swift */,
+				E20000020000000000000006 /* TerrainProfile.swift */,
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000004 /* User */ = {
+			isa = PBXGroup;
+			children = (
+				E20000030000000000000001 /* UserProfile.swift */,
+				E20000030000000000000002 /* UserCabinet.swift */,
+				E20000030000000000000003 /* DailyLog.swift */,
+				E20000030000000000000004 /* ProgressRecord.swift */,
+			);
+			path = User;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000005 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				E20000050000000000000001 /* TerrainScoringEngine.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000006 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				E20000060000000000000001 /* ContentPackService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		E40000020000000000000007 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				E20000040000000000000001 /* LocalizedString.swift */,
+				E20000040000000000000002 /* Tags.swift */,
+				E20000040000000000000003 /* SafetyFlags.swift */,
+				E20000040000000000000004 /* MediaAsset.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000001 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				E40000030000000000000002 /* Onboarding */,
+				E40000030000000000000003 /* Today */,
+				E40000030000000000000004 /* RightNow */,
+				E40000030000000000000005 /* Ingredients */,
+				E40000030000000000000006 /* Learn */,
+				E40000030000000000000007 /* Progress */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000002 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				E20000070000000000000001 /* WelcomeView.swift */,
+				E20000070000000000000002 /* GoalsView.swift */,
+				E20000070000000000000003 /* QuizView.swift */,
+				E20000070000000000000004 /* TerrainRevealView.swift */,
+				E20000070000000000000005 /* SafetyGateView.swift */,
+				E20000070000000000000006 /* NotificationsView.swift */,
+				E20000070000000000000007 /* OnboardingCoordinatorView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000003 /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				E20000080000000000000001 /* TodayView.swift */,
+				E20000080000000000000002 /* DailyCheckInSheet.swift */,
+				E20000080000000000000003 /* RoutineDetailSheet.swift */,
+				E20000080000000000000004 /* MovementPlayerSheet.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000004 /* RightNow */ = {
+			isa = PBXGroup;
+			children = (
+				E20000090000000000000001 /* RightNowView.swift */,
+			);
+			path = RightNow;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000005 /* Ingredients */ = {
+			isa = PBXGroup;
+			children = (
+				E200000A0000000000000001 /* IngredientsView.swift */,
+			);
+			path = Ingredients;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000006 /* Learn */ = {
+			isa = PBXGroup;
+			children = (
+				E200000B0000000000000001 /* LearnView.swift */,
+			);
+			path = Learn;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000007 /* Progress */ = {
+			isa = PBXGroup;
+			children = (
+				E200000C0000000000000001 /* ProgressView.swift */,
+			);
+			path = Progress;
+			sourceTree = "<group>";
+		};
+		E40000040000000000000001 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				E40000040000000000000002 /* Theme */,
+				E40000040000000000000003 /* Components */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		E40000040000000000000002 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				E200000D0000000000000001 /* TerrainTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		E40000040000000000000003 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				E200000E0000000000000001 /* TerrainButton.swift */,
+				E200000E0000000000000002 /* TerrainCard.swift */,
+				E200000E0000000000000003 /* TerrainTextField.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		E40000050000000000000001 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E40000050000000000000002 /* ContentPacks */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		E40000050000000000000002 /* ContentPacks */ = {
+			isa = PBXGroup;
+			children = (
+				E200000F0000000000000001 /* base-content-pack.json */,
+			);
+			path = ContentPacks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E50000000000000000000001 /* Terrain */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E70000000000000000000001 /* Build configuration list for PBXNativeTarget "Terrain" */;
+			buildPhases = (
+				E60000000000000000000001 /* Sources */,
+				E30000000000000000000001 /* Frameworks */,
+				E60000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Terrain;
+			productName = Terrain;
+			productReference = E00000000000000000000001 /* Terrain.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					E50000000000000000000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = E70000000000000000000002 /* Build configuration list for PBXProject "Terrain" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E40000000000000000000001;
+			productRefGroup = E40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E50000000000000000000001 /* Terrain */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E60000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E100000F0000000000000001 /* base-content-pack.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E10000010000000000000001 /* TerrainApp.swift in Sources */,
+				E10000010000000000000002 /* MainTabView.swift in Sources */,
+				E10000020000000000000001 /* Ingredient.swift in Sources */,
+				E10000020000000000000002 /* Lesson.swift in Sources */,
+				E10000020000000000000003 /* Movement.swift in Sources */,
+				E10000020000000000000004 /* Program.swift in Sources */,
+				E10000020000000000000005 /* Routine.swift in Sources */,
+				E10000020000000000000006 /* TerrainProfile.swift in Sources */,
+				E10000030000000000000001 /* UserProfile.swift in Sources */,
+				E10000030000000000000002 /* UserCabinet.swift in Sources */,
+				E10000030000000000000003 /* DailyLog.swift in Sources */,
+				E10000030000000000000004 /* ProgressRecord.swift in Sources */,
+				E10000040000000000000001 /* LocalizedString.swift in Sources */,
+				E10000040000000000000002 /* Tags.swift in Sources */,
+				E10000040000000000000003 /* SafetyFlags.swift in Sources */,
+				E10000040000000000000004 /* MediaAsset.swift in Sources */,
+				E10000050000000000000001 /* TerrainScoringEngine.swift in Sources */,
+				E10000060000000000000001 /* ContentPackService.swift in Sources */,
+				E10000070000000000000001 /* WelcomeView.swift in Sources */,
+				E10000070000000000000002 /* GoalsView.swift in Sources */,
+				E10000070000000000000003 /* QuizView.swift in Sources */,
+				E10000070000000000000004 /* TerrainRevealView.swift in Sources */,
+				E10000070000000000000005 /* SafetyGateView.swift in Sources */,
+				E10000070000000000000006 /* NotificationsView.swift in Sources */,
+				E10000070000000000000007 /* OnboardingCoordinatorView.swift in Sources */,
+				E10000080000000000000001 /* TodayView.swift in Sources */,
+				E10000080000000000000002 /* DailyCheckInSheet.swift in Sources */,
+				E10000080000000000000003 /* RoutineDetailSheet.swift in Sources */,
+				E10000080000000000000004 /* MovementPlayerSheet.swift in Sources */,
+				E10000090000000000000001 /* RightNowView.swift in Sources */,
+				E100000A0000000000000001 /* IngredientsView.swift in Sources */,
+				E100000B0000000000000001 /* LearnView.swift in Sources */,
+				E100000C0000000000000001 /* ProgressView.swift in Sources */,
+				E100000D0000000000000001 /* TerrainTheme.swift in Sources */,
+				E100000E0000000000000001 /* TerrainButton.swift in Sources */,
+				E100000E0000000000000002 /* TerrainCard.swift in Sources */,
+				E100000E0000000000000003 /* TerrainTextField.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E90000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E90000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E90000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.terrain.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E90000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.terrain.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E70000000000000000000001 /* Build configuration list for PBXNativeTarget "Terrain" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E90000000000000000000003 /* Debug */,
+				E90000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E70000000000000000000002 /* Build configuration list for PBXProject "Terrain" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E90000000000000000000001 /* Debug */,
+				E90000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E80000000000000000000001 /* Project object */;
+}
