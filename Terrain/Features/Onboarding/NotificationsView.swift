@@ -9,15 +9,12 @@ import SwiftUI
 import UserNotifications
 
 struct NotificationsView: View {
+    let coordinator: OnboardingCoordinator
     let onContinue: () -> Void
     let onSkip: () -> Void
 
     @Environment(\.terrainTheme) private var theme
     @State private var showContent = false
-    @State private var morningTime = Calendar.current.date(from: DateComponents(hour: 7, minute: 30)) ?? Date()
-    @State private var eveningTime = Calendar.current.date(from: DateComponents(hour: 21, minute: 0)) ?? Date()
-    @State private var enableMorning = true
-    @State private var enableEvening = true
 
     var body: some View {
         VStack(spacing: theme.spacing.lg) {
@@ -56,16 +53,28 @@ struct NotificationsView: View {
                     title: "Morning routine",
                     subtitle: "Start your day aligned",
                     icon: "sun.horizon.fill",
-                    time: $morningTime,
-                    isEnabled: $enableMorning
+                    time: Binding(
+                        get: { coordinator.morningNotificationTime },
+                        set: { coordinator.morningNotificationTime = $0 }
+                    ),
+                    isEnabled: Binding(
+                        get: { coordinator.enableMorningNotification },
+                        set: { coordinator.enableMorningNotification = $0 }
+                    )
                 )
 
                 NotificationTimeRow(
                     title: "Evening wind-down",
                     subtitle: "Prepare for rest",
                     icon: "moon.fill",
-                    time: $eveningTime,
-                    isEnabled: $enableEvening
+                    time: Binding(
+                        get: { coordinator.eveningNotificationTime },
+                        set: { coordinator.eveningNotificationTime = $0 }
+                    ),
+                    isEnabled: Binding(
+                        get: { coordinator.enableEveningNotification },
+                        set: { coordinator.enableEveningNotification = $0 }
+                    )
                 )
             }
             .padding(.horizontal, theme.spacing.lg)
@@ -100,6 +109,7 @@ struct NotificationsView: View {
     private func requestNotifications() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
             DispatchQueue.main.async {
+                coordinator.notificationsEnabled = granted
                 if granted {
                     scheduleNotifications()
                 }
@@ -111,26 +121,26 @@ struct NotificationsView: View {
     private func scheduleNotifications() {
         let center = UNUserNotificationCenter.current()
 
-        if enableMorning {
+        if coordinator.enableMorningNotification {
             let content = UNMutableNotificationContent()
             content.title = "Good morning"
             content.body = "Your daily routine is ready."
             content.sound = .default
 
-            let components = Calendar.current.dateComponents([.hour, .minute], from: morningTime)
+            let components = Calendar.current.dateComponents([.hour, .minute], from: coordinator.morningNotificationTime)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
             let request = UNNotificationRequest(identifier: "morning-routine", content: content, trigger: trigger)
 
             center.add(request)
         }
 
-        if enableEvening {
+        if coordinator.enableEveningNotification {
             let content = UNMutableNotificationContent()
             content.title = "Wind down"
             content.body = "Time for your evening ritual."
             content.sound = .default
 
-            let components = Calendar.current.dateComponents([.hour, .minute], from: eveningTime)
+            let components = Calendar.current.dateComponents([.hour, .minute], from: coordinator.eveningNotificationTime)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
             let request = UNNotificationRequest(identifier: "evening-routine", content: content, trigger: trigger)
 
@@ -187,6 +197,6 @@ struct NotificationTimeRow: View {
 }
 
 #Preview {
-    NotificationsView(onContinue: {}, onSkip: {})
+    NotificationsView(coordinator: OnboardingCoordinator(), onContinue: {}, onSkip: {})
         .environment(\.terrainTheme, TerrainTheme.default)
 }

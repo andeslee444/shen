@@ -32,6 +32,13 @@ final class OnboardingCoordinator {
     var scoringResult: TerrainScoringEngine.ScoringResult?
     var safetyPreferences = SafetyPreferences()
 
+    // Notification settings
+    var notificationsEnabled: Bool = false
+    var morningNotificationTime: Date = Calendar.current.date(from: DateComponents(hour: 7, minute: 30)) ?? Date()
+    var eveningNotificationTime: Date = Calendar.current.date(from: DateComponents(hour: 21, minute: 0)) ?? Date()
+    var enableMorningNotification: Bool = true
+    var enableEveningNotification: Bool = true
+
     private let scoringEngine = TerrainScoringEngine()
 
     func nextStep() {
@@ -156,6 +163,7 @@ struct OnboardingCoordinatorView: View {
 
                     case .notifications:
                         NotificationsView(
+                            coordinator: coordinator,
                             onContinue: { completeOnboarding() },
                             onSkip: { completeOnboarding() }
                         )
@@ -190,7 +198,10 @@ struct OnboardingCoordinatorView: View {
             wakesThirstyHot: result.flags.contains(.wakeThirstyHot),
             terrainProfileId: result.terrainProfileId,
             goals: Array(coordinator.selectedGoals),
-            safetyPreferences: coordinator.safetyPreferences
+            safetyPreferences: coordinator.safetyPreferences,
+            morningNotificationTime: coordinator.enableMorningNotification ? coordinator.morningNotificationTime : nil,
+            eveningNotificationTime: coordinator.enableEveningNotification ? coordinator.eveningNotificationTime : nil,
+            notificationsEnabled: coordinator.notificationsEnabled
         )
 
         modelContext.insert(profile)
