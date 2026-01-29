@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct ProgressView: View {
+struct ProgressTabView: View {
     @Environment(\.terrainTheme) private var theme
     @Query private var progressRecords: [ProgressRecord]
     @Query(sort: \DailyLog.date, order: .reverse) private var dailyLogs: [DailyLog]
@@ -343,6 +343,6 @@ struct ActivityRow: View {
 }
 
 #Preview {
-    ProgressView()
+    ProgressTabView()
         .environment(\.terrainTheme, TerrainTheme.default)
 }

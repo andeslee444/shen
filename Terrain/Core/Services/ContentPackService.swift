@@ -155,7 +155,7 @@ struct LocalizedStringDTO: Decodable {
     }
 
     func toModel() -> LocalizedString {
-        LocalizedString(en_US: values["en-US"] ?? "")
+        LocalizedString(values)
     }
 
     var enUS: String {
@@ -417,7 +417,7 @@ struct MediaAssetDTO: Decodable {
 
     func toModel() -> MediaAsset {
         MediaAsset(
-            type: AssetType(rawValue: type) ?? .svg,
+            type: MediaType(rawValue: type) ?? .svg,
             uri: uri
         )
     }

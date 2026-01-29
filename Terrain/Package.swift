@@ -7,8 +7,7 @@ import PackageDescription
 let package = Package(
     name: "Terrain",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v17)
     ],
     products: [
         .library(
@@ -24,7 +23,8 @@ let package = Package(
             path: ".",
             exclude: [
                 "Resources",
-                "Tests"
+                "Tests",
+                "App/TerrainApp.swift"  // Exclude @main entry point for library builds
             ],
             sources: [
                 "App",

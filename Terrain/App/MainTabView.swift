@@ -55,7 +55,7 @@ struct MainTabView: View {
                 }
                 .tag(Tab.learn)
 
-            ProgressView()
+            ProgressTabView()
                 .tabItem {
                     Label(Tab.progress.rawValue, systemImage: Tab.progress.icon)
                 }

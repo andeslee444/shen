@@ -256,7 +256,7 @@ struct TerrainCopy {
     let bestMatchesIntro: String
     let recommendedIngredients: [String]
 
-    static func forType(_ type: TerrainScoringEngine.PrimaryType, modifier: TerrainModifier) -> TerrainCopy {
+    static func forType(_ type: TerrainScoringEngine.PrimaryType, modifier: TerrainScoringEngine.Modifier) -> TerrainCopy {
         switch type {
         case .coldDeficient:
             return TerrainCopy(

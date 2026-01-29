@@ -50,6 +50,11 @@ struct LocalizedString: Codable, Hashable {
     var isEmpty: Bool {
         values.isEmpty || values.values.allSatisfy { $0.isEmpty }
     }
+
+    /// Direct access to en-US value (for testing and explicit access)
+    var en_US: String {
+        values["en-US"] ?? ""
+    }
 }
 
 extension LocalizedString: ExpressibleByStringLiteral {
