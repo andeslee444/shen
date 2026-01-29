@@ -18,6 +18,7 @@ struct MovementPlayerSheet: View {
     @State private var isPlaying = false
     @State private var timeRemaining = 0
     @State private var timer: Timer?
+    @State private var playButtonScale: CGFloat = 1.0
 
     private var movement: MovementData {
         MovementData.forLevel(level)
@@ -36,7 +37,7 @@ struct MovementPlayerSheet: View {
                 VStack(spacing: theme.spacing.lg) {
                     Spacer()
 
-                    // Frame illustration placeholder
+                    // Frame illustration with smooth transitions
                     ZStack {
                         RoundedRectangle(cornerRadius: theme.cornerRadius.xl)
                             .fill(theme.colors.backgroundSecondary)
@@ -47,27 +48,37 @@ struct MovementPlayerSheet: View {
                                 Image(systemName: movement.frames[currentFrame].icon)
                                     .font(.system(size: 80))
                                     .foregroundColor(theme.colors.accent)
+                                    .id(currentFrame) // Enables transition
+                                    .transition(.asymmetric(
+                                        insertion: .scale(scale: 0.8).combined(with: .opacity),
+                                        removal: .scale(scale: 1.1).combined(with: .opacity)
+                                    ))
 
-                                Text("Frame \(currentFrame + 1)")
+                                Text("Frame \(currentFrame + 1) of \(movement.frames.count)")
                                     .font(theme.typography.caption)
                                     .foregroundColor(theme.colors.textTertiary)
                             }
+                            .animation(theme.animation.standard, value: currentFrame)
                         }
                     }
                     .padding(.horizontal, theme.spacing.lg)
 
-                    // Cue text
+                    // Cue text with smooth transition
                     if currentFrame < movement.frames.count {
                         VStack(spacing: theme.spacing.sm) {
                             Text(movement.frames[currentFrame].cue)
                                 .font(theme.typography.headlineSmall)
                                 .foregroundColor(theme.colors.textPrimary)
                                 .multilineTextAlignment(.center)
+                                .id("cue-\(currentFrame)")
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                .animation(theme.animation.standard, value: currentFrame)
 
                             if isPlaying {
                                 Text("\(timeRemaining)s")
                                     .font(theme.typography.displayMedium)
                                     .foregroundColor(theme.colors.accent)
+                                    .contentTransition(.numericText())
                             } else {
                                 Text("\(movement.frames[currentFrame].seconds)s")
                                     .font(theme.typography.bodyMedium)
@@ -89,16 +100,29 @@ struct MovementPlayerSheet: View {
                         }
                         .disabled(currentFrame == 0)
 
-                        // Play/Pause
+                        // Play/Pause with pulse animation when playing
                         Button(action: togglePlayPause) {
                             ZStack {
                                 Circle()
                                     .fill(theme.colors.accent)
                                     .frame(width: 64, height: 64)
+                                    .scaleEffect(playButtonScale)
 
                                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                                     .font(.system(size: 24))
                                     .foregroundColor(.white)
+                                    .contentTransition(.symbolEffect(.replace))
+                            }
+                        }
+                        .onChange(of: isPlaying) { _, playing in
+                            if playing {
+                                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                                    playButtonScale = 1.08
+                                }
+                            } else {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    playButtonScale = 1.0
+                                }
                             }
                         }
 
@@ -111,12 +135,13 @@ struct MovementPlayerSheet: View {
                     }
                     .padding(.bottom, theme.spacing.lg)
 
-                    // Frame indicators
+                    // Frame indicators with animation
                     HStack(spacing: theme.spacing.xs) {
                         ForEach(0..<movement.frames.count, id: \.self) { index in
                             Circle()
                                 .fill(index <= currentFrame ? theme.colors.accent : theme.colors.textTertiary.opacity(0.3))
-                                .frame(width: 8, height: 8)
+                                .frame(width: index == currentFrame ? 10 : 8, height: index == currentFrame ? 10 : 8)
+                                .animation(theme.animation.quick, value: currentFrame)
                         }
                     }
                     .padding(.bottom, theme.spacing.lg)

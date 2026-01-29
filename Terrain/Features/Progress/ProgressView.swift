@@ -251,6 +251,9 @@ struct TerrainProfileCard: View {
     let type: TerrainScoringEngine.PrimaryType
 
     @Environment(\.terrainTheme) private var theme
+    @Environment(\.modelContext) private var modelContext
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
+    @State private var showRetakeConfirmation = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.md) {
@@ -272,7 +275,7 @@ struct TerrainProfileCard: View {
                 Spacer()
 
                 Button("Retake Quiz") {
-                    // TODO: Implement
+                    showRetakeConfirmation = true
                 }
                 .font(theme.typography.labelSmall)
                 .foregroundColor(theme.colors.accent)
@@ -281,6 +284,32 @@ struct TerrainProfileCard: View {
         .padding(theme.spacing.md)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.large)
+        .confirmationDialog(
+            "Retake Quiz?",
+            isPresented: $showRetakeConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Retake Quiz", role: .destructive) {
+                retakeQuiz()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will reset your terrain profile. Your progress and logged data will be preserved.")
+        }
+    }
+
+    private func retakeQuiz() {
+        // Delete the current user profile so a new one is created during onboarding
+        let fetchDescriptor = FetchDescriptor<UserProfile>()
+        if let profiles = try? modelContext.fetch(fetchDescriptor) {
+            for profile in profiles {
+                modelContext.delete(profile)
+            }
+            try? modelContext.save()
+        }
+
+        // Reset onboarding flag to trigger the onboarding flow
+        hasCompletedOnboarding = false
     }
 }
 
