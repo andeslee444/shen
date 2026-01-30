@@ -259,13 +259,15 @@ enum QuizQuestions {
         let type: QuestionType
         let options: [Option]
         let weight: Double
+        let goalRequirement: Goal?
 
-        init(id: String, title: String, type: QuestionType = .singleSelect, options: [Option], weight: Double = 1.0) {
+        init(id: String, title: String, type: QuestionType = .singleSelect, options: [Option], weight: Double = 1.0, goalRequirement: Goal? = nil) {
             self.id = id
             self.title = title
             self.type = type
             self.options = options
             self.weight = weight
+            self.goalRequirement = goalRequirement
         }
     }
 
@@ -287,7 +289,7 @@ enum QuizQuestions {
         }
     }
 
-    // MARK: - All Questions (12 total)
+    // MARK: - All Questions (13 base + 1 conditional)
 
     static let all: [Question] = [
         // Q1: Temperature
@@ -316,16 +318,16 @@ enum QuizQuestions {
             ]
         ),
 
-        // Q3: Sweat + nights
+        // Q3: Sweating pattern (broadened from night-only for better thermal signal)
         Question(
             id: "q3_sweat_night",
-            title: "Sweat + nights: which is more you?",
+            title: "Sweating tends to be...",
             options: [
-                Option(id: "hardly_sweat", label: "Hardly sweat", delta: TerrainDelta(coldHeat: -1, defExcess: -1)),
-                Option(id: "sweat_easily", label: "Sweat easily", delta: TerrainDelta(coldHeat: 1, defExcess: 1)),
-                Option(id: "night_sweats", label: "Night sweats", delta: TerrainDelta(coldHeat: 1, defExcess: -1, dampDry: 1), flags: [.nightSweats]),
-                Option(id: "wake_thirsty_hot", label: "Wake up thirsty/hot", delta: TerrainDelta(coldHeat: 2, dampDry: 2), flags: [.wakeThirstyHot]),
-                Option(id: "normal", label: "Normal", delta: TerrainDelta())
+                Option(id: "rarely_sweat", label: "Rarely—I almost never sweat", delta: TerrainDelta(coldHeat: -2, defExcess: -1)),
+                Option(id: "easily_sweat", label: "Easily—even light activity gets me sweating", delta: TerrainDelta(coldHeat: 1, defExcess: -1)),
+                Option(id: "night_sweats", label: "Night sweats—I wake up damp", delta: TerrainDelta(coldHeat: 2, defExcess: -1, dampDry: 1), flags: [.nightSweats]),
+                Option(id: "wake_hot_thirsty", label: "I wake up hot and thirsty", delta: TerrainDelta(coldHeat: 3, defExcess: -1, dampDry: 2), flags: [.nightSweats, .wakeThirstyHot]),
+                Option(id: "not_sure", label: "Not sure—it varies too much to say", delta: TerrainDelta())
             ]
         ),
 
@@ -342,35 +344,48 @@ enum QuizQuestions {
             ]
         ),
 
-        // Q5: Stress response
+        // Q5: After-meal response (Spleen/Stomach signal, replaces energy low point)
         Question(
-            id: "q5_stress_response",
-            title: "When you're stressed, your body does what first?",
+            id: "q5_after_meals",
+            title: "After meals you usually feel...",
             options: [
-                Option(id: "shuts_down_fatigue", label: "Shuts down (fatigue)", delta: TerrainDelta(defExcess: -2)),
-                Option(id: "tightens_neck_jaw", label: "Tightens (neck/jaw)", delta: TerrainDelta(defExcess: 1, qiStagnation: 3)),
-                Option(id: "gets_hot_irritable", label: "Gets hot/irritable", delta: TerrainDelta(coldHeat: 2, defExcess: 1, qiStagnation: 2)),
-                Option(id: "gets_bloated", label: "Gets bloated", delta: TerrainDelta(dampDry: -2, qiStagnation: 2)),
-                Option(id: "gets_anxious", label: "Gets anxious", delta: TerrainDelta(defExcess: 1, qiStagnation: 1, shenUnsettled: 3))
+                Option(id: "light_normal", label: "Light and normal—food sits well", delta: TerrainDelta()),
+                Option(id: "sleepy_heavy", label: "Sleepy and heavy—I need to lie down", delta: TerrainDelta(defExcess: -2, dampDry: -2)),
+                Option(id: "bloated_gassy", label: "Bloated or gassy—digestion feels sluggish", delta: TerrainDelta(dampDry: -2, qiStagnation: 2)),
+                Option(id: "acid_reflux", label: "Acid or reflux—stomach feels hot", delta: TerrainDelta(coldHeat: 2, defExcess: 1, dampDry: -1), flags: [.reflux]),
+                Option(id: "hungry_again", label: "Hungry again quickly—food burns right through", delta: TerrainDelta(coldHeat: 2, defExcess: 1))
             ]
         ),
 
-        // Q6: After meals
+        // Q6: Environmental sensitivity (clarified from "most likely")
         Question(
-            id: "q6_after_meals",
-            title: "After meals, you're most likely to feel...",
+            id: "q6_environmental",
+            title: "Which environmental factor tends to affect your comfort the most?",
             options: [
-                Option(id: "light_normal", label: "Light/normal", delta: TerrainDelta()),
-                Option(id: "sleepy_heavy", label: "Sleepy heavy", delta: TerrainDelta(defExcess: -1, dampDry: -3)),
-                Option(id: "bloated_gassy", label: "Bloated/gassy", delta: TerrainDelta(dampDry: -2, qiStagnation: 1)),
-                Option(id: "acid_reflux", label: "Acid/reflux", delta: TerrainDelta(coldHeat: 1, qiStagnation: 1), flags: [.reflux]),
-                Option(id: "hungry_again_quickly", label: "Hungry again quickly", delta: TerrainDelta(coldHeat: 1, defExcess: 1))
+                Option(id: "cold_weather", label: "Cold weather—I feel it in my bones", delta: TerrainDelta(coldHeat: -2)),
+                Option(id: "hot_weather", label: "Hot weather—I overheat easily", delta: TerrainDelta(coldHeat: 2)),
+                Option(id: "humid_conditions", label: "Humid conditions—I feel heavy and sluggish", delta: TerrainDelta(dampDry: -2)),
+                Option(id: "dry_air", label: "Dry air—my skin and throat get parched", delta: TerrainDelta(dampDry: 2)),
+                Option(id: "not_sure", label: "I'm not sure—I adapt to most conditions", delta: TerrainDelta())
             ]
         ),
 
-        // Q7: Stools
+        // Q7: Stress response (moved from old Q5)
         Question(
-            id: "q7_stools_usually",
+            id: "q7_stress_response",
+            title: "When you're stressed, what does your body do first?",
+            options: [
+                Option(id: "shuts_down", label: "Shuts down—I feel fatigued", delta: TerrainDelta(defExcess: -2)),
+                Option(id: "tightens_up", label: "Tightens up—neck, jaw, or shoulders", delta: TerrainDelta(defExcess: 1, qiStagnation: 3)),
+                Option(id: "runs_hot", label: "Runs hot—I get irritable or flushed", delta: TerrainDelta(coldHeat: 2, defExcess: 1, qiStagnation: 2)),
+                Option(id: "gets_bloated", label: "Gets bloated—digestion suffers", delta: TerrainDelta(dampDry: -2, qiStagnation: 2)),
+                Option(id: "gets_anxious", label: "Gets anxious—mind races", delta: TerrainDelta(defExcess: 1, qiStagnation: 1, shenUnsettled: 3))
+            ]
+        ),
+
+        // Q8: Stools (renumbered)
+        Question(
+            id: "q8_stools_usually",
             title: "Your stools are usually...",
             options: [
                 Option(id: "loose_soft", label: "Loose/soft", delta: TerrainDelta(coldHeat: -1, defExcess: -1, dampDry: -2), flags: [.looseStool]),
@@ -381,70 +396,94 @@ enum QuizQuestions {
             ]
         ),
 
-        // Q8: Cravings (weighted 0.6)
+        // Q9: Cravings (weighted 0.6, renumbered)
         Question(
-            id: "q8_cravings",
+            id: "q9_cravings",
             title: "Cravings you relate to most:",
             options: [
                 Option(id: "sweet", label: "Sweet", delta: TerrainDelta(dampDry: -1)),
                 Option(id: "salty", label: "Salty", delta: TerrainDelta(dampDry: -1)),
                 Option(id: "spicy", label: "Spicy", delta: TerrainDelta(coldHeat: 1)),
                 Option(id: "greasy_fried", label: "Greasy/fried", delta: TerrainDelta(dampDry: -2)),
-                Option(id: "cold_foods", label: "Cold foods (ice cream, smoothies)", delta: TerrainDelta(coldHeat: 1))
+                Option(id: "cold_foods", label: "Cold foods (ice cream, smoothies)", delta: TerrainDelta(coldHeat: 1)),
+                Option(id: "not_sure", label: "I'm not sure—no strong cravings", delta: TerrainDelta())
             ],
             weight: 0.6
         ),
 
-        // Q9: Body tends to be
+        // Q10: Body tends to be (with clearer frequency context)
         Question(
-            id: "q9_body_tends",
-            title: "Your body tends to be...",
+            id: "q10_body_tends",
+            title: "How often do you notice these body tendencies?",
             options: [
-                Option(id: "puffy_heavy", label: "Puffy/heavy", delta: TerrainDelta(dampDry: -4)),
-                Option(id: "normal", label: "Normal", delta: TerrainDelta()),
-                Option(id: "dry_skin_lips_eyes", label: "Dry (skin/lips/eyes)", delta: TerrainDelta(dampDry: 4)),
-                Option(id: "mucusy", label: "Mucusy", delta: TerrainDelta(dampDry: -3)),
-                Option(id: "swollen_legs_face_sometimes", label: "Swollen legs/face sometimes", delta: TerrainDelta(dampDry: -3))
+                Option(id: "puffy_often", label: "Often puffy or heavy (weekly or more)", delta: TerrainDelta(dampDry: -4)),
+                Option(id: "dry_often", label: "Often dry—skin, lips, or eyes (weekly or more)", delta: TerrainDelta(dampDry: 4)),
+                Option(id: "mucusy_sometimes", label: "Sometimes mucusy (a few times a month)", delta: TerrainDelta(dampDry: -3)),
+                Option(id: "swollen_sometimes", label: "Sometimes swollen legs or face (a few times a month)", delta: TerrainDelta(dampDry: -3)),
+                Option(id: "normal", label: "Rarely notice any of these", delta: TerrainDelta())
             ]
         ),
 
-        // Q10: Thirst & mouth
+        // Q11: Thirst pattern (refined to separate heat vs yin deficiency)
         Question(
-            id: "q10_thirst_mouth",
-            title: "Thirst & mouth:",
+            id: "q11_thirst_mouth",
+            title: "Thirst feels like...",
             options: [
-                Option(id: "rarely_thirsty", label: "Rarely thirsty", delta: TerrainDelta(coldHeat: -1, dampDry: -1)),
-                Option(id: "sip_a_lot", label: "Sip a lot", delta: TerrainDelta(dampDry: 1)),
-                Option(id: "very_thirsty", label: "Very thirsty", delta: TerrainDelta(coldHeat: 1, dampDry: 3)),
-                Option(id: "dry_mouth_at_night", label: "Dry mouth at night", delta: TerrainDelta(dampDry: 4, shenUnsettled: 1)),
-                Option(id: "thirst_small_sips", label: "Thirst but small sips", delta: TerrainDelta(coldHeat: 1, dampDry: -1))
+                Option(id: "rarely_thirsty", label: "Rarely thirsty—I forget to drink", delta: TerrainDelta(coldHeat: -1, dampDry: -2)),
+                Option(id: "small_sips", label: "Prefer small, frequent sips", delta: TerrainDelta(dampDry: -1)),
+                Option(id: "very_thirsty_cold", label: "Very thirsty—I prefer cold drinks", delta: TerrainDelta(coldHeat: 2, dampDry: 3)),
+                Option(id: "dry_mouth_night", label: "Dry mouth, especially at night", delta: TerrainDelta(coldHeat: 1, dampDry: 3, shenUnsettled: 1)),
+                Option(id: "sip_often_habit", label: "I sip often, more from habit than thirst", delta: TerrainDelta())
             ]
         ),
 
-        // Q11: Mood/flow
+        // Q12: Mood/flow
         Question(
-            id: "q11_mood_flow",
-            title: "Mood/flow: you relate most to...",
+            id: "q12_mood_flow",
+            title: "Which mood pattern do you relate to most?",
             options: [
-                Option(id: "easygoing", label: "Easygoing", delta: TerrainDelta()),
-                Option(id: "overthinking", label: "Overthinking", delta: TerrainDelta(qiStagnation: 1, shenUnsettled: 2)),
-                Option(id: "irritable_snappy", label: "Irritable/snappy", delta: TerrainDelta(coldHeat: 1, qiStagnation: 3)),
-                Option(id: "sad_low", label: "Sad/low", delta: TerrainDelta(defExcess: -1, shenUnsettled: 1)),
-                Option(id: "restless", label: "Restless", delta: TerrainDelta(defExcess: 1, shenUnsettled: 3))
+                Option(id: "easygoing", label: "Easygoing—generally calm", delta: TerrainDelta()),
+                Option(id: "overthinking", label: "Overthinking—mind won't quiet", delta: TerrainDelta(qiStagnation: 1, shenUnsettled: 2)),
+                Option(id: "irritable_snappy", label: "Irritable—snappy or easily frustrated", delta: TerrainDelta(coldHeat: 1, qiStagnation: 3)),
+                Option(id: "sad_low", label: "Sad or low—energy and mood drop together", delta: TerrainDelta(defExcess: -1, shenUnsettled: 1)),
+                Option(id: "restless", label: "Restless—hard to sit still", delta: TerrainDelta(defExcess: 1, shenUnsettled: 3))
             ]
         ),
 
-        // Q12: Sleep
+        // Q13: Sleep (renumbered to fit 13 questions)
         Question(
-            id: "q12_sleep",
-            title: "Sleep is usually...",
+            id: "q13_sleep",
+            title: "How is your sleep usually?",
             options: [
-                Option(id: "sleep_good", label: "Fall asleep easy, stay asleep", delta: TerrainDelta()),
-                Option(id: "trouble_falling", label: "Trouble falling asleep", delta: TerrainDelta(defExcess: 1, qiStagnation: 1, shenUnsettled: 3)),
-                Option(id: "wake_at_night", label: "Wake at night", delta: TerrainDelta(dampDry: 1, shenUnsettled: 2)),
-                Option(id: "vivid_dreams", label: "Vivid dreams", delta: TerrainDelta(qiStagnation: 1, shenUnsettled: 2)),
-                Option(id: "wake_tired", label: "Wake tired", delta: TerrainDelta(defExcess: -2, shenUnsettled: 1))
+                Option(id: "sleep_good", label: "Fall asleep easily, stay asleep", delta: TerrainDelta()),
+                Option(id: "trouble_falling", label: "Trouble falling asleep—mind races", delta: TerrainDelta(defExcess: 1, qiStagnation: 1, shenUnsettled: 3)),
+                Option(id: "wake_at_night", label: "Wake up during the night", delta: TerrainDelta(dampDry: 1, shenUnsettled: 2)),
+                Option(id: "vivid_dreams", label: "Vivid or restless dreams", delta: TerrainDelta(qiStagnation: 1, shenUnsettled: 2)),
+                Option(id: "wake_tired", label: "Wake up tired, even after enough hours", delta: TerrainDelta(defExcess: -2, shenUnsettled: 1))
             ]
+        ),
+
+        // Q14: Menstrual pattern (shown only when menstrualComfort goal selected)
+        Question(
+            id: "q14_menstrual",
+            title: "Your menstrual cycle tends to...",
+            options: [
+                Option(id: "clots_dark", label: "Clots or dark blood", delta: TerrainDelta(coldHeat: -1, qiStagnation: 3)),
+                Option(id: "pale_light", label: "Pale or light flow", delta: TerrainDelta(defExcess: -3)),
+                Option(id: "cramps_warmth", label: "Cramping relieved by warmth", delta: TerrainDelta(coldHeat: -2, qiStagnation: 1)),
+                Option(id: "irritable_breast", label: "Irritable with breast tenderness", delta: TerrainDelta(qiStagnation: 3, shenUnsettled: 1)),
+                Option(id: "not_applicable", label: "Not applicable", delta: TerrainDelta())
+            ],
+            goalRequirement: .menstrualComfort
         )
     ]
+
+    /// Returns questions filtered by the user's selected goals.
+    /// Questions with a `goalRequirement` are only included when that goal is selected.
+    static func questions(for goals: Set<Goal>) -> [Question] {
+        all.filter { question in
+            guard let requirement = question.goalRequirement else { return true }
+            return goals.contains(requirement)
+        }
+    }
 }

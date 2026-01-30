@@ -18,6 +18,7 @@ final class OnboardingCoordinator {
         case reveal
         case safety
         case notifications
+        case account
         case complete
 
         var progress: Double {
@@ -69,8 +70,13 @@ final class OnboardingCoordinator {
         quizResponses.append((questionId: questionId, optionId: optionId))
     }
 
+    /// Questions filtered by the user's selected goals
+    var filteredQuestions: [QuizQuestions.Question] {
+        QuizQuestions.questions(for: selectedGoals)
+    }
+
     func nextQuestion() {
-        if currentQuestionIndex < QuizQuestions.all.count - 1 {
+        if currentQuestionIndex < filteredQuestions.count - 1 {
             currentQuestionIndex += 1
         }
     }
@@ -90,13 +96,13 @@ final class OnboardingCoordinator {
     }
 
     var canProceedFromQuiz: Bool {
-        currentQuestionIndex == QuizQuestions.all.count - 1 &&
-        quizResponses.count == QuizQuestions.all.count
+        currentQuestionIndex == filteredQuestions.count - 1 &&
+        quizResponses.count == filteredQuestions.count
     }
 
     var currentQuestion: QuizQuestions.Question? {
-        guard currentQuestionIndex < QuizQuestions.all.count else { return nil }
-        return QuizQuestions.all[currentQuestionIndex]
+        guard currentQuestionIndex < filteredQuestions.count else { return nil }
+        return filteredQuestions[currentQuestionIndex]
     }
 
     var selectedOptionForCurrentQuestion: String? {
@@ -105,13 +111,14 @@ final class OnboardingCoordinator {
     }
 
     var quizProgress: Double {
-        Double(currentQuestionIndex + 1) / Double(QuizQuestions.all.count)
+        Double(currentQuestionIndex + 1) / Double(filteredQuestions.count)
     }
 }
 
 struct OnboardingCoordinatorView: View {
     @State private var coordinator = OnboardingCoordinator()
     @Environment(\.modelContext) private var modelContext
+    @Environment(SupabaseSyncService.self) private var syncService
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @Environment(\.terrainTheme) private var theme
 
@@ -122,7 +129,7 @@ struct OnboardingCoordinatorView: View {
 
             VStack(spacing: 0) {
                 // Progress indicator (except for welcome and complete)
-                if coordinator.currentStep != .welcome && coordinator.currentStep != .complete {
+                if coordinator.currentStep != .welcome && coordinator.currentStep != .account && coordinator.currentStep != .complete {
                     ProgressView(value: coordinator.currentStep.progress)
                         .tint(theme.colors.accent)
                         .padding(.horizontal, theme.spacing.lg)
@@ -164,9 +171,18 @@ struct OnboardingCoordinatorView: View {
                     case .notifications:
                         NotificationsView(
                             coordinator: coordinator,
-                            onContinue: { completeOnboarding() },
-                            onSkip: { completeOnboarding() }
+                            onContinue: { coordinator.nextStep() },
+                            onSkip: { coordinator.nextStep() }
                         )
+
+                    case .account:
+                        AuthView(
+                            syncService: syncService,
+                            onContinueWithoutAccount: { completeOnboarding() }
+                        )
+                        .onChange(of: syncService.isAuthenticated) { _, isAuth in
+                            if isAuth { completeOnboarding() }
+                        }
 
                     case .complete:
                         EmptyView()
@@ -197,7 +213,12 @@ struct OnboardingCoordinatorView: View {
             hasNightSweats: result.flags.contains(.nightSweats),
             wakesThirstyHot: result.flags.contains(.wakeThirstyHot),
             terrainProfileId: result.terrainProfileId,
+            terrainModifier: result.modifier.rawValue,
             goals: Array(coordinator.selectedGoals),
+            quizResponses: coordinator.quizResponses.map {
+                QuizResponse(questionId: $0.questionId, optionId: $0.optionId)
+            },
+            quizVersion: 2,
             safetyPreferences: coordinator.safetyPreferences,
             morningNotificationTime: coordinator.enableMorningNotification ? coordinator.morningNotificationTime : nil,
             eveningNotificationTime: coordinator.enableEveningNotification ? coordinator.eveningNotificationTime : nil,

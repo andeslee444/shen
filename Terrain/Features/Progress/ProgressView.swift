@@ -14,6 +14,8 @@ struct ProgressTabView: View {
     @Query(sort: \DailyLog.date, order: .reverse) private var dailyLogs: [DailyLog]
     @Query private var userProfiles: [UserProfile]
 
+    @State private var showSettings = false
+
     private var progress: ProgressRecord? {
         progressRecords.first
     }
@@ -58,6 +60,21 @@ struct ProgressTabView: View {
             .background(theme.colors.background)
             .navigationTitle("Progress")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showSettings = true
+                        HapticManager.light()
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 18))
+                            .foregroundColor(theme.colors.textSecondary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
         }
     }
 }

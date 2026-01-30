@@ -12,6 +12,7 @@ struct TodayView: View {
     @Environment(\.terrainTheme) private var theme
     @Environment(\.modelContext) private var modelContext
     @Query private var userProfiles: [UserProfile]
+    @Query(sort: \Routine.id) private var allRoutines: [Routine]
     @Query(
         filter: #Predicate<DailyLog> { log in
             true // Will filter in view for today's date
@@ -118,6 +119,12 @@ struct TodayView: View {
                 .padding(.top, theme.spacing.md)
             }
             .background(theme.colors.background)
+            .refreshable {
+                // Pull-to-refresh action
+                // Future: refresh weather data, check for content updates
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                HapticManager.success()
+            }
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showDailyCheckIn) {
                 DailyCheckInSheet(onComplete: { symptoms, onset, energy in
@@ -125,10 +132,13 @@ struct TodayView: View {
                 })
             }
             .sheet(isPresented: $showRoutineDetail) {
-                RoutineDetailSheet(
-                    level: selectedLevel,
-                    onComplete: { markRoutineComplete() }
-                )
+                if let routine = allRoutines.first(where: { $0.tier == selectedLevel.rawValue }) {
+                    RoutineDetailSheet(
+                        level: selectedLevel,
+                        routineModel: routine,
+                        onComplete: { markRoutineComplete() }
+                    )
+                }
             }
             .sheet(isPresented: $showMovementPlayer) {
                 MovementPlayerSheet(
@@ -165,48 +175,48 @@ struct TodayView: View {
     private func routineTitle(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "Warm Start Congee"
-        case .lite: return "Ginger Honey Tea"
-        case .minimum: return "Warm Water Ritual"
+        case .medium: return "Ginger Honey Tea"
+        case .lite: return "Warm Water Ritual"
         }
     }
 
     private func routineSubtitle(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "Nourishing breakfast to warm your center"
-        case .lite: return "Quick warming drink"
-        case .minimum: return "Simple hydration ritual"
+        case .medium: return "Quick warming drink"
+        case .lite: return "Simple hydration ritual"
         }
     }
 
     private func routineDuration(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "10-15 min"
-        case .lite: return "5 min"
-        case .minimum: return "90 sec"
+        case .medium: return "5 min"
+        case .lite: return "90 sec"
         }
     }
 
     private func movementTitle(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "Morning Qi Flow"
-        case .lite: return "Gentle Stretches"
-        case .minimum: return "3 Deep Breaths"
+        case .medium: return "Gentle Stretches"
+        case .lite: return "3 Deep Breaths"
         }
     }
 
     private func movementSubtitle(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "Wake up your body gently"
-        case .lite: return "Quick tension release"
-        case .minimum: return "Reset your nervous system"
+        case .medium: return "Quick tension release"
+        case .lite: return "Reset your nervous system"
         }
     }
 
     private func movementDuration(for level: RoutineLevel) -> String {
         switch level {
         case .full: return "7 min"
-        case .lite: return "3 min"
-        case .minimum: return "1 min"
+        case .medium: return "3 min"
+        case .lite: return "1 min"
         }
     }
 

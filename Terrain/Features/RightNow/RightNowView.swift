@@ -2,182 +2,174 @@
 //  RightNowView.swift
 //  Terrain
 //
-//  Right Now tab for quick fixes
+//  DEPRECATED: This view has been replaced by the Quick Fixes section in DoView.
+//  QuickNeed, QuickNeedCard, and QuickSuggestionCard have been extracted to
+//  Core/Models/Shared/QuickNeed.swift.
+//
+//  Kept for reference only.
 //
 
 import SwiftUI
+import SwiftData
 
+// DEPRECATED — see DoView for the active implementation
 struct RightNowView: View {
     @Environment(\.terrainTheme) private var theme
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Ingredient.id) private var ingredients: [Ingredient]
+    @Query(sort: \Routine.id) private var routines: [Routine]
+    @Query(sort: \DailyLog.date, order: .reverse) private var dailyLogs: [DailyLog]
+
     @State private var selectedNeed: QuickNeed?
+    @State private var showCompletionFeedback = false
+    @State private var completedNeed: QuickNeed?
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: theme.spacing.lg) {
-                    // Header
-                    VStack(spacing: theme.spacing.sm) {
-                        Text("What do you need right now?")
-                            .font(theme.typography.headlineLarge)
-                            .foregroundColor(theme.colors.textPrimary)
-
-                        Text("Quick suggestions for how you're feeling")
-                            .font(theme.typography.bodyMedium)
-                            .foregroundColor(theme.colors.textSecondary)
-                    }
-                    .padding(.horizontal, theme.spacing.lg)
-                    .padding(.top, theme.spacing.md)
-
-                    // Quick needs
-                    VStack(spacing: theme.spacing.sm) {
-                        ForEach(QuickNeed.allCases) { need in
-                            QuickNeedCard(
-                                need: need,
-                                isSelected: selectedNeed == need,
-                                onTap: { selectedNeed = need }
-                            )
-                        }
-                    }
-                    .padding(.horizontal, theme.spacing.lg)
-
-                    // Selected suggestion
-                    if let need = selectedNeed {
-                        VStack(alignment: .leading, spacing: theme.spacing.md) {
-                            Text("Suggestion")
-                                .font(theme.typography.labelLarge)
+            ZStack {
+                ScrollView {
+                    VStack(spacing: theme.spacing.lg) {
+                        VStack(spacing: theme.spacing.sm) {
+                            Text("What do you need right now?")
+                                .font(theme.typography.headlineLarge)
                                 .foregroundColor(theme.colors.textPrimary)
 
-                            QuickSuggestionCard(need: need)
+                            Text("Quick suggestions for how you're feeling")
+                                .font(theme.typography.bodyMedium)
+                                .foregroundColor(theme.colors.textSecondary)
                         }
                         .padding(.horizontal, theme.spacing.lg)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    }
+                        .padding(.top, theme.spacing.md)
 
-                    Spacer(minLength: theme.spacing.xxl)
+                        VStack(spacing: theme.spacing.sm) {
+                            ForEach(QuickNeed.allCases) { need in
+                                QuickNeedCard(
+                                    need: need,
+                                    isSelected: selectedNeed == need,
+                                    isCompleted: isNeedCompletedToday(need),
+                                    onTap: {
+                                        withAnimation(theme.animation.standard) {
+                                            selectedNeed = need
+                                        }
+                                        HapticManager.selection()
+                                    }
+                                )
+                            }
+                        }
+                        .padding(.horizontal, theme.spacing.lg)
+
+                        if let need = selectedNeed {
+                            VStack(alignment: .leading, spacing: theme.spacing.md) {
+                                Text("Suggestion")
+                                    .font(theme.typography.labelLarge)
+                                    .foregroundColor(theme.colors.textPrimary)
+
+                                QuickSuggestionCard(
+                                    need: need,
+                                    suggestion: dynamicSuggestion(for: need),
+                                    isCompleted: isNeedCompletedToday(need),
+                                    onDoThis: {
+                                        markSuggestionComplete(need: need)
+                                    },
+                                    onSaveGoTo: {
+                                        HapticManager.light()
+                                    }
+                                )
+                            }
+                            .padding(.horizontal, theme.spacing.lg)
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        }
+
+                        Spacer(minLength: theme.spacing.xxl)
+                    }
+                }
+                .background(theme.colors.background)
+
+                if showCompletionFeedback {
+                    completionOverlay
                 }
             }
-            .background(theme.colors.background)
             .navigationTitle("Right Now")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-}
 
-enum QuickNeed: String, CaseIterable, Identifiable {
-    case energy
-    case calm
-    case digestion
-    case warmth
-    case cooling
-    case focus
+    private var completionOverlay: some View {
+        VStack(spacing: theme.spacing.md) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 64))
+                .foregroundColor(theme.colors.success)
 
-    var id: String { rawValue }
-
-    var displayName: String {
-        rawValue.capitalized
-    }
-
-    var icon: String {
-        switch self {
-        case .energy: return "bolt.fill"
-        case .calm: return "leaf.fill"
-        case .digestion: return "stomach"
-        case .warmth: return "flame.fill"
-        case .cooling: return "snowflake"
-        case .focus: return "brain.head.profile"
-        }
-    }
-
-    var suggestion: (title: String, description: String, avoidHours: Int?) {
-        switch self {
-        case .energy:
-            return ("Ginger Honey Tea", "A quick warm drink to gently boost your energy without the crash.", nil)
-        case .calm:
-            return ("5 Deep Breaths", "Box breathing: inhale 4, hold 4, exhale 4, hold 4. Repeat 5 times.", nil)
-        case .digestion:
-            return ("Post-Meal Walk", "A gentle 10-minute walk aids digestion and prevents sluggishness.", nil)
-        case .warmth:
-            return ("Warm Ginger Tea", "Fresh ginger steeped in hot water warms from the inside.", 2)
-        case .cooling:
-            return ("Cucumber Water", "Cool (not ice-cold) cucumber-infused water to gently cool.", nil)
-        case .focus:
-            return ("Peppermint Inhale", "Crush fresh mint between fingers and inhale deeply 3 times.", nil)
-        }
-    }
-}
-
-struct QuickNeedCard: View {
-    let need: QuickNeed
-    let isSelected: Bool
-    let onTap: () -> Void
-
-    @Environment(\.terrainTheme) private var theme
-
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: theme.spacing.md) {
-                Image(systemName: need.icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? theme.colors.accent : theme.colors.textSecondary)
-                    .frame(width: 40)
-
-                Text(need.displayName)
-                    .font(theme.typography.bodyLarge)
-                    .foregroundColor(theme.colors.textPrimary)
-
-                Spacer()
-
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(theme.colors.accent)
-                }
-            }
-            .padding(theme.spacing.md)
-            .background(isSelected ? theme.colors.accent.opacity(0.08) : theme.colors.surface)
-            .cornerRadius(theme.cornerRadius.large)
-            .overlay(
-                RoundedRectangle(cornerRadius: theme.cornerRadius.large)
-                    .stroke(isSelected ? theme.colors.accent : Color.clear, lineWidth: 1)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-struct QuickSuggestionCard: View {
-    let need: QuickNeed
-
-    @Environment(\.terrainTheme) private var theme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.md) {
-            Text(need.suggestion.title)
-                .font(theme.typography.headlineSmall)
+            Text("Done!")
+                .font(theme.typography.headlineMedium)
                 .foregroundColor(theme.colors.textPrimary)
 
-            Text(need.suggestion.description)
-                .font(theme.typography.bodyMedium)
-                .foregroundColor(theme.colors.textSecondary)
-
-            if let hours = need.suggestion.avoidHours {
-                HStack(spacing: theme.spacing.xs) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 12))
-
-                    Text("Avoid cold drinks for \(hours) hours after")
-                        .font(theme.typography.caption)
-                }
-                .foregroundColor(theme.colors.warning)
-            }
-
-            HStack(spacing: theme.spacing.md) {
-                TerrainPrimaryButton(title: "Do This", action: {})
-                TerrainTextButton(title: "Save as go-to", action: {})
+            if let need = completedNeed {
+                Text("You completed \(need.displayName.lowercased())")
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textSecondary)
             }
         }
-        .padding(theme.spacing.lg)
+        .padding(theme.spacing.xl)
         .background(theme.colors.surface)
-        .cornerRadius(theme.cornerRadius.large)
+        .cornerRadius(theme.cornerRadius.xl)
+        .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
+        .transition(.scale.combined(with: .opacity))
+    }
+
+    private func dynamicSuggestion(for need: QuickNeed) -> (title: String, description: String, avoidHours: Int?) {
+        if let ingredient = ingredients.first(where: { ing in
+            need.relevantTags.contains { tag in ing.tags.contains(tag) }
+        }) {
+            let description = ingredient.howToUse.quickUses.first?.text.localized
+                ?? ingredient.whyItHelps.plain.localized
+            return (ingredient.displayName, description, nil)
+        }
+        return need.suggestion
+    }
+
+    private func isNeedCompletedToday(_ need: QuickNeed) -> Bool {
+        let suggestionId = "rightnow-\(need.rawValue)"
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return dailyLogs.first { log in
+            calendar.startOfDay(for: log.date) == today
+        }?.completedRoutineIds.contains(suggestionId) ?? false
+    }
+
+    private func markSuggestionComplete(need: QuickNeed) {
+        let suggestionId = "rightnow-\(need.rawValue)"
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        if let todayLog = dailyLogs.first(where: { calendar.startOfDay(for: $0.date) == today }) {
+            if !todayLog.completedRoutineIds.contains(suggestionId) {
+                todayLog.completedRoutineIds.append(suggestionId)
+                todayLog.updatedAt = Date()
+            }
+        } else {
+            let newLog = DailyLog()
+            newLog.completedRoutineIds.append(suggestionId)
+            modelContext.insert(newLog)
+        }
+
+        do {
+            try modelContext.save()
+            completedNeed = need
+            withAnimation(theme.animation.spring) {
+                showCompletionFeedback = true
+            }
+            HapticManager.success()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(theme.animation.standard) {
+                    showCompletionFeedback = false
+                }
+            }
+        } catch {
+            print("Failed to save completion: \(error)")
+            HapticManager.error()
+        }
     }
 }
 

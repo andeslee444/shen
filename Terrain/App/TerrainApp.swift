@@ -12,6 +12,7 @@ import SwiftData
 @main
 struct TerrainApp: App {
     let modelContainer: ModelContainer
+    @State private var syncService = SupabaseSyncService()
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var isContentLoaded = false
@@ -24,6 +25,7 @@ struct TerrainApp: App {
                 UserCabinet.self,
                 DailyLog.self,
                 ProgressRecord.self,
+                ProgramEnrollment.self,
                 Ingredient.self,
                 Routine.self,
                 Movement.self,
@@ -63,9 +65,15 @@ struct TerrainApp: App {
                 }
             }
             .animation(.easeInOut, value: isContentLoaded)
+            .task {
+                // Configure sync service with the model context and sync on launch
+                syncService.configure(modelContext: modelContainer.mainContext)
+                await syncService.sync()
+            }
         }
         .modelContainer(modelContainer)
         .environment(\.terrainTheme, TerrainTheme.default)
+        .environment(syncService)
     }
 
     private func loadContentPack() {

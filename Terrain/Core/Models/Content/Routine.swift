@@ -15,6 +15,7 @@ final class Routine {
     @Attribute(.unique) var id: String
 
     var type: RoutineType
+    var tier: String?  // "full", "medium", or "lite"
     var title: LocalizedString
     var subtitle: LocalizedString?
 
@@ -49,6 +50,7 @@ final class Routine {
     init(
         id: String,
         type: RoutineType = .eatDrink,
+        tier: String? = nil,
         title: LocalizedString,
         subtitle: LocalizedString? = nil,
         durationMin: Int,
@@ -68,6 +70,7 @@ final class Routine {
     ) {
         self.id = id
         self.type = type
+        self.tier = tier
         self.title = title
         self.subtitle = subtitle
         self.durationMin = durationMin
@@ -170,22 +173,22 @@ enum Difficulty: String, Codable, CaseIterable {
 /// Routine effort levels (for daily routine selection)
 enum RoutineLevel: String, Codable, CaseIterable {
     case full
+    case medium
     case lite
-    case minimum
 
     var displayName: String {
         switch self {
         case .full: return "Full"
+        case .medium: return "Medium"
         case .lite: return "Lite"
-        case .minimum: return "Minimum"
         }
     }
 
     var durationDescription: String {
         switch self {
         case .full: return "10-15 min"
-        case .lite: return "5 min"
-        case .minimum: return "90 sec"
+        case .medium: return "5 min"
+        case .lite: return "90 sec"
         }
     }
 }

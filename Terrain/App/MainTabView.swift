@@ -3,65 +3,80 @@
 //  Terrain
 //
 //  Main tab navigation after onboarding
+//  New structure: Home, Do, Ingredients, Learn, You
 //
 
 import SwiftUI
+import SwiftData
 
 struct MainTabView: View {
-    @State private var selectedTab: Tab = .today
+    @State private var coordinator = NavigationCoordinator()
     @Environment(\.terrainTheme) private var theme
-
-    enum Tab: String, CaseIterable {
-        case today = "Today"
-        case rightNow = "Right Now"
-        case ingredients = "Ingredients"
-        case learn = "Learn"
-        case progress = "Progress"
-
-        var icon: String {
-            switch self {
-            case .today: return "sun.horizon.fill"
-            case .rightNow: return "bolt.fill"
-            case .ingredients: return "leaf.fill"
-            case .learn: return "book.fill"
-            case .progress: return "chart.line.uptrend.xyaxis"
-            }
-        }
-    }
+    @Query private var cabinetItems: [UserCabinet]
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            TodayView()
+        TabView(selection: tabSelection) {
+            // Home tab - insight + meaning + direction (Co-Star style)
+            HomeView()
                 .tabItem {
-                    Label(Tab.today.rawValue, systemImage: Tab.today.icon)
+                    Label(
+                        NavigationCoordinator.Tab.home.title,
+                        systemImage: NavigationCoordinator.Tab.home.icon
+                    )
                 }
-                .tag(Tab.today)
+                .tag(NavigationCoordinator.Tab.home)
 
-            RightNowView()
+            // Do tab - execution (capsule + quick fixes combined)
+            DoView()
                 .tabItem {
-                    Label(Tab.rightNow.rawValue, systemImage: Tab.rightNow.icon)
+                    Label(
+                        NavigationCoordinator.Tab.do.title,
+                        systemImage: NavigationCoordinator.Tab.do.icon
+                    )
                 }
-                .tag(Tab.rightNow)
+                .tag(NavigationCoordinator.Tab.do)
 
+            // Ingredients tab - unchanged
             IngredientsView()
                 .tabItem {
-                    Label(Tab.ingredients.rawValue, systemImage: Tab.ingredients.icon)
+                    Label(
+                        NavigationCoordinator.Tab.ingredients.title,
+                        systemImage: NavigationCoordinator.Tab.ingredients.icon
+                    )
                 }
-                .tag(Tab.ingredients)
+                .tag(NavigationCoordinator.Tab.ingredients)
+                .badge(cabinetItems.count)
 
+            // Learn tab - unchanged
             LearnView()
                 .tabItem {
-                    Label(Tab.learn.rawValue, systemImage: Tab.learn.icon)
+                    Label(
+                        NavigationCoordinator.Tab.learn.title,
+                        systemImage: NavigationCoordinator.Tab.learn.icon
+                    )
                 }
-                .tag(Tab.learn)
+                .tag(NavigationCoordinator.Tab.learn)
 
-            ProgressTabView()
+            // You tab - progress + settings combined
+            YouView()
                 .tabItem {
-                    Label(Tab.progress.rawValue, systemImage: Tab.progress.icon)
+                    Label(
+                        NavigationCoordinator.Tab.you.title,
+                        systemImage: NavigationCoordinator.Tab.you.icon
+                    )
                 }
-                .tag(Tab.progress)
+                .tag(NavigationCoordinator.Tab.you)
         }
         .tint(theme.colors.accent)
+        .environment(coordinator)
+    }
+
+    /// Binding to the coordinator's selected tab for two-way sync
+    private var tabSelection: Binding<NavigationCoordinator.Tab> {
+        Binding(
+            get: { coordinator.selectedTab },
+            set: { coordinator.selectedTab = $0 }
+        )
     }
 }
 

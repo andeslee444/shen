@@ -3,6 +3,7 @@
 //  Terrain
 //
 //  Terrain reveal screen - the signature moment
+//  Enhanced with mystical animations and radial pulse effect
 //
 
 import SwiftUI
@@ -13,45 +14,106 @@ struct TerrainRevealView: View {
 
     @Environment(\.terrainTheme) private var theme
     @State private var revealPhase = 0
+    @State private var pulseScale: CGFloat = 0.8
+    @State private var pulseOpacity: Double = 0
+    @State private var glowIntensity: Double = 0
+    @State private var particleOffset: CGFloat = 0
 
     private var terrainCopy: TerrainCopy {
         TerrainCopy.forType(result.primaryType, modifier: result.modifier)
     }
 
+    /// Color for the terrain type glow effect
+    private var terrainGlowColor: Color {
+        switch result.primaryType {
+        case .coldDeficient, .coldBalanced:
+            return Color(hex: "7A8E9E") // Cool blue-grey
+        case .warmDeficient, .warmBalanced, .warmExcess:
+            return Color(hex: "C9956E") // Warm amber
+        case .neutralDeficient, .neutralBalanced, .neutralExcess:
+            return Color(hex: "9E9E8E") // Neutral earth
+        }
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: theme.spacing.xl) {
-                Spacer(minLength: theme.spacing.xxl)
+        ZStack {
+            // Mystical background with radial gradient pulse
+            RadialGradient(
+                gradient: Gradient(colors: [
+                    terrainGlowColor.opacity(glowIntensity * 0.3),
+                    theme.colors.background.opacity(0)
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: 300
+            )
+            .scaleEffect(pulseScale)
+            .opacity(pulseOpacity)
+            .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseScale)
 
-                // Header
-                VStack(spacing: theme.spacing.sm) {
-                    Text("Your Terrain")
-                        .font(theme.typography.caption)
-                        .foregroundColor(theme.colors.textTertiary)
-                        .textCase(.uppercase)
-                        .tracking(2)
-                        .opacity(revealPhase >= 1 ? 1 : 0)
+            // Floating particles effect
+            GeometryReader { geometry in
+                ForEach(0..<8, id: \.self) { index in
+                    Circle()
+                        .fill(terrainGlowColor.opacity(0.2))
+                        .frame(width: CGFloat.random(in: 4...8), height: CGFloat.random(in: 4...8))
+                        .position(
+                            x: geometry.size.width * CGFloat.random(in: 0.2...0.8),
+                            y: geometry.size.height * (0.2 + CGFloat(index) * 0.08) - particleOffset
+                        )
+                        .opacity(revealPhase >= 1 ? 0.6 : 0)
+                        .animation(
+                            .easeInOut(duration: Double.random(in: 3...5))
+                                .repeatForever(autoreverses: true)
+                                .delay(Double(index) * 0.2),
+                            value: particleOffset
+                        )
+                }
+            }
+            .allowsHitTesting(false)
 
-                    // Primary Label
-                    Text(result.primaryType.label)
-                        .font(theme.typography.displayMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-                        .opacity(revealPhase >= 1 ? 1 : 0)
-                        .scaleEffect(revealPhase >= 1 ? 1 : 0.9)
+            ScrollView {
+                VStack(spacing: theme.spacing.xl) {
+                    Spacer(minLength: theme.spacing.xxl)
 
-                    // Nickname
-                    Text("(\(result.primaryType.nickname))")
-                        .font(theme.typography.headlineMedium)
-                        .foregroundColor(theme.colors.accent)
-                        .opacity(revealPhase >= 2 ? 1 : 0)
+                    // Header with enhanced typography animation
+                    VStack(spacing: theme.spacing.sm) {
+                        Text("Your Terrain")
+                            .font(theme.typography.caption)
+                            .foregroundColor(theme.colors.textTertiary)
+                            .textCase(.uppercase)
+                            .tracking(3)
+                            .opacity(revealPhase >= 1 ? 1 : 0)
 
-                    // Modifier chip
-                    if result.modifier != .none {
-                        TerrainChip(title: result.modifier.displayName, isSelected: true)
+                        // Primary Label - dramatic scale reveal
+                        Text(result.primaryType.label)
+                            .font(theme.typography.displayLarge)
+                            .foregroundColor(theme.colors.textPrimary)
+                            .opacity(revealPhase >= 1 ? 1 : 0)
+                            .scaleEffect(revealPhase >= 1 ? 1 : 0.7)
+                            .blur(radius: revealPhase >= 1 ? 0 : 10)
+
+                        // Nickname with glow effect
+                        Text(result.primaryType.nickname)
+                            .font(theme.typography.headlineLarge)
+                            .foregroundColor(theme.colors.accent)
+                            .opacity(revealPhase >= 2 ? 1 : 0)
+                            .shadow(color: terrainGlowColor.opacity(0.5), radius: 10, x: 0, y: 0)
+
+                        // Modifier chip
+                        if result.modifier != .none {
+                            TerrainChip(title: result.modifier.displayName, isSelected: true)
+                                .opacity(revealPhase >= 2 ? 1 : 0)
+                                .scaleEffect(revealPhase >= 2 ? 1 : 0.9)
+                        }
+
+                        // Community normalization
+                        Text(CommunityStats.normalizationText(for: result.primaryType.terrainProfileId))
+                            .font(theme.typography.caption)
+                            .foregroundColor(theme.colors.textTertiary)
                             .opacity(revealPhase >= 2 ? 1 : 0)
                     }
-                }
-                .animation(theme.animation.reveal, value: revealPhase)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: revealPhase)
 
                 // Superpower / Trap / Ritual
                 VStack(spacing: theme.spacing.lg) {
@@ -134,32 +196,54 @@ struct TerrainRevealView: View {
                     .opacity(revealPhase >= 4 ? 1 : 0)
                     .animation(theme.animation.reveal.delay(0.5), value: revealPhase)
 
-                Spacer(minLength: theme.spacing.lg)
+                    Spacer(minLength: theme.spacing.lg)
+                }
             }
         }
+        .background(theme.colors.background)
         .onAppear {
             animateReveal()
         }
     }
 
     private func animateReveal() {
-        withAnimation(theme.animation.reveal) {
+        // Start background glow immediately
+        withAnimation(.easeIn(duration: 0.8)) {
+            pulseOpacity = 1
+            glowIntensity = 1
+        }
+
+        // Start pulse animation
+        withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+            pulseScale = 1.2
+        }
+
+        // Start particle floating
+        withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+            particleOffset = 30
+        }
+
+        // Phase 1: Primary type reveal with dramatic scale
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
             revealPhase = 1
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(theme.animation.reveal) {
+        // Phase 2: Nickname and modifier
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 revealPhase = 2
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Phase 3: Cards
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             withAnimation(theme.animation.reveal) {
                 revealPhase = 3
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        // Phase 4: Truths, matches, and button
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             withAnimation(theme.animation.reveal) {
                 revealPhase = 4
             }
@@ -173,18 +257,21 @@ struct TerrainRevealCard: View {
     let content: String
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
         HStack(alignment: .top, spacing: theme.spacing.md) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(.system(size: 22, weight: .medium))
                 .foregroundColor(theme.colors.accent)
-                .frame(width: 32)
+                .frame(width: 36)
 
             VStack(alignment: .leading, spacing: theme.spacing.xxs) {
                 Text(title)
                     .font(theme.typography.labelMedium)
                     .foregroundColor(theme.colors.textTertiary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
 
                 Text(content)
                     .font(theme.typography.bodyLarge)
@@ -196,6 +283,9 @@ struct TerrainRevealCard: View {
         .padding(theme.spacing.md)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.large)
+        // Modern elevated shadow for depth
+        .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
+        .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
     }
 }
 
@@ -242,133 +332,6 @@ struct FlowLayout: Layout {
             }
 
             self.size.height = currentY + lineHeight
-        }
-    }
-}
-
-// MARK: - Terrain Copy Data
-
-struct TerrainCopy {
-    let superpower: String
-    let trap: String
-    let signatureRitual: String
-    let truths: [String]
-    let bestMatchesIntro: String
-    let recommendedIngredients: [String]
-
-    static func forType(_ type: TerrainScoringEngine.PrimaryType, modifier: TerrainScoringEngine.Modifier) -> TerrainCopy {
-        switch type {
-        case .coldDeficient:
-            return TerrainCopy(
-                superpower: "When you're consistent, you become steady. Warmth and routine unlock your best energy.",
-                trap: "Cold inputs and skipping meals drain you faster than you expect.",
-                signatureRitual: "Warm start within 30 minutes of waking.",
-                truths: [
-                    "Your system does better with gentle build-up than big pushes.",
-                    "Cooked food stabilizes you—raw/cold hits harder for you than most.",
-                    "Movement works best for you when it warms you up, not when it exhausts you."
-                ],
-                bestMatchesIntro: "Your best matches tend to be warming, digestion-supporting, and steadying.",
-                recommendedIngredients: ["Ginger", "Red Dates", "Cinnamon", "Oats", "Rice", "Sweet Potato"]
-            )
-
-        case .coldBalanced:
-            return TerrainCopy(
-                superpower: "You stay composed under pressure. Warmth turns that calm into momentum.",
-                trap: "If you stay too cold for too long, you get sluggish and heavy.",
-                signatureRitual: "Warm your center before your day speeds up.",
-                truths: [
-                    "You can handle a lot—until cold quietly accumulates.",
-                    "Warm prep methods make you feel clearer without changing your diet drastically.",
-                    "A little movement goes a long way for you when it's consistent."
-                ],
-                bestMatchesIntro: "You do best with warming basics and light daily movement.",
-                recommendedIngredients: ["Ginger", "Scallion", "Black Pepper", "Lamb", "Walnuts", "Longan"]
-            )
-
-        case .neutralDeficient:
-            return TerrainCopy(
-                superpower: "You're sensitive in a good way. Small changes give you big returns.",
-                trap: "Overcommitting drains you. You feel it in sleep, digestion, and focus.",
-                signatureRitual: "A steady breakfast + a short reset movement.",
-                truths: [
-                    "Your body thrives on predictable fuel.",
-                    "You recover fastest with gentle routines, not intensity.",
-                    "When you're depleted, your mind gets louder—protect your evenings."
-                ],
-                bestMatchesIntro: "You do best with steady nourishment, gentle movement, and calm evenings.",
-                recommendedIngredients: ["Rice", "Chicken", "Eggs", "Sweet Potato", "Mushrooms", "Honey"]
-            )
-
-        case .neutralBalanced:
-            return TerrainCopy(
-                superpower: "You adapt well. With the right ritual, you can fine-tune sleep, digestion, and energy quickly.",
-                trap: "When your schedule gets chaotic, your body follows.",
-                signatureRitual: "A daily anchor: one warm drink + one short movement.",
-                truths: [
-                    "You're responsive—small routines keep you aligned.",
-                    "Your biggest lever is consistency, not strictness.",
-                    "You can tolerate variety, but your body loves rhythm."
-                ],
-                bestMatchesIntro: "You benefit from balanced routines that keep your rhythm steady.",
-                recommendedIngredients: ["Green Tea", "Rice", "Vegetables", "Tofu", "Fish", "Sesame"]
-            )
-
-        case .neutralExcess:
-            return TerrainCopy(
-                superpower: "You have drive. When your flow is smooth, you're magnetic and productive.",
-                trap: "You can run on tension. It looks like energy, but it costs sleep and digestion.",
-                signatureRitual: "A 3-minute unwind to release tension daily.",
-                truths: [
-                    "Your body holds stress in your breath, jaw, and shoulders.",
-                    "You feel best when you move the stuck energy early.",
-                    "Evening calm is your performance enhancer."
-                ],
-                bestMatchesIntro: "You do best with routines that move tension and settle the mind.",
-                recommendedIngredients: ["Chamomile", "Citrus Peel", "Radish", "Celery", "Mint", "Jasmine"]
-            )
-
-        case .warmBalanced:
-            return TerrainCopy(
-                superpower: "You have natural spark. When you stay cool-headed, you feel light and clear.",
-                trap: "Too much stimulation (stress, late nights, spicy/alcohol) tips you into restlessness.",
-                signatureRitual: "A cooling-down cue in the evening.",
-                truths: [
-                    "You run better with room-temp hydration than icy extremes.",
-                    "When you're over-heated, sleep and skin show it first.",
-                    "Gentle movement keeps your flame clean."
-                ],
-                bestMatchesIntro: "You do best with light, cooling-leaning habits and calming evenings.",
-                recommendedIngredients: ["Cucumber", "Mung Bean", "Pear", "Chrysanthemum", "Green Tea", "Watermelon"]
-            )
-
-        case .warmExcess:
-            return TerrainCopy(
-                superpower: "You have intensity. When it's directed, you're powerful and sharp.",
-                trap: "You can overrun your nervous system—sleep becomes the first casualty.",
-                signatureRitual: "A nightly downshift: breath + screens off.",
-                truths: [
-                    "Your body runs hot under stress.",
-                    "You need deliberate cooling signals, not more stimulation.",
-                    "Your best days start with calm, not urgency."
-                ],
-                bestMatchesIntro: "You do best with calming routines that reduce heat and restlessness.",
-                recommendedIngredients: ["Mung Bean", "Bitter Melon", "Celery", "Lotus Root", "Pear", "Mint"]
-            )
-
-        case .warmDeficient:
-            return TerrainCopy(
-                superpower: "You're bright and sensitive. When nourished, you're glowing and creative.",
-                trap: "You can feel warm but depleted—restless sleep, dryness, and wired-tired energy.",
-                signatureRitual: "Moistening nourishment + a consistent bedtime cue.",
-                truths: [
-                    "You burn quickly when you skip recovery.",
-                    "Your best energy is smooth, not pushed.",
-                    "Evening routines matter more for you than morning intensity."
-                ],
-                bestMatchesIntro: "You do best with moistening nourishment and nervous-system calming habits.",
-                recommendedIngredients: ["Pear", "Honey", "Sesame", "Lily Bulb", "Tremella", "Goji Berry"]
-            )
         }
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct MovementPlayerSheet: View {
     let level: RoutineLevel
@@ -13,12 +14,14 @@ struct MovementPlayerSheet: View {
 
     @Environment(\.terrainTheme) private var theme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     @State private var currentFrame = 0
     @State private var isPlaying = false
     @State private var timeRemaining = 0
     @State private var timer: Timer?
     @State private var playButtonScale: CGFloat = 1.0
+    @State private var showFeedbackSheet = false
 
     private var movement: MovementData {
         MovementData.forLevel(level)
@@ -163,6 +166,17 @@ struct MovementPlayerSheet: View {
         .onDisappear {
             stopTimer()
         }
+        .sheet(isPresented: $showFeedbackSheet, onDismiss: {
+            onComplete()
+            dismiss()
+        }) {
+            PostRoutineFeedbackSheet(
+                routineOrMovementId: movement.title,
+                onFeedback: { feedback in
+                    saveFeedback(feedback)
+                }
+            )
+        }
     }
 
     private func togglePlayPause() {
@@ -188,10 +202,9 @@ struct MovementPlayerSheet: View {
                     currentFrame += 1
                     timeRemaining = movement.frames[currentFrame].seconds
                 } else {
-                    // Completed
+                    // Completed — show feedback before dismissing
                     stopTimer()
-                    onComplete()
-                    dismiss()
+                    showFeedbackSheet = true
                 }
             }
         }
@@ -210,13 +223,38 @@ struct MovementPlayerSheet: View {
         }
     }
 
+    // MARK: - Feedback
+
+    private func saveFeedback(_ feedback: PostRoutineFeedback) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        let descriptor = FetchDescriptor<DailyLog>()
+        let allLogs = (try? modelContext.fetch(descriptor)) ?? []
+        let todaysLog = allLogs.first { calendar.startOfDay(for: $0.date) == today }
+
+        let entry = RoutineFeedbackEntry(
+            routineOrMovementId: movement.title,
+            feedback: feedback
+        )
+
+        if let log = todaysLog {
+            log.routineFeedback.append(entry)
+            log.updatedAt = Date()
+        } else {
+            let log = DailyLog(routineFeedback: [entry])
+            modelContext.insert(log)
+        }
+
+        try? modelContext.save()
+    }
+
     private func nextFrame() {
         stopTimer()
         if currentFrame < movement.frames.count - 1 {
             currentFrame += 1
         } else {
-            onComplete()
-            dismiss()
+            showFeedbackSheet = true
         }
     }
 }
@@ -247,7 +285,7 @@ struct MovementData {
                 ]
             )
 
-        case .lite:
+        case .medium:
             return MovementData(
                 title: "Gentle Stretches",
                 frames: [
@@ -260,7 +298,7 @@ struct MovementData {
                 ]
             )
 
-        case .minimum:
+        case .lite:
             return MovementData(
                 title: "3 Deep Breaths",
                 frames: [

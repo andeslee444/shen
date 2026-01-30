@@ -4,21 +4,39 @@
 
 ## Features
 
-### MVP (Phase 1)
-- **Onboarding Flow**: 7-screen flow with goals selection and 12-question quiz
-- **Terrain Scoring Engine**: Determines body constitution from 5 axes
-- **Terrain Reveal**: High-impact reveal of user's terrain type with superpowers/traps
-- **Today Tab**: Daily routine capsule with Eat/Drink + Move modules
-- **Three Routine Levels**: Full (10-15 min), Lite (5 min), Minimum (90 sec)
-- **Movement Player**: Frame-by-frame illustrated exercise flows
-- **SwiftData Persistence**: Local storage for user data
+### Tab Structure
+| Tab | Purpose |
+|-----|---------|
+| **Home** | Insight + meaning + direction (Co-Star style) - personalized headlines, do/don'ts, life areas |
+| **Do** | Execution - daily capsule (routine + movement) + quick fixes |
+| **Ingredients** | Cabinet management and discovery |
+| **Learn** | Field Guide educational content |
+| **You** | Progress tracking (streaks, calendar) + settings |
+
+### Core Features
+- **Onboarding Flow**: 8-screen flow with goals selection, 13-question quiz, and optional account creation
+- **Terrain Scoring Engine**: Determines body constitution from 5 axes (8 types × 5 modifiers)
+- **Terrain Reveal**: High-impact reveal with community normalization ("X% share your type")
+- **InsightEngine**: Generates personalized headlines, do/don'ts, seasonal notes, and "why for you" explanations
+- **Terrain-Aware Content**: Do tab filters routines + movements by terrain type and tier (Full/Medium/Lite)
+- **Post-Routine Feedback**: Better/Same/Not sure after completing routines and movements
+- **Seasonal Awareness**: Home tab shows season-specific guidance per terrain type
+- **8 Quick Symptoms**: Check-in chips sorted by terrain relevance, all adjusting daily content
+- **TrendEngine**: 14-day rolling trends across 7 health categories + routine effectiveness scoring
+- **Trend Visualization**: Sparkline charts, symptom heatmap, and routine effectiveness cards in You tab
+- **Movement Player**: Frame-by-frame illustrated exercise flows with feedback on completion
+- **Ingredients Cabinet**: Add/remove ingredients with tab badge and detail sheet toggle
+- **Programs Enrollment**: Multi-day program persistence via ProgramEnrollment SwiftData model
+- **Supabase Sync**: Bidirectional cloud sync (5 tables, RLS, last-write-wins strategy)
+- **Authentication**: Email/password, Apple Sign In, optional during onboarding, accessible from Settings
+- **Expanded Content**: 43 ingredients, 24 routines, 9 movements, 17 lessons, 5 programs
+- **SwiftData Persistence**: Local storage for user data, symptoms, routine feedback
+- **Accessibility**: VoiceOver labels, header traits, @ScaledMetric support across views
+- **Content Validation Tests**: Schema verification, terrain coverage, content integrity checks
 
 ### Future Phases
-- Right Now: Quick fixes for immediate needs
-- Ingredients: Cabinet management and discovery
-- Learn: Field Guide educational content
-- Progress: Streaks, calendar, and insights
-- Supabase sync for backup
+- WeatherKit integration (requires Apple Developer Program)
+- TestFlight deployment (requires Apple Developer Program)
 
 ## Technology Stack
 
@@ -34,26 +52,35 @@
 ```
 Terrain/
 ├── App/                          # Entry point
+│   ├── TerrainApp.swift          # @main app entry
+│   ├── MainTabView.swift         # Tab bar (Home, Do, Ingredients, Learn, You)
+│   └── NavigationCoordinator.swift # Cross-tab navigation + deep linking
 ├── Core/
 │   ├── Models/                   # SwiftData models
 │   │   ├── Content/              # Ingredient, Routine, Movement, Lesson, Program, TerrainProfile
-│   │   ├── User/                 # UserProfile, UserCabinet, DailyLog, ProgressRecord
-│   │   └── Shared/               # LocalizedString, Tags, SafetyFlags
-│   ├── Engine/                   # TerrainScoringEngine
-│   ├── Services/                 # ContentPackService, SyncService
-│   └── Utilities/
+│   │   ├── User/                 # UserProfile, UserCabinet, DailyLog, ProgressRecord, ProgramEnrollment
+│   │   └── Shared/               # LocalizedString, Tags, SafetyFlags, MediaAsset, HomeInsightModels, CommunityStats, TerrainCopy, YouViewModels
+│   ├── Engine/                   # TerrainScoringEngine (quiz scoring, 13 questions)
+│   └── Services/                 # ContentPackService, InsightEngine, ConstitutionService, TrendEngine, SupabaseSyncService, SuggestionEngine
 ├── Features/                     # Feature modules
-│   ├── Onboarding/              # Welcome, Goals, Quiz, Reveal, Safety, Notifications
-│   ├── Today/                   # RoutineCapsule, EatDrink, Move modules
-│   ├── RightNow/                # Quick fixes
-│   ├── Ingredients/             # Cabinet, Discovery
-│   ├── Learn/                   # Field Guide lessons
-│   └── Progress/                # Streaks, Calendar
+│   ├── Onboarding/              # Welcome, Goals, Quiz, TerrainReveal, Safety, Notifications, Account
+│   ├── Home/                    # HomeView + Components/ (DateBar, Headline, TypeBlock, etc.)
+│   ├── Do/                      # DoView (capsule + quick fixes combined)
+│   ├── Today/                   # RoutineDetailSheet, MovementPlayerSheet, PostRoutineFeedbackSheet
+│   ├── RightNow/                # RightNowView (legacy, content moved to Do)
+│   ├── Ingredients/             # IngredientsView, IngredientDetailSheet
+│   ├── Learn/                   # LearnView, LessonDetailSheet
+│   ├── Progress/                # ProgressView (legacy, content moved to You)
+│   ├── Programs/                # ProgramsView, ProgramDetailSheet, ProgramDayView
+│   ├── Auth/                    # AuthView (email/password + Apple Sign In)
+│   ├── Settings/                # SettingsView (legacy, content moved to You)
+│   └── You/                     # YouView (progress + settings combined)
 ├── DesignSystem/
-│   ├── Theme/                   # Colors, Typography, Spacing, Animation
-│   └── Components/              # Buttons, Cards, TextFields
+│   ├── Theme/                   # TerrainTheme (colors, typography, spacing, animation)
+│   ├── Components/              # TerrainButton, TerrainCard, TerrainTextField, TerrainPatternBackground
+│   └── Utilities/               # HapticManager
 ├── Resources/
-│   └── ContentPacks/            # Bundled JSON content
+│   └── ContentPacks/            # base-content-pack.json
 └── Tests/
 ```
 
@@ -67,7 +94,10 @@ Terrain/
 - **Warning**: #C9A96E
 
 ### Typography
-- System font with light/regular weights
+- System font with bold/black weights for headlines (modern impact)
+- Regular weights for body text (calm readability)
+- Display: `.black` weight for dramatic reveals
+- Headlines: `.bold` weight for confident clarity
 - Generous line height for readability
 
 ### Spacing
@@ -143,11 +173,12 @@ If you don't have the `.xcodeproj` file:
 
 The app ships with a bundled content pack at `Resources/ContentPacks/base-content-pack.json`. This includes:
 
-- Ingredients with TCM properties
-- Eat/Drink routines for different terrain types
-- Movement sequences with frame-by-frame cues
-- Field Guide lessons
-- Terrain profile definitions
+- **43 Ingredients** with TCM properties, cautions, and cultural context
+- **24 Routines** (8 per tier: full/medium/lite) covering all 8 terrain types
+- **9 Movements** across restorative, gentle, and moderate intensities
+- **17 Lessons** organized by topic (cold_heat, damp_dry, qi_flow, shen, safety, seasonality, methods)
+- **5 Programs** (multi-day guided sequences per terrain cluster)
+- **8 Terrain Profiles** with superpowers, traps, truths, and starter ingredients
 
 ## Testing
 
@@ -156,10 +187,12 @@ The app ships with a bundled content pack at `Resources/ContentPacks/base-conten
 xcodebuild test -scheme Terrain -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
-Key test areas:
-- TerrainScoringEngine: All 8 types + 5 modifiers
-- Content pack parsing
-- Quiz flow state management
+59+ unit tests covering:
+- **TerrainScoringEngine**: All 8 types + 5 modifiers + boundary cases (37 tests)
+- **ConstitutionService**: Readouts, signals, defaults, watch-fors (11 tests)
+- **TrendEngine**: 7-category trends, empty/insufficient data handling (4 tests)
+- **ContentPackValidation**: Schema integrity, terrain coverage, content pack structure (7+ tests)
+- **SuggestionEngine**: Terrain-aware ingredient/routine suggestions
 
 ## License
 

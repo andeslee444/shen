@@ -21,7 +21,7 @@ struct QuizView: View {
                     .tint(theme.colors.accent)
                     .padding(.horizontal, theme.spacing.lg)
 
-                Text("Question \(coordinator.currentQuestionIndex + 1) of \(QuizQuestions.all.count)")
+                Text("Question \(coordinator.currentQuestionIndex + 1) of \(coordinator.filteredQuestions.count)")
                     .font(theme.typography.caption)
                     .foregroundColor(theme.colors.textTertiary)
             }
@@ -81,7 +81,7 @@ struct QuizView: View {
                 }
 
                 // Next/Complete button
-                if coordinator.currentQuestionIndex < QuizQuestions.all.count - 1 {
+                if coordinator.currentQuestionIndex < coordinator.filteredQuestions.count - 1 {
                     TerrainPrimaryButton(
                         title: "Next",
                         action: {

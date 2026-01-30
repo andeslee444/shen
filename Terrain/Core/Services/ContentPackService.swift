@@ -17,32 +17,43 @@ import SwiftData
 final class ContentPackService {
     private let modelContext: ModelContext
 
+    /// UserDefaults key for the last-loaded content pack version.
+    /// Think of this as a sticker on the library's front desk that says
+    /// "Edition 1.0.0 is on the shelves." When a new edition arrives,
+    /// the librarian checks the sticker and knows to restock.
+    private static let contentVersionKey = "loadedContentPackVersion"
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
 
     // MARK: - Public API
 
-    /// Loads the bundled base content pack if not already loaded.
-    /// Returns true if content was loaded, false if already exists.
+    /// Loads the bundled base content pack if not already loaded,
+    /// or reloads it if the version has changed.
+    /// Returns true if content was loaded/reloaded, false if already up-to-date.
     func loadBundledContentPackIfNeeded() async throws -> Bool {
-        // Check if we already have content loaded
+        // Locate the bundle JSON
+        let url = try resolveContentPackURL()
+        let data = try Data(contentsOf: url)
+        let pack = try JSONDecoder().decode(ContentPackDTO.self, from: data)
+
+        let newVersion = pack.pack.version
+        let storedVersion = UserDefaults.standard.string(forKey: Self.contentVersionKey)
+
+        // If versions match AND content already exists, skip reload
         let ingredientCount = try modelContext.fetchCount(FetchDescriptor<Ingredient>())
-        if ingredientCount > 0 {
+        if storedVersion == newVersion && ingredientCount > 0 {
             return false
         }
 
-        // Load from bundle
-        guard let url = Bundle.main.url(forResource: "base-content-pack", withExtension: "json", subdirectory: "ContentPacks") else {
-            // Try without subdirectory (flat bundle structure)
-            guard let flatUrl = Bundle.main.url(forResource: "base-content-pack", withExtension: "json") else {
-                throw ContentPackError.bundleNotFound
-            }
-            try await loadContentPack(from: flatUrl)
-            return true
+        // Version changed or no content yet — clear old data and reimport
+        if ingredientCount > 0 {
+            try deleteAllContent()
         }
 
-        try await loadContentPack(from: url)
+        try await importContentPack(pack)
+        UserDefaults.standard.set(newVersion, forKey: Self.contentVersionKey)
         return true
     }
 
@@ -52,6 +63,18 @@ final class ContentPackService {
         let pack = try JSONDecoder().decode(ContentPackDTO.self, from: data)
 
         try await importContentPack(pack)
+    }
+
+    // MARK: - Bundle Resolution
+
+    private func resolveContentPackURL() throws -> URL {
+        if let url = Bundle.main.url(forResource: "base-content-pack", withExtension: "json", subdirectory: "ContentPacks") {
+            return url
+        }
+        if let flatUrl = Bundle.main.url(forResource: "base-content-pack", withExtension: "json") {
+            return flatUrl
+        }
+        throw ContentPackError.bundleNotFound
     }
 
     // MARK: - Import Logic
@@ -93,6 +116,20 @@ final class ContentPackService {
             modelContext.insert(profile)
         }
 
+        try modelContext.save()
+    }
+
+    // MARK: - Content Cleanup
+
+    /// Removes all content models from SwiftData so the library
+    /// can be restocked with a fresh edition.
+    private func deleteAllContent() throws {
+        try modelContext.delete(model: Ingredient.self)
+        try modelContext.delete(model: Routine.self)
+        try modelContext.delete(model: Movement.self)
+        try modelContext.delete(model: Lesson.self)
+        try modelContext.delete(model: Program.self)
+        try modelContext.delete(model: TerrainProfile.self)
         try modelContext.save()
     }
 }
@@ -273,6 +310,7 @@ struct CulturalContextDTO: Decodable {
 struct RoutineDTO: Decodable {
     let id: String
     let type: String
+    let tier: String?
     let title: LocalizedStringDTO
     let subtitle: LocalizedStringDTO?
     let duration_min: Int
@@ -294,6 +332,7 @@ struct RoutineDTO: Decodable {
         Routine(
             id: id,
             type: RoutineType(rawValue: type) ?? .eatDrink,
+            tier: tier,
             title: title.toModel(),
             subtitle: subtitle?.toModel(),
             durationMin: duration_min,

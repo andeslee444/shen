@@ -10,6 +10,7 @@
 		/* App */
 		E10000010000000000000001 /* TerrainApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000001 /* TerrainApp.swift */; };
 		E10000010000000000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000002 /* MainTabView.swift */; };
+		E10000010000000000000003 /* NavigationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000010000000000000003 /* NavigationCoordinator.swift */; };
 
 		/* Core/Models/Content */
 		E10000020000000000000001 /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000020000000000000001 /* Ingredient.swift */; };
@@ -24,18 +25,21 @@
 		E10000030000000000000002 /* UserCabinet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000002 /* UserCabinet.swift */; };
 		E10000030000000000000003 /* DailyLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000003 /* DailyLog.swift */; };
 		E10000030000000000000004 /* ProgressRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000004 /* ProgressRecord.swift */; };
+		E10000030000000000000005 /* ProgramEnrollment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000030000000000000005 /* ProgramEnrollment.swift */; };
 
 		/* Core/Models/Shared */
 		E10000040000000000000001 /* LocalizedString.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000001 /* LocalizedString.swift */; };
 		E10000040000000000000002 /* Tags.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000002 /* Tags.swift */; };
 		E10000040000000000000003 /* SafetyFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000003 /* SafetyFlags.swift */; };
 		E10000040000000000000004 /* MediaAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000004 /* MediaAsset.swift */; };
+		E10000040000000000000005 /* HomeInsightModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000005 /* HomeInsightModels.swift */; };
 
 		/* Core/Engine */
 		E10000050000000000000001 /* TerrainScoringEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000050000000000000001 /* TerrainScoringEngine.swift */; };
 
 		/* Core/Services */
 		E10000060000000000000001 /* ContentPackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000001 /* ContentPackService.swift */; };
+		E10000060000000000000002 /* InsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000002 /* InsightEngine.swift */; };
 
 		/* Features/Onboarding */
 		E10000070000000000000001 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000001 /* WelcomeView.swift */; };
@@ -51,18 +55,70 @@
 		E10000080000000000000002 /* DailyCheckInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000002 /* DailyCheckInSheet.swift */; };
 		E10000080000000000000003 /* RoutineDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000003 /* RoutineDetailSheet.swift */; };
 		E10000080000000000000004 /* MovementPlayerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000004 /* MovementPlayerSheet.swift */; };
+		E10000080000000000000005 /* PostRoutineFeedbackSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000005 /* PostRoutineFeedbackSheet.swift */; };
 
 		/* Features/RightNow */
 		E10000090000000000000001 /* RightNowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000090000000000000001 /* RightNowView.swift */; };
 
 		/* Features/Ingredients */
 		E100000A0000000000000001 /* IngredientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000001 /* IngredientsView.swift */; };
+		E100000A0000000000000002 /* IngredientDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000002 /* IngredientDetailSheet.swift */; };
 
 		/* Features/Learn */
 		E100000B0000000000000001 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000B0000000000000001 /* LearnView.swift */; };
+		E100000B0000000000000002 /* LessonDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000B0000000000000002 /* LessonDetailSheet.swift */; };
 
 		/* Features/Progress */
 		E100000C0000000000000001 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000C0000000000000001 /* ProgressView.swift */; };
+
+		/* Features/Settings */
+		E100000C0000000000000002 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000C0000000000000002 /* SettingsView.swift */; };
+
+		/* Features/Home */
+		E10000100000000000000001 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000001 /* HomeView.swift */; };
+		E10000100000000000000002 /* DateBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000002 /* DateBarView.swift */; };
+		E10000100000000000000003 /* HeadlineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000003 /* HeadlineView.swift */; };
+		E10000100000000000000004 /* TypeBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000004 /* TypeBlockView.swift */; };
+		E10000100000000000000005 /* InlineCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000005 /* InlineCheckInView.swift */; };
+		E10000100000000000000006 /* DoDontView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000006 /* DoDontView.swift */; };
+		E10000100000000000000007 /* AreasOfLifeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000007 /* AreasOfLifeView.swift */; };
+		E10000100000000000000008 /* ThemeTodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000008 /* ThemeTodayView.swift */; };
+		E10000100000000000000009 /* CapsuleStartCTA.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000100000000000000009 /* CapsuleStartCTA.swift */; };
+		E1000010000000000000000A /* SeasonalCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000010000000000000000A /* SeasonalCardView.swift */; };
+
+		/* Features/Do */
+		E10000110000000000000001 /* DoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000110000000000000001 /* DoView.swift */; };
+
+		/* Features/You */
+		E10000120000000000000001 /* YouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000001 /* YouView.swift */; };
+		E10000120000000000000009 /* TerrainHeroHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000009 /* TerrainHeroHeaderView.swift */; };
+		E1000012000000000000000A /* EnhancedPatternMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000012000000000000000A /* EnhancedPatternMapView.swift */; };
+		E1000012000000000000000B /* TerrainIdentityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000012000000000000000B /* TerrainIdentityView.swift */; };
+		E10000040000000000000007 /* TerrainCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000007 /* TerrainCopy.swift */; };
+		E10000120000000000000004 /* SignalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000004 /* SignalsView.swift */; };
+		E10000120000000000000005 /* DefaultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000005 /* DefaultsView.swift */; };
+		E10000120000000000000006 /* WatchForsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000006 /* WatchForsView.swift */; };
+		E10000120000000000000007 /* EvolutionTrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000007 /* EvolutionTrendsView.swift */; };
+		E10000120000000000000008 /* PreferencesSafetyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000008 /* PreferencesSafetyView.swift */; };
+		E1000012000000000000000C /* TrendSparklineCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000012000000000000000C /* TrendSparklineCard.swift */; };
+		E1000012000000000000000D /* RoutineEffectivenessCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000012000000000000000D /* RoutineEffectivenessCard.swift */; };
+		E1000012000000000000000E /* SymptomHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000012000000000000000E /* SymptomHeatmapView.swift */; };
+
+		/* Features/Auth */
+		E10000140000000000000001 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000140000000000000001 /* AuthView.swift */; };
+
+		/* Core/Models/Shared - YouViewModels + CommunityStats */
+		E10000040000000000000006 /* YouViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000006 /* YouViewModels.swift */; };
+		E10000040000000000000008 /* CommunityStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000008 /* CommunityStats.swift */; };
+
+		/* Core/Models/Shared - QuickNeed */
+		E10000040000000000000009 /* QuickNeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000040000000000000009 /* QuickNeed.swift */; };
+
+		/* Core/Services - Constitution & Trends & Suggestions & Sync */
+		E10000060000000000000003 /* ConstitutionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000003 /* ConstitutionService.swift */; };
+		E10000060000000000000004 /* TrendEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000004 /* TrendEngine.swift */; };
+		E10000060000000000000005 /* SuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000005 /* SuggestionEngine.swift */; };
+		E10000060000000000000006 /* SupabaseSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000060000000000000006 /* SupabaseSyncService.swift */; };
 
 		/* DesignSystem/Theme */
 		E100000D0000000000000001 /* TerrainTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000D0000000000000001 /* TerrainTheme.swift */; };
@@ -71,9 +127,27 @@
 		E100000E0000000000000001 /* TerrainButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000001 /* TerrainButton.swift */; };
 		E100000E0000000000000002 /* TerrainCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000002 /* TerrainCard.swift */; };
 		E100000E0000000000000003 /* TerrainTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000003 /* TerrainTextField.swift */; };
+		E100000E0000000000000004 /* TerrainEmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000004 /* TerrainEmptyState.swift */; };
+		E100000E0000000000000005 /* SkeletonLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000005 /* SkeletonLoader.swift */; };
+
+		/* DesignSystem/Utilities */
+		E100000E0000000000000006 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000006 /* HapticManager.swift */; };
+		E100000E0000000000000007 /* TerrainPatternBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000E0000000000000007 /* TerrainPatternBackground.swift */; };
+
+		/* Features/Programs */
+		E100000F0000000000000010 /* ProgramsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000010 /* ProgramsView.swift */; };
+		E100000F0000000000000011 /* ProgramDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000011 /* ProgramDetailSheet.swift */; };
+		E100000F0000000000000012 /* ProgramDayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000012 /* ProgramDayView.swift */; };
 
 		/* Resources */
 		E100000F0000000000000001 /* base-content-pack.json in Resources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000001 /* base-content-pack.json */; };
+		E100000F0000000000000002 /* Supabase.plist in Resources */ = {isa = PBXBuildFile; fileRef = E200000F0000000000000002 /* Supabase.plist */; };
+
+		/* Tests */
+		E1000013000000000000000A /* ConstitutionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000A /* ConstitutionServiceTests.swift */; };
+		E1000013000000000000000B /* TerrainScoringEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000B /* TerrainScoringEngineTests.swift */; };
+		E1000013000000000000000C /* SuggestionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000C /* SuggestionEngineTests.swift */; };
+		E1000013000000000000000D /* ContentPackValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000D /* ContentPackValidationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +156,7 @@
 		/* App */
 		E20000010000000000000001 /* TerrainApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainApp.swift; sourceTree = "<group>"; };
 		E20000010000000000000002 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		E20000010000000000000003 /* NavigationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCoordinator.swift; sourceTree = "<group>"; };
 
 		/* Core/Models/Content */
 		E20000020000000000000001 /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
@@ -96,18 +171,21 @@
 		E20000030000000000000002 /* UserCabinet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCabinet.swift; sourceTree = "<group>"; };
 		E20000030000000000000003 /* DailyLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyLog.swift; sourceTree = "<group>"; };
 		E20000030000000000000004 /* ProgressRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressRecord.swift; sourceTree = "<group>"; };
+		E20000030000000000000005 /* ProgramEnrollment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramEnrollment.swift; sourceTree = "<group>"; };
 
 		/* Core/Models/Shared */
 		E20000040000000000000001 /* LocalizedString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedString.swift; sourceTree = "<group>"; };
 		E20000040000000000000002 /* Tags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tags.swift; sourceTree = "<group>"; };
 		E20000040000000000000003 /* SafetyFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyFlags.swift; sourceTree = "<group>"; };
 		E20000040000000000000004 /* MediaAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaAsset.swift; sourceTree = "<group>"; };
+		E20000040000000000000005 /* HomeInsightModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeInsightModels.swift; sourceTree = "<group>"; };
 
 		/* Core/Engine */
 		E20000050000000000000001 /* TerrainScoringEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainScoringEngine.swift; sourceTree = "<group>"; };
 
 		/* Core/Services */
 		E20000060000000000000001 /* ContentPackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPackService.swift; sourceTree = "<group>"; };
+		E20000060000000000000002 /* InsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngine.swift; sourceTree = "<group>"; };
 
 		/* Features/Onboarding */
 		E20000070000000000000001 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -123,18 +201,70 @@
 		E20000080000000000000002 /* DailyCheckInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCheckInSheet.swift; sourceTree = "<group>"; };
 		E20000080000000000000003 /* RoutineDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDetailSheet.swift; sourceTree = "<group>"; };
 		E20000080000000000000004 /* MovementPlayerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementPlayerSheet.swift; sourceTree = "<group>"; };
+		E20000080000000000000005 /* PostRoutineFeedbackSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostRoutineFeedbackSheet.swift; sourceTree = "<group>"; };
 
 		/* Features/RightNow */
 		E20000090000000000000001 /* RightNowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightNowView.swift; sourceTree = "<group>"; };
 
 		/* Features/Ingredients */
 		E200000A0000000000000001 /* IngredientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientsView.swift; sourceTree = "<group>"; };
+		E200000A0000000000000002 /* IngredientDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientDetailSheet.swift; sourceTree = "<group>"; };
 
 		/* Features/Learn */
 		E200000B0000000000000001 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
+		E200000B0000000000000002 /* LessonDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonDetailSheet.swift; sourceTree = "<group>"; };
 
 		/* Features/Progress */
 		E200000C0000000000000001 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+
+		/* Features/Settings */
+		E200000C0000000000000002 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+
+		/* Features/Home */
+		E20000100000000000000001 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		E20000100000000000000002 /* DateBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBarView.swift; sourceTree = "<group>"; };
+		E20000100000000000000003 /* HeadlineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadlineView.swift; sourceTree = "<group>"; };
+		E20000100000000000000004 /* TypeBlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypeBlockView.swift; sourceTree = "<group>"; };
+		E20000100000000000000005 /* InlineCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineCheckInView.swift; sourceTree = "<group>"; };
+		E20000100000000000000006 /* DoDontView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoDontView.swift; sourceTree = "<group>"; };
+		E20000100000000000000007 /* AreasOfLifeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AreasOfLifeView.swift; sourceTree = "<group>"; };
+		E20000100000000000000008 /* ThemeTodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeTodayView.swift; sourceTree = "<group>"; };
+		E20000100000000000000009 /* CapsuleStartCTA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapsuleStartCTA.swift; sourceTree = "<group>"; };
+		E2000010000000000000000A /* SeasonalCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonalCardView.swift; sourceTree = "<group>"; };
+
+		/* Features/Do */
+		E20000110000000000000001 /* DoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoView.swift; sourceTree = "<group>"; };
+
+		/* Features/You */
+		E20000120000000000000001 /* YouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouView.swift; sourceTree = "<group>"; };
+		E20000120000000000000009 /* TerrainHeroHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainHeroHeaderView.swift; sourceTree = "<group>"; };
+		E2000012000000000000000A /* EnhancedPatternMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPatternMapView.swift; sourceTree = "<group>"; };
+		E2000012000000000000000B /* TerrainIdentityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainIdentityView.swift; sourceTree = "<group>"; };
+		E20000120000000000000004 /* SignalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalsView.swift; sourceTree = "<group>"; };
+		E20000120000000000000005 /* DefaultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultsView.swift; sourceTree = "<group>"; };
+		E20000120000000000000006 /* WatchForsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchForsView.swift; sourceTree = "<group>"; };
+		E20000120000000000000007 /* EvolutionTrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvolutionTrendsView.swift; sourceTree = "<group>"; };
+		E20000120000000000000008 /* PreferencesSafetyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesSafetyView.swift; sourceTree = "<group>"; };
+		E2000012000000000000000C /* TrendSparklineCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendSparklineCard.swift; sourceTree = "<group>"; };
+		E2000012000000000000000D /* RoutineEffectivenessCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineEffectivenessCard.swift; sourceTree = "<group>"; };
+		E2000012000000000000000E /* SymptomHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymptomHeatmapView.swift; sourceTree = "<group>"; };
+
+		/* Features/Auth */
+		E20000140000000000000001 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+
+		/* Core/Models/Shared - YouViewModels + TerrainCopy */
+		E20000040000000000000006 /* YouViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouViewModels.swift; sourceTree = "<group>"; };
+		E20000040000000000000007 /* TerrainCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainCopy.swift; sourceTree = "<group>"; };
+		E20000040000000000000008 /* CommunityStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityStats.swift; sourceTree = "<group>"; };
+
+		/* Core/Models/Shared - QuickNeed */
+		E20000040000000000000009 /* QuickNeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickNeed.swift; sourceTree = "<group>"; };
+
+		/* Core/Services - Constitution & Trends & Suggestions & Sync */
+		E20000060000000000000003 /* ConstitutionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstitutionService.swift; sourceTree = "<group>"; };
+		E20000060000000000000004 /* TrendEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendEngine.swift; sourceTree = "<group>"; };
+		E20000060000000000000005 /* SuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionEngine.swift; sourceTree = "<group>"; };
+		E20000060000000000000006 /* SupabaseSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseSyncService.swift; sourceTree = "<group>"; };
 
 		/* DesignSystem/Theme */
 		E200000D0000000000000001 /* TerrainTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainTheme.swift; sourceTree = "<group>"; };
@@ -143,13 +273,49 @@
 		E200000E0000000000000001 /* TerrainButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainButton.swift; sourceTree = "<group>"; };
 		E200000E0000000000000002 /* TerrainCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainCard.swift; sourceTree = "<group>"; };
 		E200000E0000000000000003 /* TerrainTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainTextField.swift; sourceTree = "<group>"; };
+		E200000E0000000000000004 /* TerrainEmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainEmptyState.swift; sourceTree = "<group>"; };
+		E200000E0000000000000005 /* SkeletonLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkeletonLoader.swift; sourceTree = "<group>"; };
+
+		/* DesignSystem/Utilities */
+		E200000E0000000000000006 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		E200000E0000000000000007 /* TerrainPatternBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainPatternBackground.swift; sourceTree = "<group>"; };
+
+		/* Features/Programs */
+		E200000F0000000000000010 /* ProgramsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramsView.swift; sourceTree = "<group>"; };
+		E200000F0000000000000011 /* ProgramDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDetailSheet.swift; sourceTree = "<group>"; };
+		E200000F0000000000000012 /* ProgramDayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramDayView.swift; sourceTree = "<group>"; };
 
 		/* Resources */
 		E200000F0000000000000001 /* base-content-pack.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "base-content-pack.json"; sourceTree = "<group>"; };
+		E200000F0000000000000002 /* Supabase.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Supabase.plist; sourceTree = "<group>"; };
+
+		/* Tests */
+		E0000000000000000000000T /* TerrainTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TerrainTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2000013000000000000000A /* ConstitutionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstitutionServiceTests.swift; sourceTree = "<group>"; };
+		E2000013000000000000000B /* TerrainScoringEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainScoringEngineTests.swift; sourceTree = "<group>"; };
+		E2000013000000000000000C /* SuggestionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionEngineTests.swift; sourceTree = "<group>"; };
+		E2000013000000000000000D /* ContentPackValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPackValidationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXContainerItemProxy section */
+		EA00000000000000000000T1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E80000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E50000000000000000000001;
+			remoteInfo = Terrain;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		E30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E300000000000000000000T1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -175,6 +341,7 @@
 				E40000030000000000000001 /* Features */,
 				E40000040000000000000001 /* DesignSystem */,
 				E40000050000000000000001 /* Resources */,
+				E40000060000000000000001 /* Tests */,
 			);
 			path = ".";
 			sourceTree = "<group>";
@@ -183,8 +350,20 @@
 			isa = PBXGroup;
 			children = (
 				E00000000000000000000001 /* Terrain.app */,
+				E0000000000000000000000T /* TerrainTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E40000060000000000000001 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				E2000013000000000000000A /* ConstitutionServiceTests.swift */,
+				E2000013000000000000000B /* TerrainScoringEngineTests.swift */,
+				E2000013000000000000000C /* SuggestionEngineTests.swift */,
+				E2000013000000000000000D /* ContentPackValidationTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		E40000010000000000000001 /* App */ = {
@@ -192,6 +371,7 @@
 			children = (
 				E20000010000000000000001 /* TerrainApp.swift */,
 				E20000010000000000000002 /* MainTabView.swift */,
+				E20000010000000000000003 /* NavigationCoordinator.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -236,6 +416,7 @@
 				E20000030000000000000002 /* UserCabinet.swift */,
 				E20000030000000000000003 /* DailyLog.swift */,
 				E20000030000000000000004 /* ProgressRecord.swift */,
+				E20000030000000000000005 /* ProgramEnrollment.swift */,
 			);
 			path = User;
 			sourceTree = "<group>";
@@ -252,6 +433,11 @@
 			isa = PBXGroup;
 			children = (
 				E20000060000000000000001 /* ContentPackService.swift */,
+				E20000060000000000000002 /* InsightEngine.swift */,
+				E20000060000000000000003 /* ConstitutionService.swift */,
+				E20000060000000000000004 /* TrendEngine.swift */,
+				E20000060000000000000005 /* SuggestionEngine.swift */,
+				E20000060000000000000006 /* SupabaseSyncService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -263,6 +449,11 @@
 				E20000040000000000000002 /* Tags.swift */,
 				E20000040000000000000003 /* SafetyFlags.swift */,
 				E20000040000000000000004 /* MediaAsset.swift */,
+				E20000040000000000000005 /* HomeInsightModels.swift */,
+				E20000040000000000000006 /* YouViewModels.swift */,
+				E20000040000000000000007 /* TerrainCopy.swift */,
+				E20000040000000000000008 /* CommunityStats.swift */,
+				E20000040000000000000009 /* QuickNeed.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -271,13 +462,105 @@
 			isa = PBXGroup;
 			children = (
 				E40000030000000000000002 /* Onboarding */,
+				E40000030000000000000015 /* Auth */,
+				E40000030000000000000010 /* Home */,
+				E40000030000000000000011 /* Do */,
 				E40000030000000000000003 /* Today */,
 				E40000030000000000000004 /* RightNow */,
 				E40000030000000000000005 /* Ingredients */,
 				E40000030000000000000006 /* Learn */,
 				E40000030000000000000007 /* Progress */,
+				E40000030000000000000008 /* Settings */,
+				E40000030000000000000012 /* You */,
+				E40000030000000000000009 /* Programs */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000015 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				E20000140000000000000001 /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000009 /* Programs */ = {
+			isa = PBXGroup;
+			children = (
+				E200000F0000000000000010 /* ProgramsView.swift */,
+				E200000F0000000000000011 /* ProgramDetailSheet.swift */,
+				E200000F0000000000000012 /* ProgramDayView.swift */,
+			);
+			path = Programs;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000010 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				E20000100000000000000001 /* HomeView.swift */,
+				E40000030000000000000013 /* Components */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000013 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				E20000100000000000000002 /* DateBarView.swift */,
+				E20000100000000000000003 /* HeadlineView.swift */,
+				E20000100000000000000004 /* TypeBlockView.swift */,
+				E20000100000000000000005 /* InlineCheckInView.swift */,
+				E20000100000000000000006 /* DoDontView.swift */,
+				E20000100000000000000007 /* AreasOfLifeView.swift */,
+				E20000100000000000000008 /* ThemeTodayView.swift */,
+				E20000100000000000000009 /* CapsuleStartCTA.swift */,
+				E2000010000000000000000A /* SeasonalCardView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000011 /* Do */ = {
+			isa = PBXGroup;
+			children = (
+				E20000110000000000000001 /* DoView.swift */,
+			);
+			path = Do;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000012 /* You */ = {
+			isa = PBXGroup;
+			children = (
+				E20000120000000000000001 /* YouView.swift */,
+				E40000030000000000000014 /* Components */,
+			);
+			path = You;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000014 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				E20000120000000000000009 /* TerrainHeroHeaderView.swift */,
+				E2000012000000000000000A /* EnhancedPatternMapView.swift */,
+				E2000012000000000000000B /* TerrainIdentityView.swift */,
+				E20000120000000000000004 /* SignalsView.swift */,
+				E20000120000000000000005 /* DefaultsView.swift */,
+				E20000120000000000000006 /* WatchForsView.swift */,
+				E20000120000000000000007 /* EvolutionTrendsView.swift */,
+				E20000120000000000000008 /* PreferencesSafetyView.swift */,
+				E2000012000000000000000C /* TrendSparklineCard.swift */,
+				E2000012000000000000000D /* RoutineEffectivenessCard.swift */,
+				E2000012000000000000000E /* SymptomHeatmapView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		E40000030000000000000008 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				E200000C0000000000000002 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		E40000030000000000000002 /* Onboarding */ = {
@@ -301,6 +584,7 @@
 				E20000080000000000000002 /* DailyCheckInSheet.swift */,
 				E20000080000000000000003 /* RoutineDetailSheet.swift */,
 				E20000080000000000000004 /* MovementPlayerSheet.swift */,
+				E20000080000000000000005 /* PostRoutineFeedbackSheet.swift */,
 			);
 			path = Today;
 			sourceTree = "<group>";
@@ -317,6 +601,7 @@
 			isa = PBXGroup;
 			children = (
 				E200000A0000000000000001 /* IngredientsView.swift */,
+				E200000A0000000000000002 /* IngredientDetailSheet.swift */,
 			);
 			path = Ingredients;
 			sourceTree = "<group>";
@@ -325,6 +610,7 @@
 			isa = PBXGroup;
 			children = (
 				E200000B0000000000000001 /* LearnView.swift */,
+				E200000B0000000000000002 /* LessonDetailSheet.swift */,
 			);
 			path = Learn;
 			sourceTree = "<group>";
@@ -342,8 +628,17 @@
 			children = (
 				E40000040000000000000002 /* Theme */,
 				E40000040000000000000003 /* Components */,
+				E40000040000000000000004 /* Utilities */,
 			);
 			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		E40000040000000000000004 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				E200000E0000000000000006 /* HapticManager.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 		E40000040000000000000002 /* Theme */ = {
@@ -360,6 +655,9 @@
 				E200000E0000000000000001 /* TerrainButton.swift */,
 				E200000E0000000000000002 /* TerrainCard.swift */,
 				E200000E0000000000000003 /* TerrainTextField.swift */,
+				E200000E0000000000000004 /* TerrainEmptyState.swift */,
+				E200000E0000000000000005 /* SkeletonLoader.swift */,
+				E200000E0000000000000007 /* TerrainPatternBackground.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -368,6 +666,7 @@
 			isa = PBXGroup;
 			children = (
 				E40000050000000000000002 /* ContentPacks */,
+				E200000F0000000000000002 /* Supabase.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -381,6 +680,14 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXTargetDependency section */
+		EB00000000000000000000T1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E50000000000000000000001 /* Terrain */;
+			targetProxy = EA00000000000000000000T1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXNativeTarget section */
 		E50000000000000000000001 /* Terrain */ = {
@@ -396,9 +703,29 @@
 			dependencies = (
 			);
 			name = Terrain;
+			packageProductDependencies = (
+				E1600000000000000000001 /* Supabase */,
+			);
 			productName = Terrain;
 			productReference = E00000000000000000000001 /* Terrain.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E500000000000000000000T1 /* TerrainTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E700000000000000000000T1 /* Build configuration list for PBXNativeTarget "TerrainTests" */;
+			buildPhases = (
+				E600000000000000000000T1 /* Sources */,
+				E300000000000000000000T1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EB00000000000000000000T1 /* PBXTargetDependency */,
+			);
+			name = TerrainTests;
+			productName = TerrainTests;
+			productReference = E0000000000000000000000T /* TerrainTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -413,6 +740,10 @@
 					E50000000000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
 					};
+					E500000000000000000000T1 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = E50000000000000000000001;
+					};
 				};
 			};
 			buildConfigurationList = E70000000000000000000002 /* Build configuration list for PBXProject "Terrain" */;
@@ -424,11 +755,15 @@
 				Base,
 			);
 			mainGroup = E40000000000000000000001;
+			packageReferences = (
+				E1500000000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			productRefGroup = E40000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				E50000000000000000000001 /* Terrain */,
+				E500000000000000000000T1 /* TerrainTests */,
 			);
 		};
 /* End PBXProject section */
@@ -439,6 +774,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E100000F0000000000000001 /* base-content-pack.json in Resources */,
+				E100000F0000000000000002 /* Supabase.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +787,7 @@
 			files = (
 				E10000010000000000000001 /* TerrainApp.swift in Sources */,
 				E10000010000000000000002 /* MainTabView.swift in Sources */,
+				E10000010000000000000003 /* NavigationCoordinator.swift in Sources */,
 				E10000020000000000000001 /* Ingredient.swift in Sources */,
 				E10000020000000000000002 /* Lesson.swift in Sources */,
 				E10000020000000000000003 /* Movement.swift in Sources */,
@@ -465,8 +802,10 @@
 				E10000040000000000000002 /* Tags.swift in Sources */,
 				E10000040000000000000003 /* SafetyFlags.swift in Sources */,
 				E10000040000000000000004 /* MediaAsset.swift in Sources */,
+				E10000040000000000000005 /* HomeInsightModels.swift in Sources */,
 				E10000050000000000000001 /* TerrainScoringEngine.swift in Sources */,
 				E10000060000000000000001 /* ContentPackService.swift in Sources */,
+				E10000060000000000000002 /* InsightEngine.swift in Sources */,
 				E10000070000000000000001 /* WelcomeView.swift in Sources */,
 				E10000070000000000000002 /* GoalsView.swift in Sources */,
 				E10000070000000000000003 /* QuizView.swift in Sources */,
@@ -478,14 +817,69 @@
 				E10000080000000000000002 /* DailyCheckInSheet.swift in Sources */,
 				E10000080000000000000003 /* RoutineDetailSheet.swift in Sources */,
 				E10000080000000000000004 /* MovementPlayerSheet.swift in Sources */,
+				E10000080000000000000005 /* PostRoutineFeedbackSheet.swift in Sources */,
 				E10000090000000000000001 /* RightNowView.swift in Sources */,
 				E100000A0000000000000001 /* IngredientsView.swift in Sources */,
+				E100000A0000000000000002 /* IngredientDetailSheet.swift in Sources */,
 				E100000B0000000000000001 /* LearnView.swift in Sources */,
+				E100000B0000000000000002 /* LessonDetailSheet.swift in Sources */,
 				E100000C0000000000000001 /* ProgressView.swift in Sources */,
+				E100000C0000000000000002 /* SettingsView.swift in Sources */,
 				E100000D0000000000000001 /* TerrainTheme.swift in Sources */,
 				E100000E0000000000000001 /* TerrainButton.swift in Sources */,
 				E100000E0000000000000002 /* TerrainCard.swift in Sources */,
 				E100000E0000000000000003 /* TerrainTextField.swift in Sources */,
+				E100000E0000000000000004 /* TerrainEmptyState.swift in Sources */,
+				E100000E0000000000000005 /* SkeletonLoader.swift in Sources */,
+				E100000E0000000000000006 /* HapticManager.swift in Sources */,
+				E100000E0000000000000007 /* TerrainPatternBackground.swift in Sources */,
+				E100000F0000000000000010 /* ProgramsView.swift in Sources */,
+				E100000F0000000000000011 /* ProgramDetailSheet.swift in Sources */,
+				E100000F0000000000000012 /* ProgramDayView.swift in Sources */,
+				E10000100000000000000001 /* HomeView.swift in Sources */,
+				E10000100000000000000002 /* DateBarView.swift in Sources */,
+				E10000100000000000000003 /* HeadlineView.swift in Sources */,
+				E10000100000000000000004 /* TypeBlockView.swift in Sources */,
+				E10000100000000000000005 /* InlineCheckInView.swift in Sources */,
+				E10000100000000000000006 /* DoDontView.swift in Sources */,
+				E10000100000000000000007 /* AreasOfLifeView.swift in Sources */,
+				E10000100000000000000008 /* ThemeTodayView.swift in Sources */,
+				E10000100000000000000009 /* CapsuleStartCTA.swift in Sources */,
+				E1000010000000000000000A /* SeasonalCardView.swift in Sources */,
+				E10000110000000000000001 /* DoView.swift in Sources */,
+				E10000120000000000000001 /* YouView.swift in Sources */,
+				E10000120000000000000009 /* TerrainHeroHeaderView.swift in Sources */,
+				E1000012000000000000000A /* EnhancedPatternMapView.swift in Sources */,
+				E1000012000000000000000B /* TerrainIdentityView.swift in Sources */,
+				E10000120000000000000004 /* SignalsView.swift in Sources */,
+				E10000120000000000000005 /* DefaultsView.swift in Sources */,
+				E10000120000000000000006 /* WatchForsView.swift in Sources */,
+				E10000120000000000000007 /* EvolutionTrendsView.swift in Sources */,
+				E10000120000000000000008 /* PreferencesSafetyView.swift in Sources */,
+				E10000040000000000000006 /* YouViewModels.swift in Sources */,
+				E10000040000000000000007 /* TerrainCopy.swift in Sources */,
+				E10000040000000000000008 /* CommunityStats.swift in Sources */,
+				E10000060000000000000003 /* ConstitutionService.swift in Sources */,
+				E10000060000000000000004 /* TrendEngine.swift in Sources */,
+				E10000060000000000000005 /* SuggestionEngine.swift in Sources */,
+				E10000060000000000000006 /* SupabaseSyncService.swift in Sources */,
+				E10000040000000000000009 /* QuickNeed.swift in Sources */,
+				E10000030000000000000005 /* ProgramEnrollment.swift in Sources */,
+				E1000012000000000000000C /* TrendSparklineCard.swift in Sources */,
+				E1000012000000000000000D /* RoutineEffectivenessCard.swift in Sources */,
+				E1000012000000000000000E /* SymptomHeatmapView.swift in Sources */,
+				E10000140000000000000001 /* AuthView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E600000000000000000000T1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1000013000000000000000A /* ConstitutionServiceTests.swift in Sources */,
+				E1000013000000000000000B /* TerrainScoringEngineTests.swift in Sources */,
+				E1000013000000000000000C /* SuggestionEngineTests.swift in Sources */,
+				E1000013000000000000000D /* ContentPackValidationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,6 +1061,42 @@
 			};
 			name = Release;
 		};
+		E9000000000000000000T001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.terrain.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Terrain.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Terrain";
+			};
+			name = Debug;
+		};
+		E9000000000000000000T002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.terrain.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Terrain.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Terrain";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -688,7 +1118,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		E700000000000000000000T1 /* Build configuration list for PBXNativeTarget "TerrainTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9000000000000000000T001 /* Debug */,
+				E9000000000000000000T002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E1500000000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1600000000000000000001 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1500000000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E80000000000000000000001 /* Project object */;
 }

@@ -2,7 +2,7 @@
 //  TerrainButton.swift
 //  Terrain
 //
-//  Button styles for Terrain app
+//  Button styles for Terrain app with micro-animations and haptic feedback
 //
 
 import SwiftUI
@@ -15,9 +15,13 @@ struct TerrainPrimaryButton: View {
     var isEnabled: Bool = true
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
             Text(title)
                 .font(theme.typography.labelLarge)
                 .foregroundColor(theme.colors.textInverted)
@@ -27,6 +31,15 @@ struct TerrainPrimaryButton: View {
                 .cornerRadius(theme.cornerRadius.large)
         }
         .disabled(!isEnabled)
+        .accessibilityLabel(title)
+        .accessibilityHint(isEnabled ? "Double tap to \(title.lowercased())" : "Button disabled")
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(theme.animation.quick, value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 
@@ -38,9 +51,13 @@ struct TerrainSecondaryButton: View {
     var isEnabled: Bool = true
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
             Text(title)
                 .font(theme.typography.labelLarge)
                 .foregroundColor(isEnabled ? theme.colors.accent : theme.colors.textTertiary)
@@ -54,6 +71,15 @@ struct TerrainSecondaryButton: View {
                 .cornerRadius(theme.cornerRadius.large)
         }
         .disabled(!isEnabled)
+        .accessibilityLabel(title)
+        .accessibilityHint(isEnabled ? "Double tap to \(title.lowercased())" : "Button disabled")
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .animation(theme.animation.quick, value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 
@@ -64,13 +90,25 @@ struct TerrainTextButton: View {
     let action: () -> Void
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
             Text(title)
                 .font(theme.typography.labelMedium)
                 .foregroundColor(theme.colors.accent)
         }
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .opacity(isPressed ? 0.8 : 1.0)
+        .animation(theme.animation.quick, value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 
@@ -82,13 +120,24 @@ struct TerrainChip: View {
     var action: (() -> Void)? = nil
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
         Group {
             if let action = action {
-                Button(action: action) {
+                Button {
+                    HapticManager.selection()
+                    action()
+                } label: {
                     chipContent
                 }
+                .scaleEffect(isPressed ? 0.95 : 1.0)
+                .animation(theme.animation.quick, value: isPressed)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in isPressed = true }
+                        .onEnded { _ in isPressed = false }
+                )
             } else {
                 chipContent
             }
@@ -103,6 +152,8 @@ struct TerrainChip: View {
             .padding(.vertical, theme.spacing.xxs)
             .background(isSelected ? theme.colors.accent : theme.colors.backgroundSecondary)
             .cornerRadius(theme.cornerRadius.full)
+            .accessibilityLabel(title)
+            .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -114,14 +165,25 @@ struct TerrainIconButton: View {
     var size: CGFloat = 24
 
     @Environment(\.terrainTheme) private var theme
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            HapticManager.light()
+            action()
+        } label: {
             Image(systemName: systemName)
                 .font(.system(size: size * 0.6))
                 .foregroundColor(theme.colors.textSecondary)
                 .frame(width: size, height: size)
         }
+        .scaleEffect(isPressed ? 0.9 : 1.0)
+        .animation(theme.animation.quick, value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 

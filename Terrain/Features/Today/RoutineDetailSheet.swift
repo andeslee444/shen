@@ -6,27 +6,76 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct RoutineDetailSheet: View {
     let level: RoutineLevel
+    let routineModel: Routine
     let onComplete: () -> Void
 
     @Environment(\.terrainTheme) private var theme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Ingredient.id) private var allIngredients: [Ingredient]
+    @Query private var cabinetItems: [UserCabinet]
+    @Query private var userProfiles: [UserProfile]
+
+    private let insightEngine = InsightEngine()
 
     @State private var currentStep = 0
     @State private var isTimerRunning = false
     @State private var timeRemaining = 0
+    @State private var selectedIngredient: Ingredient?
+    @State private var showFeedbackSheet = false
 
-    private var routine: RoutineData {
-        RoutineData.forLevel(level)
+    /// View-friendly representation of the Routine model
+    private var routineTitle: String { routineModel.displayName }
+    private var routineSubtitle: String { routineModel.subtitle?.localized ?? "" }
+    private var routineDuration: String { "\(routineModel.durationMin) min" }
+    private var routineDifficulty: String { routineModel.difficulty.displayName }
+    private var routineIngredients: [String] { ingredientDisplayNames(for: routineModel.ingredientRefs) }
+    private var routineSteps: [(text: String, timerSeconds: Int)] {
+        routineModel.steps.map { (text: $0.text.localized, timerSeconds: $0.timerSeconds ?? 0) }
+    }
+    private var routineWhyText: String {
+        routineModel.why.expanded?.plain.localized ?? routineModel.why.oneLine.localized
+    }
+
+    /// Maps ingredient ref IDs (e.g. "ginger") to display names (e.g. "Ginger")
+    private func ingredientDisplayNames(for refs: [String]) -> [String] {
+        refs.map { ref in
+            allIngredients.first(where: { $0.id == ref })?.displayName ?? ref.capitalized
+        }
+    }
+
+    private var terrainType: TerrainScoringEngine.PrimaryType {
+        guard let profile = userProfiles.first,
+              let terrainId = profile.terrainProfileId,
+              let type = TerrainScoringEngine.PrimaryType(rawValue: terrainId) else {
+            return .neutralBalanced
+        }
+        return type
+    }
+
+    private var terrainModifier: TerrainScoringEngine.Modifier {
+        userProfiles.first?.resolvedModifier ?? .none
+    }
+
+    /// Terrain-specific explanation for why this routine matters for the user
+    private var whyForYourTerrain: String? {
+        insightEngine.generateWhyForYou(
+            routineTags: routineModel.tags,
+            terrainType: terrainType,
+            modifier: terrainModifier
+        )
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Progress
-                ProgressView(value: Double(currentStep) / Double(routine.steps.count))
+                ProgressView(value: Double(currentStep) / Double(routineSteps.count))
                     .tint(theme.colors.accent)
                     .padding(.horizontal, theme.spacing.lg)
                     .padding(.top, theme.spacing.md)
@@ -35,23 +84,52 @@ struct RoutineDetailSheet: View {
                     VStack(spacing: theme.spacing.lg) {
                         // Header
                         VStack(spacing: theme.spacing.sm) {
-                            Text(routine.title)
+                            Text(routineTitle)
                                 .font(theme.typography.headlineLarge)
                                 .foregroundColor(theme.colors.textPrimary)
 
-                            Text(routine.subtitle)
+                            Text(routineSubtitle)
                                 .font(theme.typography.bodyMedium)
                                 .foregroundColor(theme.colors.textSecondary)
 
                             HStack(spacing: theme.spacing.md) {
-                                Label(routine.duration, systemImage: "clock")
-                                Label(routine.difficulty, systemImage: "speedometer")
+                                Label(routineDuration, systemImage: "clock")
+                                Label(routineDifficulty, systemImage: "speedometer")
                             }
                             .font(theme.typography.caption)
                             .foregroundColor(theme.colors.textTertiary)
                         }
                         .padding(.horizontal, theme.spacing.lg)
                         .padding(.top, theme.spacing.md)
+
+                        // Why section
+                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                            Text("Why this helps")
+                                .font(theme.typography.labelMedium)
+                                .foregroundColor(theme.colors.textTertiary)
+
+                            Text(routineWhyText)
+                                .font(theme.typography.bodyMedium)
+                                .foregroundColor(theme.colors.textSecondary)
+
+                            // Terrain-specific "why" section
+                            if let terrainWhy = whyForYourTerrain {
+                                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                                    Text("For your terrain")
+                                        .font(theme.typography.labelSmall)
+                                        .foregroundColor(theme.colors.accent)
+
+                                    Text(terrainWhy)
+                                        .font(theme.typography.bodySmall)
+                                        .foregroundColor(theme.colors.textSecondary)
+                                        .italic()
+                                }
+                                .padding(theme.spacing.sm)
+                                .background(theme.colors.accent.opacity(0.06))
+                                .cornerRadius(theme.cornerRadius.medium)
+                            }
+                        }
+                        .padding(.horizontal, theme.spacing.lg)
 
                         // Ingredients
                         VStack(alignment: .leading, spacing: theme.spacing.sm) {
@@ -60,19 +138,28 @@ struct RoutineDetailSheet: View {
                                 .foregroundColor(theme.colors.textTertiary)
 
                             FlowLayout(spacing: theme.spacing.xs) {
-                                ForEach(routine.ingredients, id: \.self) { ingredient in
-                                    IngredientChip(name: ingredient)
+                                ForEach(routineIngredients, id: \.self) { ingredientName in
+                                    let matched = findIngredient(named: ingredientName)
+                                    IngredientChip(
+                                        name: ingredientName,
+                                        isInCabinet: matched.map { isInCabinet($0.id) } ?? false,
+                                        onTap: matched != nil ? {
+                                            selectedIngredient = matched
+                                            HapticManager.light()
+                                        } : nil
+                                    )
                                 }
                             }
                         }
                         .padding(.horizontal, theme.spacing.lg)
 
                         // Current step
-                        if currentStep < routine.steps.count {
+                        if currentStep < routineSteps.count {
                             StepCard(
                                 stepNumber: currentStep + 1,
-                                totalSteps: routine.steps.count,
-                                step: routine.steps[currentStep],
+                                totalSteps: routineSteps.count,
+                                stepText: routineSteps[currentStep].text,
+                                stepTimerSeconds: routineSteps[currentStep].timerSeconds,
                                 isTimerRunning: isTimerRunning,
                                 timeRemaining: timeRemaining,
                                 onStartTimer: startTimer
@@ -86,7 +173,7 @@ struct RoutineDetailSheet: View {
                                 .font(theme.typography.labelMedium)
                                 .foregroundColor(theme.colors.textTertiary)
 
-                            ForEach(Array(routine.steps.enumerated()), id: \.offset) { index, step in
+                            ForEach(Array(routineSteps.enumerated()), id: \.offset) { index, step in
                                 StepRow(
                                     number: index + 1,
                                     text: step.text,
@@ -94,18 +181,6 @@ struct RoutineDetailSheet: View {
                                     isCurrent: index == currentStep
                                 )
                             }
-                        }
-                        .padding(.horizontal, theme.spacing.lg)
-
-                        // Why section
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            Text("Why this helps")
-                                .font(theme.typography.labelMedium)
-                                .foregroundColor(theme.colors.textTertiary)
-
-                            Text(routine.whyText)
-                                .font(theme.typography.bodyMedium)
-                                .foregroundColor(theme.colors.textSecondary)
                         }
                         .padding(.horizontal, theme.spacing.lg)
 
@@ -121,14 +196,13 @@ struct RoutineDetailSheet: View {
                         }
                     }
 
-                    if currentStep < routine.steps.count - 1 {
+                    if currentStep < routineSteps.count - 1 {
                         TerrainPrimaryButton(title: "Next Step") {
                             currentStep += 1
                         }
                     } else {
                         TerrainPrimaryButton(title: "Complete") {
-                            onComplete()
-                            dismiss()
+                            showFeedbackSheet = true
                         }
                     }
                 }
@@ -145,8 +219,118 @@ struct RoutineDetailSheet: View {
                     .foregroundColor(theme.colors.textSecondary)
                 }
             }
+            .sheet(item: $selectedIngredient) { ingredient in
+                IngredientDetailSheet(
+                    ingredient: ingredient,
+                    isInCabinet: isInCabinet(ingredient.id),
+                    onToggleCabinet: { toggleCabinet(ingredient.id) }
+                )
+            }
+            .sheet(isPresented: $showFeedbackSheet, onDismiss: {
+                // After feedback sheet dismisses (either via selection or swipe-down),
+                // fire the completion callback and close the routine sheet
+                onComplete()
+                dismiss()
+            }) {
+                PostRoutineFeedbackSheet(
+                    routineOrMovementId: routineModel.id,
+                    onFeedback: { feedback in
+                        saveFeedback(feedback)
+                    }
+                )
+            }
         }
     }
+
+    // MARK: - Feedback
+
+    private func saveFeedback(_ feedback: PostRoutineFeedback) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        let descriptor = FetchDescriptor<DailyLog>()
+        let allLogs = (try? modelContext.fetch(descriptor)) ?? []
+        let todaysLog = allLogs.first { calendar.startOfDay(for: $0.date) == today }
+
+        let entry = RoutineFeedbackEntry(
+            routineOrMovementId: routineModel.id,
+            feedback: feedback
+        )
+
+        if let log = todaysLog {
+            log.routineFeedback.append(entry)
+            log.updatedAt = Date()
+        } else {
+            let log = DailyLog(routineFeedback: [entry])
+            modelContext.insert(log)
+        }
+
+        try? modelContext.save()
+    }
+
+    // MARK: - Ingredient Matching
+
+    /// Matches a chip display name (e.g. "Rice", "Fresh Ginger") to a SwiftData Ingredient.
+    /// Strips parenthetical suffixes like " (optional)" before matching.
+    /// Returns nil if no match — chip stays non-interactive.
+    private func findIngredient(named chipName: String) -> Ingredient? {
+        // Strip parenthetical suffix: "Chicken (optional)" → "Chicken"
+        let cleaned = chipName.replacingOccurrences(
+            of: #"\s*\(.*\)$"#,
+            with: "",
+            options: .regularExpression
+        ).trimmingCharacters(in: .whitespaces)
+
+        let lowered = cleaned.lowercased()
+
+        // Exact case-insensitive match on displayName
+        if let exact = allIngredients.first(where: { $0.displayName.lowercased() == lowered }) {
+            return exact
+        }
+
+        // Fallback: contains match (handles "Fresh Ginger" ↔ "Ginger", "Rice" ↔ "White Rice")
+        return allIngredients.first(where: {
+            $0.displayName.lowercased().contains(lowered) || lowered.contains($0.displayName.lowercased())
+        })
+    }
+
+    // MARK: - Cabinet Helpers
+
+    private func isInCabinet(_ ingredientId: String) -> Bool {
+        cabinetItems.contains { $0.ingredientId == ingredientId }
+    }
+
+    private func toggleCabinet(_ ingredientId: String) {
+        if let existingItem = cabinetItems.first(where: { $0.ingredientId == ingredientId }) {
+            removeFromCabinet(existingItem)
+        } else {
+            addToCabinet(ingredientId)
+        }
+    }
+
+    private func addToCabinet(_ ingredientId: String) {
+        guard !isInCabinet(ingredientId) else { return }
+        let item = UserCabinet(ingredientId: ingredientId)
+        modelContext.insert(item)
+        do {
+            try modelContext.save()
+            HapticManager.success()
+        } catch {
+            print("Failed to save cabinet item: \(error)")
+        }
+    }
+
+    private func removeFromCabinet(_ item: UserCabinet) {
+        modelContext.delete(item)
+        do {
+            try modelContext.save()
+            HapticManager.light()
+        } catch {
+            print("Failed to remove cabinet item: \(error)")
+        }
+    }
+
+    // MARK: - Timer
 
     private func startTimer(seconds: Int) {
         timeRemaining = seconds
@@ -166,7 +350,8 @@ struct RoutineDetailSheet: View {
 struct StepCard: View {
     let stepNumber: Int
     let totalSteps: Int
-    let step: RoutineStepData
+    let stepText: String
+    let stepTimerSeconds: Int
     let isTimerRunning: Bool
     let timeRemaining: Int
     let onStartTimer: (Int) -> Void
@@ -182,14 +367,14 @@ struct StepCard: View {
 
                 Spacer()
 
-                if step.timerSeconds > 0 {
+                if stepTimerSeconds > 0 {
                     if isTimerRunning {
                         Text(timeString(from: timeRemaining))
                             .font(theme.typography.headlineSmall)
                             .foregroundColor(theme.colors.accent)
                     } else {
-                        Button(action: { onStartTimer(step.timerSeconds) }) {
-                            Label(timeString(from: step.timerSeconds), systemImage: "timer")
+                        Button(action: { onStartTimer(stepTimerSeconds) }) {
+                            Label(timeString(from: stepTimerSeconds), systemImage: "timer")
                                 .font(theme.typography.labelMedium)
                                 .foregroundColor(theme.colors.accent)
                         }
@@ -197,7 +382,7 @@ struct StepCard: View {
                 }
             }
 
-            Text(step.text)
+            Text(stepText)
                 .font(theme.typography.bodyLarge)
                 .foregroundColor(theme.colors.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -251,76 +436,29 @@ struct StepRow: View {
     }
 }
 
-// MARK: - Mock Data
-
-struct RoutineData {
-    let title: String
-    let subtitle: String
-    let duration: String
-    let difficulty: String
-    let ingredients: [String]
-    let steps: [RoutineStepData]
-    let whyText: String
-
-    static func forLevel(_ level: RoutineLevel) -> RoutineData {
-        switch level {
-        case .full:
-            return RoutineData(
-                title: "Warm Start Congee",
-                subtitle: "Nourishing breakfast to warm your center",
-                duration: "10-15 min",
-                difficulty: "Easy",
-                ingredients: ["Rice", "Ginger", "Scallion", "Chicken (optional)"],
-                steps: [
-                    RoutineStepData(text: "Bring 4 cups water to a boil", timerSeconds: 0),
-                    RoutineStepData(text: "Add 1/2 cup rice and 2 slices fresh ginger", timerSeconds: 0),
-                    RoutineStepData(text: "Reduce heat and simmer, stirring occasionally", timerSeconds: 600),
-                    RoutineStepData(text: "Add salt to taste and top with scallions", timerSeconds: 0),
-                    RoutineStepData(text: "Eat slowly, savoring the warmth", timerSeconds: 0)
-                ],
-                whyText: "Congee is easily digestible and warming to the center. The long cooking breaks down the rice, making nutrients readily available. Ginger adds warming properties that support digestion."
-            )
-
-        case .lite:
-            return RoutineData(
-                title: "Ginger Honey Tea",
-                subtitle: "Quick warming drink",
-                duration: "5 min",
-                difficulty: "Easy",
-                ingredients: ["Fresh Ginger", "Honey", "Hot Water"],
-                steps: [
-                    RoutineStepData(text: "Slice 3-4 thin pieces of fresh ginger", timerSeconds: 0),
-                    RoutineStepData(text: "Place in a mug and pour hot water over", timerSeconds: 0),
-                    RoutineStepData(text: "Let steep for 3-5 minutes", timerSeconds: 180),
-                    RoutineStepData(text: "Add honey to taste and sip slowly", timerSeconds: 0)
-                ],
-                whyText: "Fresh ginger tea warms the stomach and supports digestion. The honey adds gentle sweetness and has soothing properties. Best consumed warm, not hot."
-            )
-
-        case .minimum:
-            return RoutineData(
-                title: "Warm Water Ritual",
-                subtitle: "Simple hydration ritual",
-                duration: "90 sec",
-                difficulty: "Easy",
-                ingredients: ["Warm Water"],
-                steps: [
-                    RoutineStepData(text: "Heat water to a comfortable drinking temperature", timerSeconds: 0),
-                    RoutineStepData(text: "Take 3 slow, deep breaths", timerSeconds: 15),
-                    RoutineStepData(text: "Sip the warm water slowly, feeling it warm your center", timerSeconds: 60)
-                ],
-                whyText: "Simple warm water first thing helps wake up the digestive system gently. The temperature matters—too hot can irritate, too cold can shock the system. Room temperature to warm is ideal."
-            )
-        }
-    }
-}
-
-struct RoutineStepData {
-    let text: String
-    let timerSeconds: Int
-}
-
 #Preview {
-    RoutineDetailSheet(level: .full, onComplete: {})
-        .environment(\.terrainTheme, TerrainTheme.default)
+    RoutineDetailSheet(
+        level: .full,
+        routineModel: Routine(
+            id: "preview-warm-start-congee",
+            title: LocalizedString(["en-US": "Warm Start Congee"]),
+            subtitle: LocalizedString(["en-US": "Nourishing breakfast to warm your center"]),
+            durationMin: 15,
+            difficulty: .easy,
+            tags: ["warming", "supports_digestion"],
+            ingredientRefs: ["ginger", "rice"],
+            steps: [
+                RoutineStep(text: LocalizedString(["en-US": "Bring 4 cups water to a boil"])),
+                RoutineStep(text: LocalizedString(["en-US": "Add 1/2 cup rice and 2 slices fresh ginger"])),
+                RoutineStep(text: LocalizedString(["en-US": "Reduce heat and simmer, stirring occasionally"]), timerSeconds: 600),
+                RoutineStep(text: LocalizedString(["en-US": "Add salt to taste and top with scallions"])),
+                RoutineStep(text: LocalizedString(["en-US": "Eat slowly, savoring the warmth"]))
+            ],
+            why: RoutineWhy(
+                oneLine: LocalizedString(["en-US": "Congee is easily digestible and warming to the center."])
+            )
+        ),
+        onComplete: {}
+    )
+    .environment(\.terrainTheme, TerrainTheme.default)
 }

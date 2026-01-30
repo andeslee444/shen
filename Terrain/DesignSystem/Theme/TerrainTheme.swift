@@ -104,23 +104,24 @@ struct TerrainColors: Sendable {
 
 // MARK: - Typography
 
-/// System font with light/regular weights, generous line height
+/// System font with bold/medium weights for modern impact
+/// "Mystical Wellness" aesthetic - bold headlines, calm body text
 struct TerrainTypography: Sendable {
-    // Large Display
+    // Large Display - Black weight for maximum impact
     let displayLarge: Font
     let displayMedium: Font
 
-    // Headlines
+    // Headlines - Bold for modern clarity
     let headlineLarge: Font
     let headlineMedium: Font
     let headlineSmall: Font
 
-    // Body
+    // Body - Regular for readability
     let bodyLarge: Font
     let bodyMedium: Font
     let bodySmall: Font
 
-    // Labels
+    // Labels - Semibold for UI elements
     let labelLarge: Font
     let labelMedium: Font
     let labelSmall: Font
@@ -129,22 +130,26 @@ struct TerrainTypography: Sendable {
     let caption: Font
 
     static let `default` = TerrainTypography(
-        displayLarge: .system(size: 40, weight: .light, design: .default),
-        displayMedium: .system(size: 32, weight: .light, design: .default),
+        // Display: Black weight for dramatic reveal moments
+        displayLarge: .system(size: 40, weight: .black, design: .default),
+        displayMedium: .system(size: 32, weight: .bold, design: .default),
 
-        headlineLarge: .system(size: 28, weight: .regular, design: .default),
-        headlineMedium: .system(size: 24, weight: .regular, design: .default),
-        headlineSmall: .system(size: 20, weight: .medium, design: .default),
+        // Headlines: Bold for modern, confident look
+        headlineLarge: .system(size: 28, weight: .bold, design: .default),
+        headlineMedium: .system(size: 24, weight: .bold, design: .default),
+        headlineSmall: .system(size: 20, weight: .semibold, design: .default),
 
+        // Body: Regular for calm readability
         bodyLarge: .system(size: 17, weight: .regular, design: .default),
         bodyMedium: .system(size: 15, weight: .regular, design: .default),
         bodySmall: .system(size: 13, weight: .regular, design: .default),
 
-        labelLarge: .system(size: 15, weight: .medium, design: .default),
-        labelMedium: .system(size: 13, weight: .medium, design: .default),
-        labelSmall: .system(size: 11, weight: .medium, design: .default),
+        // Labels: Semibold for UI clarity
+        labelLarge: .system(size: 15, weight: .semibold, design: .default),
+        labelMedium: .system(size: 13, weight: .semibold, design: .default),
+        labelSmall: .system(size: 11, weight: .semibold, design: .default),
 
-        caption: .system(size: 12, weight: .regular, design: .default)
+        caption: .system(size: 12, weight: .medium, design: .default)
     )
 }
 
@@ -214,6 +219,18 @@ struct TerrainCornerRadius: Sendable {
         xl: 16,
         full: 9999
     )
+}
+
+// MARK: - Scaled Metrics
+
+/// Provides `@ScaledMetric` wrappers for hardcoded sizes that should
+/// grow with Dynamic Type. Use these in views where icon/element sizes
+/// need to scale with the user's accessibility text size preference.
+struct TerrainScaledMetrics {
+    @ScaledMetric(relativeTo: .body) var iconSmall: CGFloat = 14
+    @ScaledMetric(relativeTo: .body) var iconMedium: CGFloat = 16
+    @ScaledMetric(relativeTo: .title) var iconLarge: CGFloat = 24
+    @ScaledMetric(relativeTo: .largeTitle) var iconXL: CGFloat = 48
 }
 
 // MARK: - Color Extension
