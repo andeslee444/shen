@@ -53,18 +53,29 @@ final class SuggestionEngine {
 
     /// Find the best suggestion for a need given the user's context.
     ///
-    /// Each candidate (ingredient or routine) is scored independently:
+    /// Scoring uses proportional credit (more matching tags = more points) plus
+    /// red-flag penalties. Think of each criterion as a hiring-committee rubric
+    /// where partial overlap counts and red flags disqualify.
     ///
-    /// | Criterion          | Points | Logic                                           |
-    /// |--------------------|--------|-------------------------------------------------|
-    /// | Tag match to need  | +3     | Candidate tags intersect QuickNeed.relevantTags  |
-    /// | Terrain fit        | +4     | terrainFit contains profile ID or tags match      |
-    /// | Modifier boost     | +2     | Tags match modifier-specific tags                 |
-    /// | Symptom alignment  | +3     | Tags match symptom-mapped needs                   |
-    /// | Time-of-day fit    | +2     | Tags match time-appropriate boosting              |
-    /// | Has avoid guidance | +1     | Routine with avoidForHours > 0                    |
+    /// | Criterion              | Points | Logic                                                   |
+    /// |------------------------|--------|---------------------------------------------------------|
+    /// | Tag match to need      | +1/tag, cap 4 | `intersection(need.relevantTags).count`          |
+    /// | Terrain fit (explicit) | +5     | `terrainFit` contains profileId (routines only)          |
+    /// | Terrain fit (fallback) | +1/tag, cap 3 | `intersection(terrainTags).count`                |
+    /// | Modifier boost         | +2     | Any overlap (binary — modifier is 1 tag)                 |
+    /// | Symptom alignment      | +1/tag, cap 4 | `intersection(symptomTags).count`                |
+    /// | Time-of-day fit        | +2     | Any overlap (binary)                                     |
+    /// | Seasonal fit           | +3     | Candidate `seasons` contains current TCM season          |
+    /// | Goal alignment         | +2     | Candidate `goals` intersects user's goals                |
+    /// | Need-goal match        | +3     | Candidate `goals` intersects need's `relevantGoals`      |
+    /// | Cabinet bonus          | +2     | Ingredient ID in user's cabinet (ingredients only)       |
+    /// | Routine effectiveness  | +3/+1  | From TrendEngine (routines only)                         |
+    /// | Has avoid guidance     | +1     | avoidForHours > 0                                        |
+    /// | Avoid-tag penalty      | -4     | Candidate tags intersect terrain's avoidTags             |
+    /// | Contradiction penalty  | -3     | Warming+cooling tags AND symptom conflict                |
+    /// | Completion suppression | -999   | Candidate ID already in today's completedRoutineIds      |
     ///
-    /// Falls back to `QuickNeed.suggestion` if no candidate scores > 0.
+    /// All new parameters have defaults so existing call sites still compile.
     func suggest(
         for need: QuickNeed,
         terrainType: TerrainScoringEngine.PrimaryType,
@@ -72,7 +83,13 @@ final class SuggestionEngine {
         symptoms: Set<QuickSymptom>,
         timeOfDay: TimeOfDay,
         ingredients: [Ingredient],
-        routines: [Routine]
+        routines: [Routine],
+        season: InsightEngine.TCMSeason = .current(),
+        userGoals: [String] = [],
+        avoidTags: Set<String> = [],
+        completedIds: Set<String> = [],
+        cabinetIngredientIds: Set<String> = [],
+        routineEffectiveness: [String: Double] = [:]
     ) -> QuickSuggestion {
         var bestCandidate: QuickSuggestion?
 
@@ -80,35 +97,69 @@ final class SuggestionEngine {
         let symptomTagSet = symptomTags(for: symptoms)
         let modifierTags = modifierBoostTags(for: modifier)
         let timeTags = timeBoostTags(for: timeOfDay)
+        let needTags = Set(need.relevantTags)
+        let needGoals = Set(need.relevantGoals)
+        let seasonKey = season.contentPackKey
+        let userGoalSet = Set(userGoals)
+        let symptomHasThermalConflict = hasThermalConflict(in: symptomTagSet)
 
         // Score ingredients
         for ingredient in ingredients {
             let tags = Set(ingredient.tags)
             var score = 0
 
-            // +3 Tag match to need
-            if !tags.isDisjoint(with: need.relevantTags) {
-                score += 3
-            }
+            // +1 per tag, cap 4 — Tag match to need
+            score += min(tags.intersection(needTags).count, 4)
 
-            // +4 Terrain fit (ingredient tags overlap terrain's recommended tags)
-            if !tags.isDisjoint(with: terrainTags) {
-                score += 4
-            }
+            // +1 per tag, cap 3 — Terrain fit (tag-based for ingredients)
+            score += min(tags.intersection(terrainTags).count, 3)
 
             // +2 Modifier boost
             if !tags.isDisjoint(with: modifierTags) {
                 score += 2
             }
 
-            // +3 Symptom alignment
-            if !tags.isDisjoint(with: symptomTagSet) {
-                score += 3
-            }
+            // +1 per tag, cap 4 — Symptom alignment
+            score += min(tags.intersection(symptomTagSet).count, 4)
 
             // +2 Time-of-day fit
             if !tags.isDisjoint(with: timeTags) {
                 score += 2
+            }
+
+            // +3 Seasonal fit
+            if ingredient.seasons.contains(seasonKey) || ingredient.seasons.contains("all_year") {
+                score += 3
+            }
+
+            // +2 Goal alignment
+            if !Set(ingredient.goals).isDisjoint(with: userGoalSet) {
+                score += 2
+            }
+
+            // +3 Need-goal match (does the candidate serve what the user tapped?)
+            if !Set(ingredient.goals).isDisjoint(with: needGoals) {
+                score += 3
+            }
+
+            // +2 Cabinet bonus
+            if cabinetIngredientIds.contains(ingredient.id) {
+                score += 2
+            }
+
+            // -4 Avoid-tag penalty
+            if !tags.isDisjoint(with: avoidTags) {
+                score -= 4
+            }
+
+            // -3 Contradiction penalty (warming+cooling tags AND symptom thermal conflict)
+            if symptomHasThermalConflict && candidateHasThermalConflict(tags: tags) {
+                score -= 3
+            }
+
+            // -999 Completion suppression
+            if completedIds.contains(ingredient.id) {
+                score -= 999
             }
 
             if score > 0, score > (bestCandidate?.score ?? 0) {
@@ -130,17 +181,14 @@ final class SuggestionEngine {
             let tags = Set(routine.tags)
             var score = 0
 
-            // +3 Tag match to need
-            if !tags.isDisjoint(with: need.relevantTags) {
-                score += 3
-            }
+            // +1 per tag, cap 4 — Tag match to need
+            score += min(tags.intersection(needTags).count, 4)
 
-            // +4 Terrain fit (routine's terrainFit contains profile ID)
+            // +5 Terrain fit (explicit) or +1 per tag, cap 3 (fallback)
             if routine.terrainFit.contains(terrainType.terrainProfileId) {
-                score += 4
-            } else if !tags.isDisjoint(with: terrainTags) {
-                // Fallback: tag-based terrain match (weaker signal)
-                score += 2
+                score += 5
+            } else {
+                score += min(tags.intersection(terrainTags).count, 3)
             }
 
             // +2 Modifier boost
@@ -148,19 +196,56 @@ final class SuggestionEngine {
                 score += 2
             }
 
-            // +3 Symptom alignment
-            if !tags.isDisjoint(with: symptomTagSet) {
-                score += 3
-            }
+            // +1 per tag, cap 4 — Symptom alignment
+            score += min(tags.intersection(symptomTagSet).count, 4)
 
             // +2 Time-of-day fit
             if !tags.isDisjoint(with: timeTags) {
                 score += 2
             }
 
+            // +3 Seasonal fit
+            if routine.seasons.contains(seasonKey) || routine.seasons.contains("all_year") {
+                score += 3
+            }
+
+            // +2 Goal alignment
+            if !Set(routine.goals).isDisjoint(with: userGoalSet) {
+                score += 2
+            }
+
+            // +3 Need-goal match (does the candidate serve what the user tapped?)
+            if !Set(routine.goals).isDisjoint(with: needGoals) {
+                score += 3
+            }
+
+            // +3 or +1 Routine effectiveness
+            if let effectiveness = routineEffectiveness[routine.id] {
+                if effectiveness >= 0.3 {
+                    score += 3
+                } else if effectiveness >= 0 {
+                    score += 1
+                }
+            }
+
             // +1 Has avoid guidance
             if routine.avoidForHours > 0 {
                 score += 1
+            }
+
+            // -4 Avoid-tag penalty
+            if !tags.isDisjoint(with: avoidTags) {
+                score -= 4
+            }
+
+            // -3 Contradiction penalty
+            if symptomHasThermalConflict && candidateHasThermalConflict(tags: tags) {
+                score -= 3
+            }
+
+            // -999 Completion suppression
+            if completedIds.contains(routine.id) {
+                score -= 999
             }
 
             if score > 0, score > (bestCandidate?.score ?? 0) {
@@ -176,7 +261,7 @@ final class SuggestionEngine {
             }
         }
 
-        // Fall back to hardcoded if nothing scored
+        // Fall back to hardcoded if nothing scored positively
         if let best = bestCandidate {
             return best
         }
@@ -190,6 +275,19 @@ final class SuggestionEngine {
             sourceId: nil,
             score: 0
         )
+    }
+
+    // MARK: - Thermal Conflict Detection
+
+    /// Returns true if the symptom tag set contains both warming-relevant and
+    /// cooling-relevant tags — meaning the user has contradictory thermal symptoms.
+    private func hasThermalConflict(in symptomTagSet: Set<String>) -> Bool {
+        symptomTagSet.contains("warming") && symptomTagSet.contains("cooling")
+    }
+
+    /// Returns true if a candidate has both warming and cooling tags.
+    private func candidateHasThermalConflict(tags: Set<String>) -> Bool {
+        tags.contains("warming") && tags.contains("cooling")
     }
 
     // MARK: - Symptom-Based Need Ordering

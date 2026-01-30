@@ -138,6 +138,10 @@ struct HomeView: View {
                     // 4. Type block
                     TypeBlockView(components: typeBlockComponents)
 
+                    // Divider: identity zone → guidance zone
+                    Divider()
+                        .padding(.horizontal, theme.spacing.xl)
+
                     // 5. Do/Don't
                     DoDontView(dos: doDont.dos, donts: doDont.donts)
                         .accessibilityLabel("Do and Don't recommendations for your terrain")

@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-/// Inline check-in with toggleable symptom chips and a Skip button.
-/// Allows users to quickly note what's affecting them today without opening a sheet.
+/// Inline check-in with toggleable symptom chips inside a card, and a "Nothing today" text button.
+/// Uses a 2-column grid with icon+label rectangular chips to differentiate from identity pills.
 struct InlineCheckInView: View {
     @Binding var selectedSymptoms: Set<QuickSymptom>
     let onSkip: () -> Void
@@ -20,14 +20,28 @@ struct InlineCheckInView: View {
     @Environment(\.terrainTheme) private var theme
     @State private var isSkipped = false
 
+    private let columns = [
+        GridItem(.flexible(), spacing: 8),
+        GridItem(.flexible(), spacing: 8)
+    ]
+
     var body: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("Anything affecting you today?")
-                .font(theme.typography.labelMedium)
-                .foregroundColor(theme.colors.textSecondary)
+            // Header with wave icon
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: "hand.wave")
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textPrimary)
 
-            // Symptom chips in a flow layout, ordered by terrain relevance
-            FlowLayout(spacing: theme.spacing.xs) {
+                Text("Anything affecting you today?")
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textPrimary)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+
+            // 2-column symptom grid
+            LazyVGrid(columns: columns, spacing: theme.spacing.xs) {
                 ForEach(sortedSymptoms, id: \.self) { symptom in
                     SymptomChipButton(
                         symptom: symptom,
@@ -37,8 +51,11 @@ struct InlineCheckInView: View {
                         }
                     )
                 }
+            }
 
-                // Skip button
+            // "Nothing today" — right-aligned, separated from the grid
+            HStack {
+                Spacer()
                 Button(action: {
                     withAnimation(theme.animation.quick) {
                         isSkipped = true
@@ -46,21 +63,19 @@ struct InlineCheckInView: View {
                     HapticManager.light()
                     onSkip()
                 }) {
-                    Text("Skip")
-                        .font(theme.typography.labelSmall)
+                    Text("Nothing today")
+                        .font(theme.typography.caption)
                         .foregroundColor(theme.colors.textTertiary)
-                        .padding(.horizontal, theme.spacing.sm)
-                        .padding(.vertical, theme.spacing.xxs)
-                        .background(Color.clear)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: theme.cornerRadius.full)
-                                .stroke(theme.colors.textTertiary.opacity(0.3), lineWidth: 1)
-                        )
                 }
                 .buttonStyle(PlainButtonStyle())
                 .opacity(isSkipped ? 0.5 : 1.0)
             }
         }
+        .padding(theme.spacing.md)
+        .background(theme.colors.surface)
+        .cornerRadius(theme.cornerRadius.large)
+        .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
+        .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
         .padding(.horizontal, theme.spacing.lg)
     }
 
@@ -76,7 +91,8 @@ struct InlineCheckInView: View {
     }
 }
 
-/// Individual symptom chip button
+/// Individual symptom chip button — rectangular (not pill) with SF Symbol icon.
+/// Uses cornerRadius.medium to visually differentiate from pill-shaped identity badges.
 struct SymptomChipButton: View {
     let symptom: QuickSymptom
     let isSelected: Bool
@@ -87,13 +103,18 @@ struct SymptomChipButton: View {
 
     var body: some View {
         Button(action: onTap) {
-            Text(symptom.displayName.lowercased())
-                .font(theme.typography.labelSmall)
-                .foregroundColor(isSelected ? theme.colors.textInverted : theme.colors.textSecondary)
-                .padding(.horizontal, theme.spacing.sm)
-                .padding(.vertical, theme.spacing.xxs)
-                .background(isSelected ? theme.colors.accent : theme.colors.backgroundSecondary)
-                .cornerRadius(theme.cornerRadius.full)
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: symptom.icon)
+                    .font(.system(size: 14))
+
+                Text(symptom.displayName.lowercased())
+                    .font(theme.typography.labelSmall)
+            }
+            .foregroundColor(isSelected ? theme.colors.textInverted : theme.colors.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, theme.spacing.sm)
+            .background(isSelected ? theme.colors.accent : theme.colors.backgroundSecondary)
+            .cornerRadius(theme.cornerRadius.medium)
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
@@ -103,6 +124,8 @@ struct SymptomChipButton: View {
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
+        .accessibilityLabel(symptom.displayName)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

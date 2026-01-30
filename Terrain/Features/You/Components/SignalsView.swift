@@ -26,8 +26,12 @@ struct SignalsView: View {
                     HapticManager.light()
                 } label: {
                     HStack {
+                        Image(systemName: "sparkle.magnifyingglass")
+                            .foregroundColor(theme.colors.accent)
+                            .font(.system(size: 14))
+
                         Text("How we determined this")
-                            .font(theme.typography.labelMedium)
+                            .font(theme.typography.labelLarge)
                             .foregroundColor(theme.colors.textPrimary)
 
                         Spacer()

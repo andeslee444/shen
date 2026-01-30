@@ -6,13 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Terrain** is a TCM (Traditional Chinese Medicine) daily rituals iOS app built with SwiftUI and SwiftData. The app determines a user's "Terrain" (body constitution) through a quiz, then delivers personalized daily routines.
 
-**Status**: Feature-complete — terrain-aware filtering, Supabase sync + auth, expanded content (43 ingredients, 24 routines, 9 movements, 17 lessons, 5 programs), post-routine feedback, seasonal awareness, community stats, trend visualization, programs enrollment, accessibility pass
 **Platform**: iOS 17+ (iPhone only)
 **Positioning**: "Co-Star clarity + Muji calm" for TCM lifestyle routines
 
+## Code Quality
+
+Write code as if the maintainer is a violent psychopath who knows where you live. No shortcuts that could cause future problems — act as a L11 Google Fellow would. When explaining technical concepts, use metaphors for non-technical understanding.
+
+## Documentation Workflow
+
+A PostToolUse hook runs after every Edit/Write on files under `Core/`, `Features/`, `DesignSystem/`, `Engine/`, or `Services/`. After significant changes:
+- Update `TODO.md` with task status or new items
+- Update this `CLAUDE.md` if architecture changed or new files added
+- Update `Terrain/README.md` if features changed
+
 ## Build and Run Commands
 
-All commands below run from the `Terrain/` subdirectory (where `Terrain.xcodeproj` lives).
+All commands run from the `Terrain/` subdirectory (where `Terrain.xcodeproj` lives).
 
 ```bash
 # Open in Xcode and run (Cmd+R)
@@ -37,11 +47,19 @@ xcodebuild test -project Terrain.xcodeproj -scheme Terrain \
 xcodebuild test -project Terrain.xcodeproj -scheme Terrain \
   -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
   -only-testing:TerrainTests/TerrainScoringEngineTests/testColdDeficientType
-
-# Install on running simulator
-xcrun simctl install booted build/Debug-iphonesimulator/Terrain.app
-xcrun simctl launch booted com.terrain.app
 ```
+
+### Test Suites
+
+All in `Terrain/Tests/`:
+
+| File | Covers |
+|------|--------|
+| `TerrainScoringEngineTests.swift` | All 8 types + 5 modifiers + boundary cases (37 tests) |
+| `ConstitutionServiceTests.swift` | Readouts, signals, defaults, watch-fors (11 tests) |
+| `ContentPackValidationTests.swift` | Schema integrity, terrain coverage, content pack structure (7+ tests) |
+| `ContentPackServiceTests.swift` | JSON parsing, DTO-to-model conversion |
+| `SuggestionEngineTests.swift` | Terrain-aware ingredient/routine suggestions |
 
 ## Architecture
 
@@ -99,6 +117,8 @@ Each feature in `Features/` is self-contained. Key modules:
 | **Programs** | `ProgramsView.swift`, `ProgramDetailSheet.swift`, `ProgramDayView.swift` | Multi-day programs with enrollment persistence |
 | **Today** | `RoutineDetailSheet.swift`, `MovementPlayerSheet.swift`, `PostRoutineFeedbackSheet.swift` | Detail sheets used by Do tab |
 
+**Deprecated** (still in repo, content moved): `TodayView.swift` → HomeView + DoView, `RightNowView.swift` → DoView, `ProgressView.swift` → YouView, `SettingsView.swift` → YouView.
+
 ### InsightEngine (Home Tab Content)
 
 `InsightEngine` (`Core/Services/InsightEngine.swift`) generates personalized content based on terrain type + current symptoms:
@@ -112,7 +132,7 @@ Each feature in `Features/` is self-contained. Key modules:
 | `generateSeasonalNote()` | Season-specific terrain guidance | SeasonalCardView |
 | `generateWhyForYou()` | Terrain-specific explanation for routines/ingredients | RoutineDetailSheet, IngredientDetailSheet |
 | `sortSymptomsByRelevance()` | Terrain-ranked symptom order | InlineCheckInView |
-| `rankLessons()` | Terrain-relevance scored lessons | LearnView |
+| `rankLessons()` | Terrain-relevance scored lessons (+5 terrain_relevance, +3 topic, +2 modifier, +1 goal) | LearnView |
 
 When users select quick symptoms (all 8: cold, bloating, stressed, tired, poorSleep, headache, cramps, stiff), InsightEngine shifts all content to address those symptoms.
 
@@ -202,7 +222,7 @@ All buttons use `HapticManager.light()` for tactile feedback.
 
 ## Terrain Scoring System
 
-The quiz produces a 5-axis vector mapping to 8 primary types x 5 modifiers. Scoring engine is in `Core/Engine/TerrainScoringEngine.swift` with thorough tests in `Tests/TerrainScoringEngineTests.swift`. Additional test suites: `ConstitutionServiceTests.swift`, `ContentPackServiceTests.swift`.
+The quiz produces a 5-axis vector mapping to 8 primary types x 5 modifiers. Scoring engine is in `Core/Engine/TerrainScoringEngine.swift`.
 
 ```
 13 questions across 5 axes:
@@ -223,71 +243,47 @@ Modifier Priority (first match wins):
   4. None
 ```
 
-## Current State (What's Wired vs Not)
-
-**Complete**:
-- Onboarding flow with terrain scoring (13 questions, 8 types × 5 modifiers) + optional account creation step
-- Modifier persisted on UserProfile (no longer recomputed each time)
-- Home tab: InsightEngine with all 8 symptom responses, seasonal card, do/don't "why" explanations
-- Do tab: terrain-aware routine/movement filtering by tier (full/medium/lite) and terrain type, coaching notes per terrain, avoid timer
-- RoutineDetailSheet: reads actual SwiftData `Routine` model (not hardcoded), shows "For your terrain" section
-- IngredientDetailSheet: shows "For your terrain" section
-- Ingredients cabinet: fully wired add/remove, detail sheet toggle, tab badge
-- Learn tab: "Recommended for You" section ranked by terrain relevance
-- You tab: streaks + settings + community normalization stats + trend sparklines + symptom heatmap + routine effectiveness cards + progressive disclosure (DisclosureGroups)
-- Post-routine feedback loop (Better/Same/Not sure → stored in DailyLog)
-- Seasonal awareness card on Home tab (Spring/Summer/Late Summer/Autumn/Winter)
-- Community normalization ("X% of users share your type") on reveal + You tab
-- TrendEngine: 7-category rolling trends + routine effectiveness scoring
-- Movement Player with post-completion feedback
-- Notification preferences
-- Programs UI + enrollment persistence (ProgramEnrollment SwiftData model)
-- Supabase integration: SupabaseSyncService with bidirectional sync (5 tables, RLS, last-write-wins)
-- Authentication: AuthView with email/password + Apple Sign In, accessible from Settings and onboarding
-- Content validation tests (schema, terrain coverage, integrity)
-- Accessibility: VoiceOver labels, header traits, @ScaledMetric across views
-- Content pack v1.1.0: 43 ingredients, 24 routines, 9 movements, 17 lessons, 5 programs
-- Version-gated content reload (UserDefaults version check)
-
-**Blocked by External Dependencies**:
-- WeatherKit integration → requires Apple Developer Program ($99/year)
-- TestFlight deployment → requires Apple Developer Program ($99/year)
-
-**Deprecated (kept for reference)**:
-- `TodayView.swift` → replaced by HomeView + DoView
-- `RightNowView.swift` → merged into DoView
-- `ProgressView.swift` → merged into YouView
-- `SettingsView.swift` → merged into YouView
-
-See `TODO.md` for tracked remaining work items and completed phase history.
-
 ## Content Pack Schema (base-content-pack.json)
+
+All localized strings are objects keyed by locale (e.g., `{ "en-US": "..." }`). This applies to `title`, `subtitle`, `name.common`, `why_it_helps.plain`, `why_it_helps.tcm`, step `text`, etc. When adding content, every user-facing string must be wrapped: `{ "en-US": "..." }`.
 
 ```
 ingredients[]:
-  id, title{}, subtitle{}, tags[], thermal, moisture,
-  why{ plain{}, tcm{} }, howToUse[], cautions{}, culturalContext{}
+  id, name{ common{}, pinyin, hanzi, other_names[] }, category, tags[], goals[],
+  seasons[], regions[],
+  why_it_helps{ plain{}, tcm{} },
+  how_to_use{ quick_uses[{ text{}, prep_time_min, method_tags[] }], typical_amount{} },
+  cautions{ flags[], text{} }, cultural_context{ blurb{}, common_in[] }, review{}
 
 routines[]:
-  id, title{}, tier(full|lite|min), durationMin, tags[], goals[],
-  terrainFit[], steps[{ instruction{}, durationSec, tip{} }], why{}
+  id, type, title{}, subtitle{}, duration_min, difficulty, tier(full|medium|lite),
+  tags[], goals[], seasons[], terrain_fit[], ingredient_refs[],
+  steps[{ text{}, timer_seconds }],
+  why{ one_line{}, expanded{ plain{}, tcm{} } },
+  swaps[], avoid_for_hours, cautions{}, review{}
 
 movements[]:
-  id, title{}, durationMin, intensity(restorative|gentle|moderate),
-  frames[{ asset{}, cue{}, seconds }], why{}, cautions{}
+  id, title{}, subtitle{}, duration_min, intensity(restorative|gentle|moderate),
+  tags[], goals[], seasons[], terrain_fit[],
+  frames[{ asset{ type, uri }, cue{}, seconds }],
+  why{ one_line{}, expanded{ plain{}, tcm{} } }, cautions{}, review{}
 
 lessons[]:
-  id, title{}, topic, takeaway{ oneLine{}, expanded{} },
-  body[{ type(paragraph|bullets|callout), content }], cta{}
+  id, title{}, topic,
+  body[{ type(paragraph|bullets|callout), text{} | bullets[] }],
+  takeaway{ one_line{} }, cta{ label{}, action },
+  terrain_relevance[]
 
 terrain_profiles[]:
-  id, label{}, nickname{}, modifier{}, principles{},
-  superpower{}, trap{}, signatureRitual{}, truths[],
-  recommendedTags[], avoidTags[], starterIngredients[]
+  id, label{ primary{} }, nickname{}, modifier{ key, display{} },
+  principles{ yin_yang, cold_heat, def_excess, interior_exterior },
+  superpower{}, trap{}, signature_ritual{}, truths[],
+  recommended_tags[], avoid_tags[],
+  starter_ingredients[], starter_movements[], starter_routines[]
 
 programs[]:
-  id, title{}, subtitle{}, durationDays, tags[], goals[], terrainFit[],
-  days[{ day, routineRefs[], movementRefs[], lessonRef }]
+  id, title{}, subtitle{}, duration_days, tags[], goals[], terrain_fit[],
+  days[{ day, routine_refs[], movement_refs[], lesson_ref }]
 ```
 
 ## Naming Conventions

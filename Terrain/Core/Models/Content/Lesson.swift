@@ -24,6 +24,9 @@ final class Lesson {
     // Call to action
     var cta: LessonCTA?
 
+    // Terrain relevance — terrain profile IDs this lesson is most relevant to
+    var terrainRelevance: [String] = []
+
     // Review
     var reviewStatus: String
 
@@ -34,6 +37,7 @@ final class Lesson {
         body: [LessonBlock] = [],
         takeaway: Takeaway,
         cta: LessonCTA? = nil,
+        terrainRelevance: [String] = [],
         reviewStatus: String = "draft"
     ) {
         self.id = id
@@ -42,6 +46,7 @@ final class Lesson {
         self.body = body
         self.takeaway = takeaway
         self.cta = cta
+        self.terrainRelevance = terrainRelevance
         self.reviewStatus = reviewStatus
     }
 

@@ -1,11 +1,11 @@
 {
   "pack": {
-    "version": "1.1.0",
+    "version": "1.3.0",
     "default_locale": "en-US",
     "supported_locales": [
       "en-US"
     ],
-    "updated_at": "2026-01-30T02:43:33Z",
+    "updated_at": "2026-01-30T12:00:00Z",
     "review": {
       "status": "draft",
       "reviewed_by": []
@@ -265,7 +265,8 @@
       "category": "tea",
       "tags": [
         "cooling",
-        "moves_qi"
+        "moves_qi",
+        "reduces_excess"
       ],
       "goals": [
         "energy",
@@ -336,7 +337,8 @@
       "category": "legume",
       "tags": [
         "cooling",
-        "dries_damp"
+        "dries_damp",
+        "reduces_excess"
       ],
       "goals": [
         "skin",
@@ -395,7 +397,7 @@
         },
         "common_in": [
           "cantonese_home_soups",
-          "taiwaneseHomeStyle"
+          "taiwanese_home_style"
         ]
       },
       "review": {
@@ -936,7 +938,7 @@
         "common": {
           "en-US": "Cucumber"
         },
-        "pinyin": "huanggua",
+        "pinyin": "huáng guā",
         "hanzi": "黄瓜"
       },
       "category": "vegetable",
@@ -1011,7 +1013,7 @@
         "common": {
           "en-US": "Watermelon"
         },
-        "pinyin": "xīgua",
+        "pinyin": "xī guā",
         "hanzi": "西瓜"
       },
       "category": "fruit",
@@ -1086,12 +1088,11 @@
         "common": {
           "en-US": "Lotus Seed"
         },
-        "pinyin": "liánzǐ",
+        "pinyin": "lián zǐ",
         "hanzi": "莲子"
       },
       "category": "seed",
       "tags": [
-        "cooling",
         "calms_shen"
       ],
       "goals": [
@@ -1164,7 +1165,7 @@
         "common": {
           "en-US": "Mint"
         },
-        "pinyin": "bòhe",
+        "pinyin": "bò he",
         "hanzi": "薄荷"
       },
       "category": "herb",
@@ -1240,13 +1241,14 @@
         "common": {
           "en-US": "Bitter Melon"
         },
-        "pinyin": "kǔguā",
+        "pinyin": "kǔ guā",
         "hanzi": "苦瓜"
       },
       "category": "vegetable",
       "tags": [
         "cooling",
-        "dries_damp"
+        "dries_damp",
+        "reduces_excess"
       ],
       "goals": [
         "digestion",
@@ -1316,7 +1318,7 @@
         "common": {
           "en-US": "Tofu"
         },
-        "pinyin": "dòufu",
+        "pinyin": "dòu fu",
         "hanzi": "豆腐"
       },
       "category": "legume",
@@ -1392,13 +1394,14 @@
         "common": {
           "en-US": "Celery"
         },
-        "pinyin": "qíncài",
+        "pinyin": "qín cài",
         "hanzi": "芹菜"
       },
       "category": "vegetable",
       "tags": [
         "cooling",
-        "calms_shen"
+        "calms_shen",
+        "reduces_excess"
       ],
       "goals": [
         "stress",
@@ -1468,7 +1471,7 @@
         "common": {
           "en-US": "Lettuce"
         },
-        "pinyin": "shēngcài",
+        "pinyin": "shēng cài",
         "hanzi": "生菜"
       },
       "category": "vegetable",
@@ -1545,7 +1548,7 @@
         "common": {
           "en-US": "Lamb"
         },
-        "pinyin": "yángròu",
+        "pinyin": "yáng ròu",
         "hanzi": "羊肉"
       },
       "category": "meat",
@@ -1621,7 +1624,7 @@
         "common": {
           "en-US": "Chicken"
         },
-        "pinyin": "jīròu",
+        "pinyin": "jī ròu",
         "hanzi": "鸡肉"
       },
       "category": "meat",
@@ -1639,7 +1642,7 @@
         "spring"
       ],
       "regions": [
-        "cantonese_soup",
+        "cantonese_home_soups",
         "northern_winter_warmth"
       ],
       "why_it_helps": {
@@ -1686,7 +1689,7 @@
           "en-US": "Chicken soup is one of the most universal healing foods in Chinese medicine, prescribed for recovery and postpartum nourishment for centuries."
         },
         "common_in": [
-          "cantonese_soup",
+          "cantonese_home_soups",
           "northern_winter_warmth"
         ]
       },
@@ -1700,7 +1703,7 @@
         "common": {
           "en-US": "Fennel Seed"
         },
-        "pinyin": "xiǎohúxiāng",
+        "pinyin": "xiǎo huí xiāng",
         "hanzi": "小茴香"
       },
       "category": "spice",
@@ -1778,7 +1781,7 @@
         "common": {
           "en-US": "Star Anise"
         },
-        "pinyin": "bājiǎohúxiāng",
+        "pinyin": "bā jiǎo huí xiāng",
         "hanzi": "八角茴香"
       },
       "category": "spice",
@@ -1855,7 +1858,7 @@
         "common": {
           "en-US": "Black Pepper"
         },
-        "pinyin": "hēihújiāo",
+        "pinyin": "hēi hú jiāo",
         "hanzi": "黑胡椒"
       },
       "category": "spice",
@@ -1931,7 +1934,7 @@
         "common": {
           "en-US": "Dried Longan"
         },
-        "pinyin": "lóngyǎn ròu",
+        "pinyin": "lóng yǎn ròu",
         "hanzi": "龙眼肉"
       },
       "category": "fruit",
@@ -2010,11 +2013,12 @@
         "common": {
           "en-US": "Lily Bulb"
         },
-        "pinyin": "bǎihé",
+        "pinyin": "bǎi hé",
         "hanzi": "百合"
       },
       "category": "vegetable",
       "tags": [
+        "cooling",
         "moistens_dryness",
         "calms_shen"
       ],
@@ -2088,7 +2092,7 @@
         "common": {
           "en-US": "Snow Fungus"
         },
-        "pinyin": "yíněr",
+        "pinyin": "yín ěr",
         "hanzi": "银耳"
       },
       "category": "mushroom",
@@ -2166,7 +2170,7 @@
         "common": {
           "en-US": "Black Sesame"
         },
-        "pinyin": "hēizhīma",
+        "pinyin": "hēi zhī ma",
         "hanzi": "黑芝麻"
       },
       "category": "seed",
@@ -2242,7 +2246,7 @@
         "common": {
           "en-US": "Sweet Almond"
         },
-        "pinyin": "tiánxìngrén",
+        "pinyin": "tián xìng rén",
         "hanzi": "甜杏仁"
       },
       "category": "seed",
@@ -2320,7 +2324,7 @@
         "common": {
           "en-US": "Persimmon"
         },
-        "pinyin": "shìzǐ",
+        "pinyin": "shì zi",
         "hanzi": "柿子"
       },
       "category": "fruit",
@@ -2395,7 +2399,7 @@
         "common": {
           "en-US": "Jujube Seed"
         },
-        "pinyin": "suānzǎorén",
+        "pinyin": "suān zǎo rén",
         "hanzi": "酸枣仁"
       },
       "category": "seed",
@@ -2470,7 +2474,7 @@
         "common": {
           "en-US": "Lavender"
         },
-        "pinyin": "xūnyīcao",
+        "pinyin": "xūn yī cǎo",
         "hanzi": "薰衣草"
       },
       "category": "herb",
@@ -2545,7 +2549,7 @@
         "common": {
           "en-US": "Reishi Mushroom"
         },
-        "pinyin": "língzhī",
+        "pinyin": "líng zhī",
         "hanzi": "灵芝"
       },
       "category": "mushroom",
@@ -2621,7 +2625,7 @@
         "common": {
           "en-US": "Passionflower"
         },
-        "pinyin": "xīfan liánhuā",
+        "pinyin": "xī fān lián huā",
         "hanzi": "西番莲花"
       },
       "category": "herb",
@@ -2695,11 +2699,12 @@
         "common": {
           "en-US": "Dried Citrus Peel"
         },
-        "pinyin": "chénpí",
+        "pinyin": "chén pí",
         "hanzi": "陈皮"
       },
       "category": "herb",
       "tags": [
+        "warming",
         "moves_qi",
         "dries_damp",
         "supports_digestion"
@@ -2773,8 +2778,8 @@
         "common": {
           "en-US": "Rosemary"
         },
-        "pinyin": "mídiéxiāng",
-        "hanzi": "迷跌香"
+        "pinyin": "mí dié xiāng",
+        "hanzi": "迷迭香"
       },
       "category": "herb",
       "tags": [
@@ -2848,7 +2853,7 @@
         "common": {
           "en-US": "Turmeric"
         },
-        "pinyin": "jiānghuáng",
+        "pinyin": "jiāng huáng",
         "hanzi": "姜黄"
       },
       "category": "root",
@@ -2923,7 +2928,7 @@
         "common": {
           "en-US": "Cardamom"
         },
-        "pinyin": "báidòukòu",
+        "pinyin": "bái dòu kòu",
         "hanzi": "白豆蔻"
       },
       "category": "spice",
@@ -2999,8 +3004,8 @@
         "common": {
           "en-US": "Job's Tears"
         },
-        "pinyin": "yìyǐrén",
-        "hanzi": "藏苡仁",
+        "pinyin": "yì yǐ rén",
+        "hanzi": "薏苡仁",
         "other_names": [
           {
             "en-US": "Coix Seed"
@@ -3085,13 +3090,14 @@
         "common": {
           "en-US": "Corn Silk"
         },
-        "pinyin": "yùmǐxū",
+        "pinyin": "yù mǐ xū",
         "hanzi": "玉米须"
       },
       "category": "herb",
       "tags": [
         "dries_damp",
-        "cooling"
+        "cooling",
+        "reduces_excess"
       ],
       "goals": [
         "digestion",
@@ -3161,11 +3167,12 @@
         "common": {
           "en-US": "Adzuki Bean"
         },
-        "pinyin": "chìdòu",
+        "pinyin": "chì dòu",
         "hanzi": "赤豆"
       },
       "category": "legume",
       "tags": [
+        "cooling",
         "dries_damp",
         "supports_digestion"
       ],
@@ -3239,7 +3246,7 @@
         "common": {
           "en-US": "Poria"
         },
-        "pinyin": "fúlíng",
+        "pinyin": "fú líng",
         "hanzi": "茯苓"
       },
       "category": "mushroom",
@@ -3436,7 +3443,8 @@
         "cold_balanced_cool_core"
       ],
       "ingredient_refs": [
-        "ginger"
+        "ginger",
+        "honey"
       ],
       "steps": [
         {
@@ -3523,7 +3531,9 @@
         "cold_balanced_cool_core",
         "neutral_deficient_low_battery"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "ginger"
+      ],
       "steps": [
         {
           "text": {
@@ -3603,7 +3613,11 @@
         "cold_deficient_low_flame",
         "cold_balanced_cool_core"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "ginger",
+        "cinnamon",
+        "honey"
+      ],
       "steps": [
         {
           "text": {
@@ -3688,7 +3702,11 @@
         "cold_deficient_low_flame",
         "cold_balanced_cool_core"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "ginger",
+        "cinnamon",
+        "honey"
+      ],
       "steps": [
         {
           "text": {
@@ -3834,7 +3852,11 @@
       "terrain_fit": [
         "neutral_deficient_low_battery"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "red-dates",
+        "goji-berry",
+        "honey"
+      ],
       "steps": [
         {
           "text": {
@@ -3918,7 +3940,10 @@
       "terrain_fit": [
         "neutral_deficient_low_battery"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "honey",
+        "ginger"
+      ],
       "steps": [
         {
           "text": {
@@ -4062,7 +4087,9 @@
       "terrain_fit": [
         "neutral_balanced_steady_core"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "ginger"
+      ],
       "steps": [
         {
           "text": {
@@ -4146,7 +4173,10 @@
       "terrain_fit": [
         "neutral_balanced_steady_core"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "green-tea",
+        "chrysanthemum"
+      ],
       "steps": [
         {
           "text": {
@@ -4290,7 +4320,11 @@
       "terrain_fit": [
         "neutral_excess_busy_mind"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "green-tea",
+        "chrysanthemum",
+        "mint"
+      ],
       "steps": [
         {
           "text": {
@@ -4374,7 +4408,9 @@
       "terrain_fit": [
         "neutral_excess_busy_mind"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "sesame"
+      ],
       "steps": [
         {
           "text": {
@@ -4531,7 +4567,11 @@
       "terrain_fit": [
         "warm_deficient_bright_but_thin"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "pear",
+        "goji-berry",
+        "honey"
+      ],
       "steps": [
         {
           "text": {
@@ -4615,7 +4655,10 @@
       "terrain_fit": [
         "warm_deficient_bright_but_thin"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "goji-berry",
+        "honey"
+      ],
       "steps": [
         {
           "text": {
@@ -4693,7 +4736,9 @@
       "terrain_fit": [
         "warm_deficient_bright_but_thin"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "cucumber"
+      ],
       "steps": [
         {
           "text": {
@@ -4765,7 +4810,10 @@
       "terrain_fit": [
         "warm_balanced_high_flame"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "chrysanthemum",
+        "goji-berry"
+      ],
       "steps": [
         {
           "text": {
@@ -4849,7 +4897,10 @@
       "terrain_fit": [
         "warm_balanced_high_flame"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "cucumber",
+        "mint"
+      ],
       "steps": [
         {
           "text": {
@@ -5015,7 +5066,9 @@
       "terrain_fit": [
         "warm_excess_overclocked"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "mung-bean"
+      ],
       "steps": [
         {
           "text": {
@@ -5099,7 +5152,9 @@
       "terrain_fit": [
         "warm_excess_overclocked"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "bitter-melon"
+      ],
       "steps": [
         {
           "text": {
@@ -5176,7 +5231,9 @@
       "terrain_fit": [
         "warm_excess_overclocked"
       ],
-      "ingredient_refs": [],
+      "ingredient_refs": [
+        "chrysanthemum"
+      ],
       "steps": [
         {
           "text": {
@@ -6399,6 +6456,13 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6451,6 +6515,12 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "neutral_deficient_low_battery",
+        "warm_deficient_bright_but_thin",
+        "neutral_balanced_steady_core"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6503,6 +6573,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6555,6 +6631,13 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "neutral_balanced_steady_core",
+        "warm_balanced_high_flame",
+        "neutral_deficient_low_battery",
+        "cold_balanced_cool_core"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6607,6 +6690,11 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6662,6 +6750,11 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6720,6 +6813,13 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_balanced_steady_core",
+        "neutral_deficient_low_battery",
+        "warm_balanced_high_flame"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6775,6 +6875,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "neutral_balanced_steady_core",
+        "warm_balanced_high_flame",
+        "cold_balanced_cool_core"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6830,6 +6936,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6888,6 +7000,13 @@
         },
         "action": "open_learn"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "warm_deficient_bright_but_thin",
+        "neutral_deficient_low_battery",
+        "warm_excess_overclocked",
+        "neutral_excess_busy_mind"
+      ],
       "review": {
         "status": "draft"
       }
@@ -6946,6 +7065,12 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "warm_excess_overclocked",
+        "warm_deficient_bright_but_thin",
+        "neutral_excess_busy_mind"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7004,6 +7129,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7062,6 +7193,13 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "neutral_balanced_steady_core",
+        "cold_balanced_cool_core",
+        "warm_balanced_high_flame",
+        "cold_deficient_low_flame"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7120,6 +7258,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "neutral_excess_busy_mind",
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame",
+        "neutral_balanced_steady_core"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7178,6 +7322,11 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7236,6 +7385,12 @@
         },
         "action": "open_ingredients"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "neutral_deficient_low_battery",
+        "neutral_balanced_steady_core",
+        "cold_balanced_cool_core"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7294,6 +7449,12 @@
         },
         "action": "open_today"
       },
+      "terrain_relevance": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery",
+        "warm_deficient_bright_but_thin"
+      ],
       "review": {
         "status": "draft"
       }
@@ -7709,6 +7870,241 @@
             "shoulder-neck-release"
           ],
           "lesson_ref": "why-movement-matters"
+        }
+      ],
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "5-day-cool-release",
+      "title": {
+        "en-US": "5-Day Cool Release"
+      },
+      "subtitle": {
+        "en-US": "Cool the overclocked system with progressive cooling foods and releasing movements"
+      },
+      "duration_days": 5,
+      "tags": [
+        "cooling",
+        "reduces_excess"
+      ],
+      "goals": [
+        "stress",
+        "digestion"
+      ],
+      "terrain_fit": [
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "routine_refs": [
+            "cooling-water-ritual-lite"
+          ],
+          "movement_refs": [
+            "breath-counting"
+          ],
+          "lesson_ref": "understanding-cold-heat"
+        },
+        {
+          "day": 2,
+          "routine_refs": [
+            "bitter-melon-prep-medium"
+          ],
+          "movement_refs": [
+            "tension-release-shaking"
+          ],
+          "lesson_ref": "cooling-methods"
+        },
+        {
+          "day": 3,
+          "routine_refs": [
+            "mung-bean-soup-full"
+          ],
+          "movement_refs": [
+            "cooling-forward-folds"
+          ],
+          "lesson_ref": "understanding-qi"
+        },
+        {
+          "day": 4,
+          "routine_refs": [
+            "bitter-greens-prep-medium"
+          ],
+          "movement_refs": [
+            "evening-wind-down"
+          ],
+          "lesson_ref": "recognizing-dampness"
+        },
+        {
+          "day": 5,
+          "routine_refs": [
+            "mung-bean-soup-full",
+            "cooling-water-ritual-lite"
+          ],
+          "movement_refs": [
+            "tension-release-shaking"
+          ],
+          "lesson_ref": "when-to-pause"
+        }
+      ],
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "5-day-steady-flame",
+      "title": {
+        "en-US": "5-Day Steady Flame"
+      },
+      "subtitle": {
+        "en-US": "Steady your flame with gentle cooling and evening-focused rituals"
+      },
+      "duration_days": 5,
+      "tags": [
+        "cooling",
+        "calms_shen"
+      ],
+      "goals": [
+        "stress",
+        "sleep"
+      ],
+      "terrain_fit": [
+        "warm_balanced_high_flame",
+        "warm_deficient_bright_but_thin"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "routine_refs": [
+            "mint-cool-water-lite"
+          ],
+          "movement_refs": [
+            "shoulder-neck-release"
+          ],
+          "lesson_ref": "understanding-cold-heat"
+        },
+        {
+          "day": 2,
+          "routine_refs": [
+            "cucumber-mint-water-medium"
+          ],
+          "movement_refs": [
+            "cooling-forward-folds"
+          ],
+          "lesson_ref": "sleep-rituals-restless"
+        },
+        {
+          "day": 3,
+          "routine_refs": [
+            "chrysanthemum-tea-full"
+          ],
+          "movement_refs": [
+            "evening-wind-down"
+          ],
+          "lesson_ref": "what-is-shen"
+        },
+        {
+          "day": 4,
+          "routine_refs": [
+            "cucumber-mint-water-medium",
+            "breath-release-ritual-lite"
+          ],
+          "movement_refs": [
+            "tension-release-shaking"
+          ],
+          "lesson_ref": "breath-as-medicine"
+        },
+        {
+          "day": 5,
+          "routine_refs": [
+            "chrysanthemum-tea-full"
+          ],
+          "movement_refs": [
+            "cooling-forward-folds",
+            "shoulder-neck-release"
+          ],
+          "lesson_ref": "eating-with-seasons"
+        }
+      ],
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "5-day-gentle-warmth",
+      "title": {
+        "en-US": "5-Day Gentle Warmth"
+      },
+      "subtitle": {
+        "en-US": "Activate your existing warmth — an engine that runs fine once warmed up"
+      },
+      "duration_days": 5,
+      "tags": [
+        "warming",
+        "supports_digestion"
+      ],
+      "goals": [
+        "energy",
+        "digestion"
+      ],
+      "terrain_fit": [
+        "cold_balanced_cool_core",
+        "cold_deficient_low_flame"
+      ],
+      "days": [
+        {
+          "day": 1,
+          "routine_refs": [
+            "warm-water-ritual-lite"
+          ],
+          "movement_refs": [
+            "morning-qi-flow-full"
+          ],
+          "lesson_ref": "why-cold-types-avoid-ice"
+        },
+        {
+          "day": 2,
+          "routine_refs": [
+            "ginger-cinnamon-tea-medium"
+          ],
+          "movement_refs": [
+            "warming-sun-salute"
+          ],
+          "lesson_ref": "warming-methods"
+        },
+        {
+          "day": 3,
+          "routine_refs": [
+            "warm-start-congee-medium"
+          ],
+          "movement_refs": [
+            "gentle-spinal-twist"
+          ],
+          "lesson_ref": "congee-original-superfood"
+        },
+        {
+          "day": 4,
+          "routine_refs": [
+            "ginger-cinnamon-tea-full"
+          ],
+          "movement_refs": [
+            "hip-opening-stretch"
+          ],
+          "lesson_ref": "understanding-qi"
+        },
+        {
+          "day": 5,
+          "routine_refs": [
+            "warm-start-congee-full",
+            "ginger-honey-tea-lite"
+          ],
+          "movement_refs": [
+            "morning-qi-flow-full"
+          ],
+          "lesson_ref": "eating-with-seasons"
         }
       ],
       "review": {

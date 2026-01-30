@@ -33,8 +33,6 @@ struct YouView: View {
     @State private var showRetakeQuizConfirmation = false
     @State private var selectedSubTab: YouSubTab = .terrain
     @State private var showPatternMap = false
-    @State private var showMoreAboutTerrain = false
-    @State private var showSignals = false
     @State private var showReference = false
     @Namespace private var tabNamespace
 
@@ -276,17 +274,11 @@ struct YouView: View {
             }
         }
 
-        // Collapsible: How We Got This
-        disclosureSection(
-            title: "How We Got This",
-            icon: "magnifyingglass",
-            isExpanded: $showSignals
-        ) {
-            SignalsView(
-                signals: signals,
-                onRetakeQuiz: { showRetakeQuizConfirmation = true }
-            )
-        }
+        // How We Got This (SignalsView has its own expand/collapse)
+        SignalsView(
+            signals: signals,
+            onRetakeQuiz: { showRetakeQuizConfirmation = true }
+        )
 
         // Collapsible: Reference (Defaults + Watch-Fors)
         if defaults != nil || watchFors != nil {

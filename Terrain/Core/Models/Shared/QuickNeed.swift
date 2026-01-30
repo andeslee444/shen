@@ -35,6 +35,21 @@ enum QuickNeed: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Content-pack goals that relate to this need (used for need-goal scoring).
+    /// While `relevantTags` maps to TCM-level tags (e.g. "warming", "calms_shen"),
+    /// this maps to user-facing goals (e.g. "energy", "stress") so the engine
+    /// can differentiate what the user is actually asking for.
+    var relevantGoals: [String] {
+        switch self {
+        case .energy:    return ["energy"]
+        case .calm:      return ["sleep", "stress"]
+        case .digestion: return ["digestion"]
+        case .warmth:    return ["energy"]
+        case .cooling:   return ["skin"]
+        case .focus:     return ["stress"]
+        }
+    }
+
     /// Tags in the content pack that relate to this need (used for dynamic lookup)
     var relevantTags: [String] {
         switch self {

@@ -471,6 +471,7 @@ struct LessonDTO: Decodable {
     let body: [LessonBlockDTO]
     let takeaway: TakeawayDTO
     let cta: LessonCTADTO?
+    let terrain_relevance: [String]?
     let review: ReviewStatusDTO
 
     func toModel() -> Lesson {
@@ -480,7 +481,8 @@ struct LessonDTO: Decodable {
             topic: topic,
             body: body.map { $0.toModel() },
             takeaway: takeaway.toModel(),
-            cta: cta?.toModel()
+            cta: cta?.toModel(),
+            terrainRelevance: terrain_relevance ?? []
         )
     }
 }

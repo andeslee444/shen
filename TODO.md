@@ -20,20 +20,13 @@ Last updated: 2026-01-30
 
 ## Remaining Work
 
-### Do Tab - Quick Suggestions Engine
-**File**: `Terrain/Features/Do/DoView.swift`
-**Status**: Capsule + terrain filtering + avoid timer all wired; quick fixes use basic tag matching
-**Task**:
-- Create more sophisticated suggestion engine based on terrain + time of day + symptoms
-
-### Content Pack Quality Pass
+### Content Pack — Future Expansion
 **File**: `Terrain/Resources/ContentPacks/base-content-pack.json`
-**Current**: 43 ingredients, 24 routines (8 per tier), 9 movements, 17 lessons, 5 programs, 8 terrain profiles
+**Current**: 43 ingredients, 24 routines (8 per tier), 9 movements, 17 lessons, 8 programs, 8 terrain profiles (v1.3.0)
 **Task**:
-- Review TCM accuracy of all ingredient descriptions with a practitioner
-- Ensure all routine steps have correct timer values
 - Add more swap options between routines
-- Verify terrain_fit coverage (every terrain type should have content at every tier)
+- Add more routines per tier for warm/neutral terrain types
+- Ensure all routine steps have correct timer values
 
 ### You Tab - Density Reduction
 **File**: `Terrain/Features/You/YouView.swift`
@@ -56,6 +49,34 @@ Last updated: 2026-01-30
 - Create App Store Connect record
 - Archive and upload to TestFlight
 - Set up internal testing group
+
+## Completed (Phase 9 - 2026-01-30) - Content Pack Gap-Filling Expansion (v1.2.0 → v1.3.0)
+
+- [x] Add 3 new programs: `5-day-cool-release` (warm_excess), `5-day-steady-flame` (warm_balanced), `5-day-gentle-warmth` (cold_balanced)
+- [x] Populate `terrain_relevance` on all 17 lessons (3–5 terrain profile IDs each)
+- [x] Add `terrainRelevance: [String]` property to `Lesson.swift` SwiftData model
+- [x] Add `terrain_relevance` to `LessonDTO` in `ContentPackService.swift`
+- [x] Add +5 terrain_relevance scoring boost to `InsightEngine.rankLessons()`
+- [x] Incorporate 2 previously unused routines (`cooling-water-ritual-lite`, `cucumber-mint-water-medium`) into programs
+- [x] Add content validation tests: 8 programs count, terrain_relevance non-empty, ref integrity, coverage
+- [x] Bump content pack version to 1.3.0
+
+## Completed (Phase 8 - 2026-01-30) - Content Pack Quality Pass (v1.1.0 → v1.2.0)
+
+- [x] Fix Hanzi errors: `jobs-tears` 藏苡仁→薏苡仁, `rosemary` 迷跌香→迷迭香
+- [x] Fix thermal tags: remove incorrect `cooling` from `lotus-seed` (neutral), add `warming` to `citrus-peel`, add `cooling` to `lily-bulb` and `adzuki-bean`
+- [x] Add proper word spacing to pinyin for 31 ingredients (e.g., `huanggua`→`huáng guā`, `bājiǎohúxiāng`→`bā jiǎo huí xiāng`)
+- [x] Normalize region tags: `taiwaneseHomeStyle`→`taiwanese_home_style`, `cantonese_soup`→`cantonese_home_soups`
+- [x] Fix phantom tag: add `reduces_excess` to 5 ingredients (`mung-bean`, `bitter-melon`, `green-tea`, `corn-silk`, `celery`) so `warm_excess_overclocked` terrain profile recommendations match actual content
+- [x] Populate `ingredient_refs` for 17 routines (was empty despite steps referencing specific ingredients); 4 water/breath-only rituals correctly left empty
+- [x] Bump content pack version to 1.2.0 (triggers version-gated reload on next launch)
+- [x] All tests passing: ContentPackServiceTests, SuggestionEngineTests
+
+## Completed (Phase 7 - 2026-01-30) - Suggestion Engine + UX Polish
+
+- [x] SuggestionEngine: multi-factor scoring (terrain, symptoms, time of day, season, goals, cabinet, completed, avoid tags, routine effectiveness)
+- [x] Quick Fixes "?" personalization explainer tooltip on Do tab
+- [x] Marked suggestion engine TODO as complete — all planned factors implemented
 
 ## Completed (Phase 6 - 2026-01-30) - Auth UI + Documentation + Polish
 

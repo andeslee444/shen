@@ -164,6 +164,42 @@ final class ContentPackValidationTests: XCTestCase {
         XCTAssertGreaterThan(pack.movements.count, 0, "Pack must have movements")
         XCTAssertGreaterThan(pack.lessons.count, 0, "Pack must have lessons")
         XCTAssertGreaterThan(pack.terrain_profiles.count, 0, "Pack must have terrain profiles")
+        XCTAssertEqual(pack.programs.count, 8, "Pack must have 8 programs (v1.3.0)")
+    }
+
+    // MARK: - Terrain Relevance
+
+    func testAllLessonsHaveTerrainRelevance() {
+        for lesson in pack.lessons {
+            let relevance = lesson.terrain_relevance ?? []
+            XCTAssertFalse(
+                relevance.isEmpty,
+                "Lesson '\(lesson.id)' is missing terrain_relevance"
+            )
+        }
+    }
+
+    func testTerrainRelevanceRefIntegrity() {
+        let profileIds = Set(pack.terrain_profiles.map(\.id))
+        for lesson in pack.lessons {
+            for ref in lesson.terrain_relevance ?? [] {
+                XCTAssertTrue(
+                    profileIds.contains(ref),
+                    "Lesson '\(lesson.id)' terrain_relevance references unknown profile '\(ref)'"
+                )
+            }
+        }
+    }
+
+    func testEveryTerrainTypeAppearsInLessonRelevance() {
+        let profileIds = Set(pack.terrain_profiles.map(\.id))
+        for profileId in profileIds {
+            let count = pack.lessons.filter { ($0.terrain_relevance ?? []).contains(profileId) }.count
+            XCTAssertGreaterThanOrEqual(
+                count, 3,
+                "Terrain '\(profileId)' appears in only \(count) lessons' terrain_relevance, expected at least 3"
+            )
+        }
     }
 
     func testAllIdsUnique() {

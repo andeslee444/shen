@@ -683,6 +683,14 @@ final class InsightEngine {
             }
         }
 
+        /// Maps rawValue (camelCase) to the snake_case key used in content pack season arrays.
+        var contentPackKey: String {
+            switch self {
+            case .lateSummer: return "late_summer"
+            default: return rawValue
+            }
+        }
+
         static func current(for date: Date = Date()) -> TCMSeason {
             let month = Calendar.current.component(.month, from: date)
             switch month {
@@ -778,6 +786,11 @@ final class InsightEngine {
     ) -> [Lesson] {
         let scored = lessons.map { lesson -> (lesson: Lesson, score: Int) in
             var score = 0
+
+            // +5 if lesson's terrain_relevance explicitly includes this terrain
+            if lesson.terrainRelevance.contains(terrainType.terrainProfileId) {
+                score += 5
+            }
 
             // +3 if topic matches primary axis
             let topic = lesson.topic

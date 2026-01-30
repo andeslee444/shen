@@ -22,12 +22,15 @@ struct DoView: View {
     @Query(sort: \Routine.id) private var allRoutines: [Routine]
     @Query(sort: \Movement.id) private var allMovements: [Movement]
     @Query(sort: \DailyLog.date, order: .reverse) private var dailyLogs: [DailyLog]
+    @Query private var cabinetItems: [UserCabinet]
+    @Query(sort: \TerrainProfile.id) private var terrainProfiles: [TerrainProfile]
 
     @State private var showRoutineDetail = false
     @State private var showMovementPlayer = false
     @State private var selectedNeed: QuickNeed?
     @State private var showCompletionFeedback = false
     @State private var completedNeed: QuickNeed?
+    @State private var showSuggestionInfo = false
 
     // Avoid timer: refreshes every 60 seconds to update countdown display
     @State private var timerTick = Date()
@@ -68,6 +71,42 @@ struct DoView: View {
     /// Today's quick symptoms from the home tab check-in
     private var todaysSymptoms: Set<QuickSymptom> {
         Set(todaysLog?.quickSymptoms ?? [])
+    }
+
+    /// Ingredient IDs the user has saved in their cabinet
+    private var cabinetIngredientIds: Set<String> {
+        Set(cabinetItems.map(\.ingredientId))
+    }
+
+    /// Routine/suggestion IDs completed today (for suppression)
+    private var todaysCompletedIds: Set<String> {
+        Set(todaysLog?.completedRoutineIds ?? [])
+    }
+
+    /// User goal strings (raw values) for goal-alignment scoring
+    private var userGoalStrings: [String] {
+        userProfile?.goals.map(\.rawValue) ?? []
+    }
+
+    /// Avoid tags from the user's terrain profile
+    private var terrainAvoidTags: Set<String> {
+        guard let profileId = terrainProfileId,
+              let profile = terrainProfiles.first(where: { $0.id == profileId }) else {
+            return []
+        }
+        return Set(profile.avoidTags)
+    }
+
+    /// Pre-computed routine effectiveness scores from TrendEngine
+    private var routineEffectivenessMap: [String: Double] {
+        let trendEngine = TrendEngine()
+        var map: [String: Double] = [:]
+        for routine in allRoutines {
+            if let score = trendEngine.computeRoutineEffectiveness(logs: dailyLogs, routineId: routine.id) {
+                map[routine.id] = score
+            }
+        }
+        return map
     }
 
     /// Best routine for current terrain + selected level, falling back gracefully
@@ -314,11 +353,44 @@ struct DoView: View {
 
     private var quickFixesSection: some View {
         VStack(spacing: theme.spacing.md) {
-            Text("Quick Fixes")
-                .font(theme.typography.headlineSmall)
-                .foregroundColor(theme.colors.textPrimary)
+            HStack(alignment: .center, spacing: theme.spacing.xs) {
+                Text("Quick Fixes")
+                    .font(theme.typography.headlineSmall)
+                    .foregroundColor(theme.colors.textPrimary)
+
+                Button {
+                    withAnimation(theme.animation.quick) {
+                        showSuggestionInfo.toggle()
+                    }
+                    HapticManager.light()
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.system(size: 14))
+                        .foregroundColor(theme.colors.textTertiary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .accessibilityLabel("How suggestions are personalized")
+
+                Spacer()
+            }
+            .padding(.horizontal, theme.spacing.lg)
+
+            if showSuggestionInfo {
+                VStack(alignment: .leading, spacing: theme.spacing.xs) {
+                    Text("Personalized for you")
+                        .font(theme.typography.labelMedium)
+                        .foregroundColor(theme.colors.textPrimary)
+                    Text("Each suggestion is scored based on your terrain type, today's symptoms, time of day, the current season, your goals, what's in your cabinet, and what you've already completed today. Items that conflict with your pattern are deprioritized.")
+                        .font(theme.typography.caption)
+                        .foregroundColor(theme.colors.textSecondary)
+                }
+                .padding(theme.spacing.sm)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .background(theme.colors.backgroundSecondary)
+                .cornerRadius(theme.cornerRadius.medium)
                 .padding(.horizontal, theme.spacing.lg)
+                .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
+            }
 
             Text("Need something right now? Tap to see a suggestion.")
                 .font(theme.typography.bodySmall)
@@ -392,7 +464,7 @@ struct DoView: View {
 
     // MARK: - Suggestion Engine Integration
 
-    /// Calls the SuggestionEngine with full terrain/symptom/time context
+    /// Calls the SuggestionEngine with full terrain/symptom/time/season/goal context
     private func smartSuggestion(for need: QuickNeed) -> QuickSuggestion {
         suggestionEngine.suggest(
             for: need,
@@ -401,7 +473,13 @@ struct DoView: View {
             symptoms: todaysSymptoms,
             timeOfDay: TimeOfDay.current(),
             ingredients: ingredients,
-            routines: allRoutines
+            routines: allRoutines,
+            season: InsightEngine.TCMSeason.current(),
+            userGoals: userGoalStrings,
+            avoidTags: terrainAvoidTags,
+            completedIds: todaysCompletedIds,
+            cabinetIngredientIds: cabinetIngredientIds,
+            routineEffectiveness: routineEffectivenessMap
         )
     }
 

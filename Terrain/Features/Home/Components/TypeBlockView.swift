@@ -2,44 +2,47 @@
 //  TypeBlockView.swift
 //  Terrain
 //
-//  Displays user's terrain type as identity chips
+//  Displays user's terrain type as a single-line identity stripe
 //
 
 import SwiftUI
 
-/// Shows the user's terrain type broken into Temperature, Reserve, and optional Modifier chips.
-/// Example: [Neutral] [Low] [Damp]
+/// Shows the user's terrain type as a compact single-line stripe:
+/// "Your terrain · [warm] [balanced] [shen]"
+/// Pill-shaped badges differentiate from the rectangular symptom chips in check-in.
 struct TypeBlockView: View {
     let components: TypeBlockComponents
 
     @Environment(\.terrainTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("Your Type")
-                .font(theme.typography.labelMedium)
-                .foregroundColor(theme.colors.textSecondary)
+        HStack(spacing: theme.spacing.xs) {
+            Text("Your terrain")
+                .font(theme.typography.caption)
+                .foregroundColor(theme.colors.textTertiary)
 
-            HStack(spacing: theme.spacing.xs) {
-                // Temperature chip
+            Text("·")
+                .font(theme.typography.caption)
+                .foregroundColor(theme.colors.textTertiary)
+
+            // Temperature badge
+            TypeChip(
+                label: components.temperature.rawValue.lowercased(),
+                color: temperatureColor
+            )
+
+            // Reserve badge
+            TypeChip(
+                label: components.reserve.rawValue.lowercased(),
+                color: reserveColor
+            )
+
+            // Modifier badge (if present)
+            if let modifier = components.modifier {
                 TypeChip(
-                    label: components.temperature.rawValue,
-                    color: temperatureColor
+                    label: modifier.rawValue.lowercased(),
+                    color: modifierColor
                 )
-
-                // Reserve chip
-                TypeChip(
-                    label: components.reserve.rawValue,
-                    color: reserveColor
-                )
-
-                // Modifier chip (if present)
-                if let modifier = components.modifier {
-                    TypeChip(
-                        label: modifier.rawValue,
-                        color: modifierColor
-                    )
-                }
             }
         }
         .padding(.horizontal, theme.spacing.lg)
@@ -82,7 +85,8 @@ struct TypeBlockView: View {
     }
 }
 
-/// Individual chip for type display
+/// Individual pill badge for type display — pill shape (cornerRadius.full) to differentiate
+/// from the rectangular symptom chips in InlineCheckInView.
 struct TypeChip: View {
     let label: String
     let color: Color
@@ -91,10 +95,10 @@ struct TypeChip: View {
 
     var body: some View {
         Text(label)
-            .font(theme.typography.labelSmall)
+            .font(theme.typography.caption)
             .foregroundColor(color)
-            .padding(.horizontal, theme.spacing.sm)
-            .padding(.vertical, theme.spacing.xxs)
+            .padding(.horizontal, theme.spacing.xs)
+            .padding(.vertical, 2)
             .background(color.opacity(0.12))
             .cornerRadius(theme.cornerRadius.full)
     }
