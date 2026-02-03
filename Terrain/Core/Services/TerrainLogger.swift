@@ -1,7 +1,7 @@
 import os.log
 
 enum TerrainLogger {
-    private static let subsystem = "com.terrain.app"
+    private static let subsystem = "com.terrainhealth.app"
 
     static let persistence = Logger(subsystem: subsystem, category: "persistence")
     static let sync        = Logger(subsystem: subsystem, category: "sync")
