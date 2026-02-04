@@ -44,6 +44,9 @@ final class DailyLog {
     // Quick fix avoid timers (keyed by QuickNeed.rawValue → completion timestamp)
     var quickFixCompletionTimes: [String: Date]
 
+    // Notification micro-action completion (set by "Did This" background action)
+    var microActionCompletedAt: Date?
+
     // Notes
     var notes: String?
 

@@ -405,6 +405,7 @@ struct MovementDTO: Decodable {
     let id: String
     let title: LocalizedStringDTO
     let subtitle: LocalizedStringDTO?
+    let tier: String?
     let duration_min: Int
     let intensity: String
     let tags: [String]
@@ -421,6 +422,7 @@ struct MovementDTO: Decodable {
             id: id,
             title: title.toModel(),
             subtitle: subtitle?.toModel(),
+            tier: tier,
             durationMin: duration_min,
             intensity: Intensity(rawValue: intensity) ?? .gentle,
             tags: tags,

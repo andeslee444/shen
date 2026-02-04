@@ -74,9 +74,6 @@ struct RightNowView: View {
                                     },
                                     onUndo: {
                                         undoSuggestionComplete(need: need)
-                                    },
-                                    onSaveGoTo: {
-                                        HapticManager.light()
                                     }
                                 )
                             }

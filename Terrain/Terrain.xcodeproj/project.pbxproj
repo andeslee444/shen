@@ -53,6 +53,9 @@
 		E10000070000000000000006 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000006 /* NotificationsView.swift */; };
 		E10000070000000000000007 /* OnboardingCoordinatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000070000000000000007 /* OnboardingCoordinatorView.swift */; };
 		CC00000700000000000000A1 /* OnboardingCompleteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00000700000000000000A2 /* OnboardingCompleteView.swift */; };
+		DD00000700000000000000A1 /* TutorialPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00000700000000000000A2 /* TutorialPreviewView.swift */; };
+		EE00000700000000000000A1 /* HowItWorksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE00000700000000000000A2 /* HowItWorksView.swift */; };
+		FF00000700000000000000A1 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF00000700000000000000A2 /* PermissionsView.swift */; };
 
 		/* Features/Today */
 		E10000080000000000000001 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000080000000000000001 /* TodayView.swift */; };
@@ -67,6 +70,7 @@
 		/* Features/Ingredients */
 		E100000A0000000000000001 /* IngredientsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000001 /* IngredientsView.swift */; };
 		E100000A0000000000000002 /* IngredientDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000002 /* IngredientDetailSheet.swift */; };
+		E100000A0000000000000003 /* IngredientEmoji.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000A0000000000000003 /* IngredientEmoji.swift */; };
 
 		/* Features/Learn */
 		E100000B0000000000000001 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200000B0000000000000001 /* LearnView.swift */; };
@@ -92,6 +96,7 @@
 
 		/* Features/Do */
 		E10000110000000000000001 /* DoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000110000000000000001 /* DoView.swift */; };
+		E10000110000000000000002 /* DayPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000110000000000000002 /* DayPhase.swift */; };
 
 		/* Features/You */
 		E10000120000000000000001 /* YouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000120000000000000001 /* YouView.swift */; };
@@ -117,6 +122,9 @@
 
 		/* Core/Services - HealthService */
 		A1B2C3D4E5F6A7B8C9D0E2F4 /* HealthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F4 /* HealthService.swift */; };
+
+		/* Core/Services - NotificationService */
+		B1C2D3E4F5A6B7C8D9E0F1A2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6B7C8D9E0F1A1 /* NotificationService.swift */; };
 
 		/* Features/Home/Components - WeatherHealthBarView */
 		A1B2C3D4E5F6A7B8C9D0E2F5 /* WeatherHealthBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F5 /* WeatherHealthBarView.swift */; };
@@ -169,6 +177,10 @@
 		E1000013000000000000000B /* TerrainScoringEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000B /* TerrainScoringEngineTests.swift */; };
 		E1000013000000000000000C /* SuggestionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000C /* SuggestionEngineTests.swift */; };
 		E1000013000000000000000D /* ContentPackValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000D /* ContentPackValidationTests.swift */; };
+		E1000013000000000000000E /* DayPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000E /* DayPhaseTests.swift */; };
+		E1000013000000000000000F /* IngredientBenefitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000013000000000000000F /* IngredientBenefitTests.swift */; };
+		E10000130000000000000010 /* InsightEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000130000000000000010 /* InsightEngineTests.swift */; };
+		E10000130000000000000011 /* OnboardingDataConsistencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20000130000000000000011 /* OnboardingDataConsistencyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -220,6 +232,9 @@
 		E20000070000000000000006 /* NotificationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsView.swift; sourceTree = "<group>"; };
 		E20000070000000000000007 /* OnboardingCoordinatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCoordinatorView.swift; sourceTree = "<group>"; };
 		CC00000700000000000000A2 /* OnboardingCompleteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingCompleteView.swift; sourceTree = "<group>"; };
+		DD00000700000000000000A2 /* TutorialPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialPreviewView.swift; sourceTree = "<group>"; };
+		EE00000700000000000000A2 /* HowItWorksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HowItWorksView.swift; sourceTree = "<group>"; };
+		FF00000700000000000000A2 /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
 
 		/* Features/Today */
 		E20000080000000000000001 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -234,6 +249,7 @@
 		/* Features/Ingredients */
 		E200000A0000000000000001 /* IngredientsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientsView.swift; sourceTree = "<group>"; };
 		E200000A0000000000000002 /* IngredientDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientDetailSheet.swift; sourceTree = "<group>"; };
+		E200000A0000000000000003 /* IngredientEmoji.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientEmoji.swift; sourceTree = "<group>"; };
 
 		/* Features/Learn */
 		E200000B0000000000000001 /* LearnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnView.swift; sourceTree = "<group>"; };
@@ -259,6 +275,7 @@
 
 		/* Features/Do */
 		E20000110000000000000001 /* DoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoView.swift; sourceTree = "<group>"; };
+		E20000110000000000000002 /* DayPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPhase.swift; sourceTree = "<group>"; };
 
 		/* Features/You */
 		E20000120000000000000001 /* YouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouView.swift; sourceTree = "<group>"; };
@@ -283,6 +300,9 @@
 
 		/* Core/Services - HealthService */
 		A1B2C3D4E5F6A7B8C9D0E1F4 /* HealthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthService.swift; sourceTree = "<group>"; };
+
+		/* Core/Services - NotificationService */
+		B1C2D3E4F5A6B7C8D9E0F1A1 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 
 		/* Features/Home/Components - WeatherHealthBarView */
 		A1B2C3D4E5F6A7B8C9D0E1F5 /* WeatherHealthBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherHealthBarView.swift; sourceTree = "<group>"; };
@@ -340,6 +360,10 @@
 		E2000013000000000000000B /* TerrainScoringEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainScoringEngineTests.swift; sourceTree = "<group>"; };
 		E2000013000000000000000C /* SuggestionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionEngineTests.swift; sourceTree = "<group>"; };
 		E2000013000000000000000D /* ContentPackValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentPackValidationTests.swift; sourceTree = "<group>"; };
+		E2000013000000000000000E /* DayPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPhaseTests.swift; sourceTree = "<group>"; };
+		E2000013000000000000000F /* IngredientBenefitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientBenefitTests.swift; sourceTree = "<group>"; };
+		E20000130000000000000010 /* InsightEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightEngineTests.swift; sourceTree = "<group>"; };
+		E20000130000000000000011 /* OnboardingDataConsistencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingDataConsistencyTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXContainerItemProxy section */
@@ -418,6 +442,10 @@
 				E2000013000000000000000B /* TerrainScoringEngineTests.swift */,
 				E2000013000000000000000C /* SuggestionEngineTests.swift */,
 				E2000013000000000000000D /* ContentPackValidationTests.swift */,
+				E2000013000000000000000E /* DayPhaseTests.swift */,
+				E2000013000000000000000F /* IngredientBenefitTests.swift */,
+				E20000130000000000000010 /* InsightEngineTests.swift */,
+				E20000130000000000000011 /* OnboardingDataConsistencyTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -498,6 +526,7 @@
 				E20000060000000000000007 /* TerrainLogger.swift */,
 				E20000060000000000000008 /* WeatherService.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F4 /* HealthService.swift */,
+				B1C2D3E4F5A6B7C8D9E0F1A1 /* NotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -585,6 +614,7 @@
 			isa = PBXGroup;
 			children = (
 				E20000110000000000000001 /* DoView.swift */,
+				E20000110000000000000002 /* DayPhase.swift */,
 			);
 			path = Do;
 			sourceTree = "<group>";
@@ -637,6 +667,9 @@
 				E20000070000000000000006 /* NotificationsView.swift */,
 				E20000070000000000000007 /* OnboardingCoordinatorView.swift */,
 				CC00000700000000000000A2 /* OnboardingCompleteView.swift */,
+				DD00000700000000000000A2 /* TutorialPreviewView.swift */,
+				EE00000700000000000000A2 /* HowItWorksView.swift */,
+				FF00000700000000000000A2 /* PermissionsView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -666,6 +699,7 @@
 			children = (
 				E200000A0000000000000001 /* IngredientsView.swift */,
 				E200000A0000000000000002 /* IngredientDetailSheet.swift */,
+				E200000A0000000000000003 /* IngredientEmoji.swift */,
 			);
 			path = Ingredients;
 			sourceTree = "<group>";
@@ -883,6 +917,9 @@
 				E10000070000000000000006 /* NotificationsView.swift in Sources */,
 				E10000070000000000000007 /* OnboardingCoordinatorView.swift in Sources */,
 				CC00000700000000000000A1 /* OnboardingCompleteView.swift in Sources */,
+				DD00000700000000000000A1 /* TutorialPreviewView.swift in Sources */,
+				EE00000700000000000000A1 /* HowItWorksView.swift in Sources */,
+				FF00000700000000000000A1 /* PermissionsView.swift in Sources */,
 				E10000080000000000000001 /* TodayView.swift in Sources */,
 				E10000080000000000000002 /* DailyCheckInSheet.swift in Sources */,
 				E10000080000000000000003 /* RoutineDetailSheet.swift in Sources */,
@@ -891,6 +928,7 @@
 				E10000090000000000000001 /* RightNowView.swift in Sources */,
 				E100000A0000000000000001 /* IngredientsView.swift in Sources */,
 				E100000A0000000000000002 /* IngredientDetailSheet.swift in Sources */,
+				E100000A0000000000000003 /* IngredientEmoji.swift in Sources */,
 				E100000B0000000000000001 /* LearnView.swift in Sources */,
 				E100000B0000000000000002 /* LessonDetailSheet.swift in Sources */,
 				E100000C0000000000000001 /* ProgressView.swift in Sources */,
@@ -917,6 +955,7 @@
 				E10000100000000000000009 /* CapsuleStartCTA.swift in Sources */,
 				E1000010000000000000000A /* SeasonalCardView.swift in Sources */,
 				E10000110000000000000001 /* DoView.swift in Sources */,
+				E10000110000000000000002 /* DayPhase.swift in Sources */,
 				E10000120000000000000001 /* YouView.swift in Sources */,
 				E10000120000000000000009 /* TerrainHeroHeaderView.swift in Sources */,
 				E1000012000000000000000A /* EnhancedPatternMapView.swift in Sources */,
@@ -945,6 +984,7 @@
 				A1B2C3D4E5F6A7B8C9D0E2F3 /* QuizEditResultView.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E2F4 /* HealthService.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E2F5 /* WeatherHealthBarView.swift in Sources */,
+				B1C2D3E4F5A6B7C8D9E0F1A2 /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -956,6 +996,10 @@
 				E1000013000000000000000B /* TerrainScoringEngineTests.swift in Sources */,
 				E1000013000000000000000C /* SuggestionEngineTests.swift in Sources */,
 				E1000013000000000000000D /* ContentPackValidationTests.swift in Sources */,
+				E1000013000000000000000E /* DayPhaseTests.swift in Sources */,
+				E1000013000000000000000F /* IngredientBenefitTests.swift in Sources */,
+				E10000130000000000000010 /* InsightEngineTests.swift in Sources */,
+				E10000130000000000000011 /* OnboardingDataConsistencyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

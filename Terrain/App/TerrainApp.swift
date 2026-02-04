@@ -8,11 +8,15 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 @main
 struct TerrainApp: App {
     let modelContainer: ModelContainer
     @State private var syncService = SupabaseSyncService()
+
+    /// Retained strongly — UNUserNotificationCenter holds only a weak reference.
+    private let notificationDelegate: NotificationDelegate
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var isContentLoaded = false
@@ -47,6 +51,12 @@ struct TerrainApp: App {
             TerrainLogger.persistence.critical("ModelContainer init failed: \(error.localizedDescription)")
             fatalError("Could not initialize ModelContainer: \(error)")
         }
+
+        // Register notification categories and wire delegate
+        NotificationService.registerCategories()
+        let delegate = NotificationDelegate(modelContainer: modelContainer)
+        UNUserNotificationCenter.current().delegate = delegate
+        self.notificationDelegate = delegate
     }
 
     var body: some Scene {
@@ -71,8 +81,20 @@ struct TerrainApp: App {
             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .animation(.easeInOut, value: isContentLoaded)
             .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active && syncService.isAuthenticated {
-                    Task { await syncService.sync() }
+                if newPhase == .active {
+                    if syncService.isAuthenticated {
+                        Task { await syncService.sync() }
+                    }
+                    // Refill the 7-day notification window each time the app comes to foreground
+                    Task { @MainActor in
+                        let profiles = try? modelContainer.mainContext.fetch(FetchDescriptor<UserProfile>())
+                        if let profile = profiles?.first, profile.notificationsEnabled {
+                            NotificationService.scheduleUpcoming(
+                                profile: profile,
+                                modelContainer: modelContainer
+                            )
+                        }
+                    }
                 }
             }
         }

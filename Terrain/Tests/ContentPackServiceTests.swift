@@ -111,6 +111,7 @@ final class ContentPackServiceTests: XCTestCase {
             "id": "morning-stretch",
             "title": { "en-US": "Morning Stretch" },
             "subtitle": { "en-US": "Gentle wake-up" },
+            "tier": "full",
             "duration_min": 5,
             "intensity": "gentle",
             "tags": ["moves_qi"],
@@ -135,10 +136,39 @@ final class ContentPackServiceTests: XCTestCase {
         let dto = try JSONDecoder().decode(MovementDTO.self, from: json)
 
         XCTAssertEqual(dto.id, "morning-stretch")
+        XCTAssertEqual(dto.tier, "full")
         XCTAssertEqual(dto.intensity, "gentle")
         XCTAssertEqual(dto.frames.count, 1)
         XCTAssertEqual(dto.frames[0].seconds, 10)
         XCTAssertEqual(dto.frames[0].asset.type, "svg")
+    }
+
+    func testParseMovementDTOWithoutTier() throws {
+        // Backward compatibility: movements without a tier field should still parse
+        let json = """
+        {
+            "id": "legacy-movement",
+            "title": { "en-US": "Legacy" },
+            "duration_min": 5,
+            "intensity": "gentle",
+            "tags": [],
+            "goals": [],
+            "seasons": ["all_year"],
+            "terrain_fit": [],
+            "frames": [],
+            "why": { "one_line": { "en-US": "Test." } },
+            "cautions": { "flags": [], "text": { "en-US": "" } },
+            "review": { "status": "draft" }
+        }
+        """.data(using: .utf8)!
+
+        let dto = try JSONDecoder().decode(MovementDTO.self, from: json)
+
+        XCTAssertEqual(dto.id, "legacy-movement")
+        XCTAssertNil(dto.tier)
+
+        let model = dto.toModel()
+        XCTAssertNil(model.tier)
     }
 
     func testParseLessonDTO() throws {

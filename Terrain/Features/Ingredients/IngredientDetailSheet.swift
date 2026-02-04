@@ -101,17 +101,16 @@ struct IngredientDetailSheet: View {
 
     private var headerSection: some View {
         VStack(spacing: theme.spacing.md) {
-            // Image placeholder
-            RoundedRectangle(cornerRadius: theme.cornerRadius.large)
-                .fill(theme.colors.backgroundSecondary)
-                .frame(height: 180)
+            // Compact emoji circle
+            Circle()
+                .fill(theme.colors.accent.opacity(0.08))
+                .frame(width: 80, height: 80)
                 .overlay(
-                    Image(systemName: categoryIcon)
-                        .font(.system(size: 56))
-                        .foregroundColor(theme.colors.accent.opacity(0.5))
+                    Text(ingredient.emoji)
+                        .font(.system(size: 44))
                 )
 
-            // Names
+            // Names + cabinet badge
             VStack(spacing: theme.spacing.xs) {
                 Text(ingredient.displayName)
                     .font(theme.typography.headlineLarge)
@@ -121,6 +120,20 @@ struct IngredientDetailSheet: View {
                     Text("\(pinyin) \(hanzi)")
                         .font(theme.typography.bodyMedium)
                         .foregroundColor(theme.colors.textSecondary)
+                }
+
+                if isInCabinet {
+                    HStack(spacing: theme.spacing.xxs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 12))
+                        Text("In your cabinet")
+                            .font(theme.typography.caption)
+                    }
+                    .foregroundColor(theme.colors.success)
+                    .padding(.horizontal, theme.spacing.sm)
+                    .padding(.vertical, theme.spacing.xxs)
+                    .background(theme.colors.success.opacity(0.1))
+                    .cornerRadius(theme.cornerRadius.full)
                 }
             }
         }
@@ -379,21 +392,6 @@ struct IngredientDetailSheet: View {
         IngredientBenefit.allCases
             .filter { $0.matches(ingredient) }
             .map { $0.displayName }
-    }
-
-    private var categoryIcon: String {
-        switch IngredientCategory(rawValue: ingredient.category) {
-        case .spice: return "leaf.fill"
-        case .root: return "carrot.fill"
-        case .fruit: return "apple.logo"
-        case .grain: return "circle.grid.3x3.fill"
-        case .legume: return "oval.fill"
-        case .fungus: return "laurel.leading"
-        case .tea: return "cup.and.saucer.fill"
-        case .protein: return "fish.fill"
-        case .aromatic: return "wind"
-        case .other, .none: return "leaf.fill"
-        }
     }
 
 }

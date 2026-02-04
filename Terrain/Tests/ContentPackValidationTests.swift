@@ -202,6 +202,72 @@ final class ContentPackValidationTests: XCTestCase {
         }
     }
 
+    // MARK: - Movement Tier Coverage
+
+    func testAllMovementTiersHaveSufficientContent() {
+        // Each tier (full, medium, lite) should have at least 4 movements
+        // to give the scoring engine real choices for different terrains
+        let tiers = ["full", "medium", "lite"]
+        for tier in tiers {
+            let count = pack.movements.filter { $0.tier == tier }.count
+            XCTAssertGreaterThanOrEqual(
+                count, 4,
+                "Tier '\(tier)' has only \(count) movement(s), expected at least 4"
+            )
+        }
+    }
+
+    func testEveryTerrainTypeHasMovementPerTier() {
+        // For every terrain profile and every tier, at least one movement should
+        // have that terrain in its terrain_fit (or be universal with all 8)
+        let profileIds = Set(pack.terrain_profiles.map(\.id))
+        let tiers = ["full", "medium", "lite"]
+
+        for tier in tiers {
+            let tierMovements = pack.movements.filter { $0.tier == tier }
+            for profileId in profileIds {
+                let matching = tierMovements.filter {
+                    $0.terrain_fit.contains(profileId)
+                }
+                // Also count "universal" movements (those that list all 8 terrains)
+                let universal = tierMovements.filter {
+                    $0.terrain_fit.count == profileIds.count
+                }
+                let total = Set(matching.map(\.id)).union(Set(universal.map(\.id))).count
+                XCTAssertGreaterThan(
+                    total, 0,
+                    "Terrain '\(profileId)' has no movements in tier '\(tier)'"
+                )
+            }
+        }
+    }
+
+    func testMovementTierDurationsMatchExpectations() {
+        // Full ≈ 10 min, Medium ≈ 5 min, Lite ≈ 90 sec
+        for movement in pack.movements {
+            guard let tier = movement.tier else { continue }
+            switch tier {
+            case "full":
+                XCTAssertGreaterThanOrEqual(
+                    movement.duration_min, 8,
+                    "Full-tier movement '\(movement.id)' is only \(movement.duration_min) min, expected ≥8"
+                )
+            case "medium":
+                XCTAssertTrue(
+                    (3...7).contains(movement.duration_min),
+                    "Medium-tier movement '\(movement.id)' is \(movement.duration_min) min, expected 3-7"
+                )
+            case "lite":
+                XCTAssertLessThanOrEqual(
+                    movement.duration_min, 3,
+                    "Lite-tier movement '\(movement.id)' is \(movement.duration_min) min, expected ≤3"
+                )
+            default:
+                XCTFail("Unknown tier '\(tier)' on movement '\(movement.id)'")
+            }
+        }
+    }
+
     func testAllIdsUnique() {
         // Ingredient IDs
         let ingredientIds = pack.ingredients.map(\.id)

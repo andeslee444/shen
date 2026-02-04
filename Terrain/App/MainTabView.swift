@@ -14,6 +14,10 @@ struct MainTabView: View {
     @Environment(\.terrainTheme) private var theme
     @Query private var cabinetItems: [UserCabinet]
 
+    /// Bridge for notification deep-links: the NotificationDelegate writes "open_do"
+    /// here, and we consume it on the next render cycle to switch tabs.
+    @AppStorage("pendingNotificationAction") private var pendingAction: String = ""
+
     var body: some View {
         TabView(selection: tabSelection) {
             // Home tab - insight + meaning + direction (Co-Star style)
@@ -69,6 +73,19 @@ struct MainTabView: View {
         }
         .tint(theme.colors.accent)
         .environment(coordinator)
+        .onAppear { consumePendingAction() }
+        .onChange(of: pendingAction) { _, _ in consumePendingAction() }
+    }
+
+    /// Consumes a pending deep-link action set by the NotificationDelegate.
+    /// Clears the action immediately to prevent re-triggering.
+    private func consumePendingAction() {
+        guard !pendingAction.isEmpty else { return }
+        let action = pendingAction
+        pendingAction = ""
+        if action == "open_do" {
+            coordinator.selectedTab = .`do`
+        }
     }
 
     /// Binding to the coordinator's selected tab for two-way sync

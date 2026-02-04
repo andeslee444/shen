@@ -106,7 +106,7 @@ struct QuickNeedCompactCard: View {
 
                 Text(need.displayName)
                     .font(theme.typography.labelSmall)
-                    .foregroundColor(isSelected ? theme.colors.textInverted : theme.colors.textPrimary)
+                    .foregroundColor(isSelected ? theme.colors.accent : theme.colors.textPrimary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, theme.spacing.md)
@@ -118,13 +118,14 @@ struct QuickNeedCompactCard: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 
     private var iconColor: Color {
         if isCompleted {
             return theme.colors.success
         } else if isSelected {
-            return theme.colors.textInverted
+            return theme.colors.accent
         }
         return theme.colors.accent
     }
@@ -133,7 +134,7 @@ struct QuickNeedCompactCard: View {
         if isCompleted {
             return theme.colors.success.opacity(0.12)
         } else if isSelected {
-            return theme.colors.accent
+            return theme.colors.accent.opacity(0.12)
         }
         return theme.colors.surface
     }
@@ -142,7 +143,7 @@ struct QuickNeedCompactCard: View {
         if isCompleted {
             return theme.colors.success.opacity(0.3)
         } else if isSelected {
-            return Color.clear
+            return theme.colors.accent.opacity(0.4)
         }
         return theme.colors.backgroundSecondary
     }
@@ -226,9 +227,9 @@ struct QuickSuggestionCard: View {
     let suggestion: (title: String, description: String, avoidHours: Int?)
     var isCompleted: Bool = false
     var avoidTimeText: String? = nil
+    var whyForYou: String? = nil
     let onDoThis: () -> Void
     let onUndo: () -> Void
-    let onSaveGoTo: () -> Void
 
     @Environment(\.terrainTheme) private var theme
 
@@ -256,6 +257,25 @@ struct QuickSuggestionCard: View {
                 .font(theme.typography.bodyMedium)
                 .foregroundColor(theme.colors.textSecondary)
 
+            // Terrain "why" callout — matches RoutineDetailSheet pattern
+            if let why = whyForYou {
+                HStack(alignment: .top, spacing: theme.spacing.xs) {
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(theme.colors.accent)
+                        .padding(.top, 2)
+
+                    Text(why)
+                        .font(theme.typography.bodySmall)
+                        .italic()
+                        .foregroundColor(theme.colors.accent)
+                }
+                .padding(theme.spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(theme.colors.accent.opacity(0.06))
+                .cornerRadius(theme.cornerRadius.medium)
+            }
+
             // Avoid guidance: show live countdown if available, else static text
             if let avoidText = avoidTimeText, isCompleted {
                 HStack(spacing: theme.spacing.xs) {
@@ -275,36 +295,34 @@ struct QuickSuggestionCard: View {
                 .foregroundColor(theme.colors.warning)
             }
 
-            HStack(spacing: theme.spacing.md) {
-                if isCompleted {
-                    Button(action: onUndo) {
-                        HStack(spacing: theme.spacing.sm) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(theme.colors.success)
-                            Text("Completed Today")
-                                .font(theme.typography.labelLarge)
-                                .foregroundColor(theme.colors.success)
-                            Spacer()
-                            Text("Undo")
-                                .font(theme.typography.caption)
-                                .foregroundColor(theme.colors.textTertiary)
-                        }
+            if isCompleted {
+                Button(action: onUndo) {
+                    HStack(spacing: theme.spacing.sm) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundColor(theme.colors.success)
+                        Text("Completed Today")
+                            .font(theme.typography.labelLarge)
+                            .foregroundColor(theme.colors.success)
+                        Spacer()
+                        Text("Undo")
+                            .font(theme.typography.caption)
+                            .foregroundColor(theme.colors.textTertiary)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, theme.spacing.md)
-                    .padding(.horizontal, theme.spacing.md)
-                    .background(theme.colors.success.opacity(0.1))
-                    .cornerRadius(theme.cornerRadius.large)
-                    .accessibilityLabel("Completed today. Tap to undo.")
-                } else {
-                    TerrainPrimaryButton(title: "Do This", action: onDoThis)
-                    TerrainTextButton(title: "Save as go-to", action: onSaveGoTo)
                 }
+                .buttonStyle(PlainButtonStyle())
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, theme.spacing.md)
+                .padding(.horizontal, theme.spacing.md)
+                .background(theme.colors.success.opacity(0.1))
+                .cornerRadius(theme.cornerRadius.large)
+                .accessibilityLabel("Completed today. Tap to undo.")
+            } else {
+                TerrainPrimaryButton(title: "Do This", action: onDoThis)
             }
         }
         .padding(theme.spacing.lg)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.large)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 }

@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import UserNotifications
 
 struct PreferencesSafetyView: View {
     @Environment(\.terrainTheme) private var theme
@@ -469,6 +470,16 @@ struct PreferencesSafetyView: View {
                     profile.notificationsEnabled = newValue
                     profile.updatedAt = Date()
                     try? modelContext.save()
+
+                    // Actually reschedule (or clear) notifications with iOS
+                    if newValue {
+                        NotificationService.scheduleUpcoming(
+                            profile: profile,
+                            modelContainer: modelContext.container
+                        )
+                    } else {
+                        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                    }
                 }
                 HapticManager.selection()
             }
@@ -483,6 +494,13 @@ struct PreferencesSafetyView: View {
                     profile.morningNotificationTime = newValue
                     profile.updatedAt = Date()
                     try? modelContext.save()
+
+                    if profile.notificationsEnabled {
+                        NotificationService.scheduleUpcoming(
+                            profile: profile,
+                            modelContainer: modelContext.container
+                        )
+                    }
                 }
             }
         )
@@ -496,6 +514,13 @@ struct PreferencesSafetyView: View {
                     profile.eveningNotificationTime = newValue
                     profile.updatedAt = Date()
                     try? modelContext.save()
+
+                    if profile.notificationsEnabled {
+                        NotificationService.scheduleUpcoming(
+                            profile: profile,
+                            modelContainer: modelContext.container
+                        )
+                    }
                 }
             }
         )

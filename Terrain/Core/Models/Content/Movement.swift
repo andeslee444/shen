@@ -16,6 +16,7 @@ final class Movement {
 
     var title: LocalizedString
     var subtitle: LocalizedString?
+    var tier: String?
 
     var durationMin: Int
     var intensity: Intensity
@@ -41,6 +42,7 @@ final class Movement {
         id: String,
         title: LocalizedString,
         subtitle: LocalizedString? = nil,
+        tier: String? = nil,
         durationMin: Int,
         intensity: Intensity = .gentle,
         tags: [String] = [],
@@ -55,6 +57,7 @@ final class Movement {
         self.id = id
         self.title = title
         self.subtitle = subtitle
+        self.tier = tier
         self.durationMin = durationMin
         self.intensity = intensity
         self.tags = tags
@@ -75,6 +78,15 @@ final class Movement {
     /// Total duration in seconds based on frames
     var totalDurationSeconds: Int {
         frames.reduce(0) { $0 + $1.seconds }
+    }
+
+    /// Seconds-based display for sub-2-min movements, minutes otherwise
+    var durationDisplay: String {
+        let totalSeconds = totalDurationSeconds
+        if totalSeconds > 0 && totalSeconds < 120 {
+            return "\(totalSeconds) sec"
+        }
+        return "\(durationMin) min"
     }
 }
 

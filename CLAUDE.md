@@ -9,6 +9,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Platform**: iOS 17+ (iPhone only)
 **Positioning**: "Co-Star clarity + Muji calm" for TCM lifestyle routines
 
+## Git Identity
+
+All commits must use:
+- **Name:** `andeslee444`
+- **Email:** `203938801+andeslee444@users.noreply.github.com`
+
+Always pass `--author="andeslee444 <203938801+andeslee444@users.noreply.github.com>"` on every `git commit`.
+
 ## Code Quality
 
 Write code as if the maintainer is a violent psychopath who knows where you live. No shortcuts that could cause future problems — act as a L11 Google Fellow would. When explaining technical concepts, use metaphors for non-technical understanding.
@@ -107,6 +115,7 @@ All in `Terrain/Tests/`:
 | `ContentPackValidationTests.swift` | Schema integrity, terrain coverage, content pack structure |
 | `ContentPackServiceTests.swift` | JSON parsing, DTO-to-model conversion |
 | `SuggestionEngineTests.swift` | Terrain-aware ingredient/routine suggestions |
+| `DayPhaseTests.swift` | Phase boundaries (5AM/5PM), affinity scoring, intensity shifting |
 
 ## Architecture
 
@@ -163,19 +172,20 @@ Each feature in `Features/` is self-contained. Key modules:
 | Feature | Key Files | Purpose |
 |---------|-----------|---------|
 | **Home** | `HomeView.swift` + `Components/` (DateBar, Headline, TypeBlock, InlineCheckIn, DoDont, AreasOfLife, ThemeToday, CapsuleStartCTA, WeatherHealthBarView) | Insight-driven home tab |
-| **Do** | `DoView.swift` | Capsule routines + quick fixes |
+| **Do** | `DoView.swift`, `DayPhase.swift` | Capsule routines + quick fixes, morning/evening phase logic (5AM/5PM split based on TCM Kidney hour) |
+| **Ingredients** | `IngredientsView.swift`, `IngredientDetailSheet.swift`, `IngredientEmoji.swift` | Browse/search ingredients, terrain-ranked detail sheets, per-ingredient emoji mapping |
 | **You** | `YouView.swift` + `Components/` (TerrainHeroHeader, TerrainIdentity, Signals, WatchFors, Defaults, EnhancedPatternMap, SymptomHeatmap, EvolutionTrends, TrendSparklineCard, RoutineEffectivenessCard, PreferencesSafety) + `QuizEditView.swift`, `QuizEditResultView.swift` | Progress (streaks, calendar, trends) + settings + terrain re-quiz |
-| **Onboarding** | `OnboardingCoordinatorView.swift`, `TerrainRevealView.swift`, `OnboardingCompleteView.swift` | 9-screen flow: welcome → goals → safety → quiz → 2-phase reveal → notifications → account → completion |
+| **Onboarding** | `OnboardingCoordinatorView.swift`, `WelcomeView.swift`, `HowItWorksView.swift`, `GoalsView.swift`, `QuizView.swift`, `TerrainRevealView.swift`, `TutorialPreviewView.swift`, `SafetyGateView.swift`, `NotificationsView.swift`, `PermissionsView.swift`, `OnboardingCompleteView.swift` | 11-step flow: welcome → how it works → goals → quiz → 2-phase reveal → tutorial (5 pages) → safety → notifications → permissions → account → completion |
 | **Auth** | `AuthView.swift` | Email/password + Apple Sign In, used in onboarding and settings |
 | **Programs** | `ProgramsView.swift`, `ProgramDetailSheet.swift`, `ProgramDayView.swift` | Multi-day programs with enrollment persistence |
 | **Today** | `RoutineDetailSheet.swift`, `MovementPlayerSheet.swift`, `PostRoutineFeedbackSheet.swift`, `DailyCheckInSheet.swift` | Detail sheets used by Do tab (not a tab itself) |
 | **Learn** | `LearnView.swift`, `LessonDetailSheet.swift` | TCM education with terrain-ranked lessons |
 
-**Deprecated — do not import or reference these files:**
-- `TodayView.swift` → replaced by HomeView + DoView
-- `RightNowView.swift` → replaced by DoView
-- `ProgressView.swift` → replaced by YouView
-- `SettingsView.swift` → replaced by YouView
+**Deprecated — do not import or reference these files** (still on disk but dead code):
+- `Features/Today/TodayView.swift` → replaced by HomeView + DoView
+- `Features/RightNow/RightNowView.swift` → replaced by DoView
+- `Features/Progress/ProgressView.swift` → replaced by YouView
+- `Features/Settings/SettingsView.swift` → replaced by YouView
 
 ### InsightEngine (Home Tab Content)
 
@@ -205,7 +215,8 @@ When users select quick symptoms (all 8: cold, bloating, stressed, tired, poorSl
 | `SuggestionEngine` | `Core/Services/SuggestionEngine.swift` | Terrain-aware ingredient and routine suggestions |
 | `HealthService` | `Core/Services/HealthService.swift` | Reads daily step count from HealthKit, caches on DailyLog. Gracefully handles unavailable/denied authorization |
 | `WeatherService` | `Core/Services/WeatherService.swift` | WeatherKit integration for location-based weather data |
-| `TerrainLogger` | `Core/Services/TerrainLogger.swift` | Structured os.log loggers by category: persistence, sync, navigation, contentPack, weather, health |
+| `NotificationService` | `Core/Services/NotificationService.swift` | Personalized notification scheduling (7-day rolling window), terrain-aware micro-actions, UNNotificationCenter delegate, deep-link bridge via @AppStorage |
+| `TerrainLogger` | `Core/Services/TerrainLogger.swift` | Structured os.log loggers by category: persistence, sync, navigation, contentPack, weather, health, notifications |
 
 ## Common Pitfalls
 

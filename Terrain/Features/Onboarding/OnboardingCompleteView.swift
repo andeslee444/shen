@@ -45,7 +45,7 @@ struct OnboardingCompleteView: View {
             .offset(y: showContent ? 0 : 15)
 
             // Guidance
-            Text("Your daily rituals are ready.\nStart with your morning practice.")
+            Text("Your daily practice is ready \u{2014}\nfood, movement, and guidance,\npersonalized to your terrain.")
                 .font(theme.typography.bodyLarge)
                 .foregroundColor(theme.colors.textSecondary)
                 .multilineTextAlignment(.center)

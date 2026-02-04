@@ -1,11 +1,11 @@
 {
   "pack": {
-    "version": "1.3.0",
+    "version": "1.4.0",
     "default_locale": "en-US",
     "supported_locales": [
       "en-US"
     ],
-    "updated_at": "2026-01-30T12:00:00Z",
+    "updated_at": "2026-02-04T12:00:00Z",
     "review": {
       "status": "draft",
       "reviewed_by": []
@@ -5290,7 +5290,8 @@
       "subtitle": {
         "en-US": "Wake up your body gently"
       },
-      "duration_min": 7,
+      "tier": "full",
+      "duration_min": 10,
       "intensity": "gentle",
       "tags": [
         "moves_qi",
@@ -5317,7 +5318,7 @@
           "cue": {
             "en-US": "Stand with feet hip-width apart, arms relaxed"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -5327,7 +5328,7 @@
           "cue": {
             "en-US": "Inhale deeply, raising arms overhead"
           },
-          "seconds": 8
+          "seconds": 15
         },
         {
           "asset": {
@@ -5337,7 +5338,7 @@
           "cue": {
             "en-US": "Exhale slowly, folding forward"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -5347,7 +5348,7 @@
           "cue": {
             "en-US": "Inhale, rise halfway with flat back"
           },
-          "seconds": 8
+          "seconds": 12
         },
         {
           "asset": {
@@ -5357,7 +5358,7 @@
           "cue": {
             "en-US": "Exhale, fold deeper"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -5367,7 +5368,7 @@
           "cue": {
             "en-US": "Inhale, roll up slowly, arms rising"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -5377,7 +5378,7 @@
           "cue": {
             "en-US": "Gentle twist to the right"
           },
-          "seconds": 15
+          "seconds": 30
         },
         {
           "asset": {
@@ -5387,7 +5388,57 @@
           "cue": {
             "en-US": "Gentle twist to the left"
           },
-          "seconds": 15
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-flow-9"
+          },
+          "cue": {
+            "en-US": "Repeat the full sequence: inhale arms up, fold, half-lift, fold, roll up"
+          },
+          "seconds": 120
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-flow-10"
+          },
+          "cue": {
+            "en-US": "Circle arms wide three times, coordinating with breath"
+          },
+          "seconds": 45
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-flow-11"
+          },
+          "cue": {
+            "en-US": "Stand quietly. Feel the warmth in your body"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-flow-12"
+          },
+          "cue": {
+            "en-US": "Rub your palms together. Place them on your lower belly to seal the practice"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-flow-13"
+          },
+          "cue": {
+            "en-US": "Three deep breaths to close. You're ready for the day"
+          },
+          "seconds": 30
         }
       ],
       "why": {
@@ -5419,9 +5470,10 @@
         "en-US": "Evening Wind-Down"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Release the day and settle into calm"
       },
-      "duration_min": 8,
+      "tier": "full",
+      "duration_min": 10,
       "intensity": "restorative",
       "tags": [
         "calms_shen"
@@ -5448,7 +5500,7 @@
           "cue": {
             "en-US": "Sit comfortably. Close your eyes and let your shoulders drop"
           },
-          "seconds": 15
+          "seconds": 30
         },
         {
           "asset": {
@@ -5456,9 +5508,9 @@
             "uri": "movements/evening-wind-down-2"
           },
           "cue": {
-            "en-US": "Roll your neck slowly to the right, then left"
+            "en-US": "Roll your neck slowly to the right, then left. Three times each side"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5466,9 +5518,9 @@
             "uri": "movements/evening-wind-down-3"
           },
           "cue": {
-            "en-US": "Place one hand on your belly. Breathe into it"
+            "en-US": "Place one hand on your belly. Breathe into it deeply"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5476,9 +5528,9 @@
             "uri": "movements/evening-wind-down-4"
           },
           "cue": {
-            "en-US": "Inhale for 4 counts, exhale for 6 counts"
+            "en-US": "Inhale for 4 counts, exhale for 6 counts. Repeat 8 times"
           },
-          "seconds": 30
+          "seconds": 80
         },
         {
           "asset": {
@@ -5488,7 +5540,7 @@
           "cue": {
             "en-US": "Gently massage your temples in small circles"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5496,9 +5548,9 @@
             "uri": "movements/evening-wind-down-6"
           },
           "cue": {
-            "en-US": "Press the point between your eyebrows gently"
+            "en-US": "Press the point between your eyebrows gently. Hold with slow breath"
           },
-          "seconds": 15
+          "seconds": 30
         },
         {
           "asset": {
@@ -5506,9 +5558,9 @@
             "uri": "movements/evening-wind-down-7"
           },
           "cue": {
-            "en-US": "Return hands to your lap. Sit in stillness"
+            "en-US": "Massage the base of your skull where the neck meets the head"
           },
-          "seconds": 30
+          "seconds": 40
         },
         {
           "asset": {
@@ -5516,9 +5568,29 @@
             "uri": "movements/evening-wind-down-8"
           },
           "cue": {
+            "en-US": "Place both palms over your navel. Breathe warmth into your center"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/evening-wind-down-9"
+          },
+          "cue": {
+            "en-US": "Return hands to your lap. Sit in complete stillness"
+          },
+          "seconds": 120
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/evening-wind-down-10"
+          },
+          "cue": {
             "en-US": "Open your eyes slowly when ready"
           },
-          "seconds": 10
+          "seconds": 20
         }
       ],
       "why": {
@@ -5550,9 +5622,10 @@
         "en-US": "Shoulder & Neck Release"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Dissolve tension where it hides"
       },
-      "duration_min": 6,
+      "tier": "medium",
+      "duration_min": 5,
       "intensity": "gentle",
       "tags": [
         "moves_qi",
@@ -5584,7 +5657,7 @@
           "cue": {
             "en-US": "Stand or sit tall. Drop your shoulders away from your ears"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -5592,9 +5665,9 @@
             "uri": "movements/shoulder-neck-release-2"
           },
           "cue": {
-            "en-US": "Tilt your right ear toward your right shoulder. Hold"
+            "en-US": "Tilt your right ear toward your right shoulder. Hold and breathe"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5602,9 +5675,9 @@
             "uri": "movements/shoulder-neck-release-3"
           },
           "cue": {
-            "en-US": "Return to center. Tilt left ear toward left shoulder"
+            "en-US": "Return to center. Tilt left ear toward left shoulder. Hold and breathe"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5614,7 +5687,7 @@
           "cue": {
             "en-US": "Interlace fingers behind your head. Press back gently"
           },
-          "seconds": 20
+          "seconds": 40
         },
         {
           "asset": {
@@ -5622,9 +5695,9 @@
             "uri": "movements/shoulder-neck-release-5"
           },
           "cue": {
-            "en-US": "Shrug shoulders up to your ears, then release with an exhale"
+            "en-US": "Shrug shoulders up to your ears, hold 3 seconds, then release with an exhale. Repeat 5 times"
           },
-          "seconds": 15
+          "seconds": 50
         },
         {
           "asset": {
@@ -5634,7 +5707,7 @@
           "cue": {
             "en-US": "Roll shoulders forward 5 times, then backward 5 times"
           },
-          "seconds": 30
+          "seconds": 50
         },
         {
           "asset": {
@@ -5644,7 +5717,7 @@
           "cue": {
             "en-US": "Finish with three deep breaths, softening your jaw"
           },
-          "seconds": 15
+          "seconds": 30
         }
       ],
       "why": {
@@ -5676,9 +5749,10 @@
         "en-US": "Hip Opening Stretch"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Release what the body holds below"
       },
-      "duration_min": 7,
+      "tier": "full",
+      "duration_min": 10,
       "intensity": "gentle",
       "tags": [
         "moves_qi"
@@ -5709,7 +5783,7 @@
           "cue": {
             "en-US": "Sit on the floor with soles of your feet together in butterfly pose"
           },
-          "seconds": 15
+          "seconds": 30
         },
         {
           "asset": {
@@ -5717,9 +5791,9 @@
             "uri": "movements/hip-opening-stretch-2"
           },
           "cue": {
-            "en-US": "Gently press your knees toward the floor"
+            "en-US": "Gently press your knees toward the floor with each exhale"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -5729,7 +5803,7 @@
           "cue": {
             "en-US": "Fold forward slowly, keeping your spine long"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -5737,9 +5811,9 @@
             "uri": "movements/hip-opening-stretch-4"
           },
           "cue": {
-            "en-US": "Hold and breathe into your hips"
+            "en-US": "Hold and breathe into your hips. Let gravity do the work"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -5747,9 +5821,9 @@
             "uri": "movements/hip-opening-stretch-5"
           },
           "cue": {
-            "en-US": "Sit up. Extend your right leg. Fold over the left"
+            "en-US": "Sit up. Extend your right leg. Fold gently over the left"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -5759,7 +5833,7 @@
           "cue": {
             "en-US": "Switch sides: extend left leg, fold over the right"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -5767,9 +5841,39 @@
             "uri": "movements/hip-opening-stretch-7"
           },
           "cue": {
-            "en-US": "Return to butterfly. Sit tall and breathe"
+            "en-US": "Pigeon pose on the right side: one shin forward, back leg extended"
           },
-          "seconds": 15
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/hip-opening-stretch-8"
+          },
+          "cue": {
+            "en-US": "Switch to pigeon pose on the left side"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/hip-opening-stretch-9"
+          },
+          "cue": {
+            "en-US": "Return to butterfly. Sit tall and breathe. Feel the openness"
+          },
+          "seconds": 45
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/hip-opening-stretch-10"
+          },
+          "cue": {
+            "en-US": "Lie on your back with knees pulled to chest. Rock gently side to side"
+          },
+          "seconds": 30
         }
       ],
       "why": {
@@ -5801,8 +5905,9 @@
         "en-US": "Breath Counting Meditation"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Anchor a wandering mind"
       },
+      "tier": "medium",
       "duration_min": 5,
       "intensity": "restorative",
       "tags": [
@@ -5916,9 +6021,10 @@
         "en-US": "Gentle Spinal Twist"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Wring out tension, support digestion"
       },
-      "duration_min": 6,
+      "tier": "medium",
+      "duration_min": 5,
       "intensity": "gentle",
       "tags": [
         "moves_qi",
@@ -6038,9 +6144,10 @@
         "en-US": "Warming Sun Salute"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Build internal heat through flowing movement"
       },
-      "duration_min": 8,
+      "tier": "full",
+      "duration_min": 10,
       "intensity": "moderate",
       "tags": [
         "warming",
@@ -6065,9 +6172,9 @@
             "uri": "movements/warming-sun-salute-1"
           },
           "cue": {
-            "en-US": "Stand tall with palms together at your chest"
+            "en-US": "Stand tall with palms together at your chest. Set an intention"
           },
-          "seconds": 10
+          "seconds": 20
         },
         {
           "asset": {
@@ -6077,7 +6184,7 @@
           "cue": {
             "en-US": "Inhale and sweep arms overhead, arching gently"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -6087,7 +6194,7 @@
           "cue": {
             "en-US": "Exhale and fold forward toward your toes"
           },
-          "seconds": 10
+          "seconds": 15
         },
         {
           "asset": {
@@ -6097,7 +6204,7 @@
           "cue": {
             "en-US": "Inhale halfway up with a flat back"
           },
-          "seconds": 8
+          "seconds": 10
         },
         {
           "asset": {
@@ -6105,9 +6212,9 @@
             "uri": "movements/warming-sun-salute-5"
           },
           "cue": {
-            "en-US": "Step or hop back to a plank. Hold briefly"
+            "en-US": "Step or hop back to a plank. Hold strong"
           },
-          "seconds": 15
+          "seconds": 25
         },
         {
           "asset": {
@@ -6117,7 +6224,7 @@
           "cue": {
             "en-US": "Lower down slowly. Inhale into a gentle backbend"
           },
-          "seconds": 15
+          "seconds": 20
         },
         {
           "asset": {
@@ -6125,9 +6232,9 @@
             "uri": "movements/warming-sun-salute-7"
           },
           "cue": {
-            "en-US": "Exhale and press back to downward dog"
+            "en-US": "Exhale and press back to downward dog. Hold for 5 breaths"
           },
-          "seconds": 20
+          "seconds": 30
         },
         {
           "asset": {
@@ -6135,9 +6242,39 @@
             "uri": "movements/warming-sun-salute-8"
           },
           "cue": {
-            "en-US": "Step forward. Inhale rise to standing. Repeat 3 times"
+            "en-US": "Step forward. Inhale rise to standing"
           },
-          "seconds": 60
+          "seconds": 15
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/warming-sun-salute-9"
+          },
+          "cue": {
+            "en-US": "Repeat the full salute two more times. Move with your breath"
+          },
+          "seconds": 240
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/warming-sun-salute-10"
+          },
+          "cue": {
+            "en-US": "Return to standing. Palms together. Feel the warmth you've built"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/warming-sun-salute-11"
+          },
+          "cue": {
+            "en-US": "Three deep breaths to close. Bow your head gently"
+          },
+          "seconds": 30
         }
       ],
       "why": {
@@ -6169,9 +6306,10 @@
         "en-US": "Cooling Forward Folds"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Cool the body, calm the mind"
       },
-      "duration_min": 7,
+      "tier": "full",
+      "duration_min": 10,
       "intensity": "moderate",
       "tags": [
         "cooling",
@@ -6196,9 +6334,9 @@
             "uri": "movements/cooling-forward-folds-1"
           },
           "cue": {
-            "en-US": "Stand with feet hip-width apart"
+            "en-US": "Stand with feet hip-width apart. Close your eyes"
           },
-          "seconds": 10
+          "seconds": 20
         },
         {
           "asset": {
@@ -6208,7 +6346,7 @@
           "cue": {
             "en-US": "Inhale deeply. Exhale and fold forward slowly"
           },
-          "seconds": 15
+          "seconds": 20
         },
         {
           "asset": {
@@ -6218,7 +6356,7 @@
           "cue": {
             "en-US": "Let your head hang heavy. Sway gently side to side"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -6226,9 +6364,9 @@
             "uri": "movements/cooling-forward-folds-4"
           },
           "cue": {
-            "en-US": "Bend your knees softly and hold your elbows"
+            "en-US": "Bend your knees softly and hold your elbows. Breathe deeply"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -6236,9 +6374,9 @@
             "uri": "movements/cooling-forward-folds-5"
           },
           "cue": {
-            "en-US": "Breathe into the backs of your legs"
+            "en-US": "Breathe into the backs of your legs. Let tension melt"
           },
-          "seconds": 30
+          "seconds": 60
         },
         {
           "asset": {
@@ -6248,7 +6386,7 @@
           "cue": {
             "en-US": "Slowly roll up, one vertebra at a time"
           },
-          "seconds": 15
+          "seconds": 20
         },
         {
           "asset": {
@@ -6256,9 +6394,39 @@
             "uri": "movements/cooling-forward-folds-7"
           },
           "cue": {
-            "en-US": "Repeat the fold two more times, going deeper each round"
+            "en-US": "Repeat the fold. This time, straighten your legs more"
           },
-          "seconds": 60
+          "seconds": 90
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-forward-folds-8"
+          },
+          "cue": {
+            "en-US": "Seated forward fold: sit down, legs extended, fold over them"
+          },
+          "seconds": 90
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-forward-folds-9"
+          },
+          "cue": {
+            "en-US": "Sit up slowly. Place palms on your knees. Three cooling breaths"
+          },
+          "seconds": 40
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-forward-folds-10"
+          },
+          "cue": {
+            "en-US": "Rest in stillness. Feel the coolness settle through your body"
+          },
+          "seconds": 40
         }
       ],
       "why": {
@@ -6290,8 +6458,9 @@
         "en-US": "Tension Release Shaking"
       },
       "subtitle": {
-        "en-US": ""
+        "en-US": "Discharge tension in minutes"
       },
+      "tier": "medium",
       "duration_min": 5,
       "intensity": "gentle",
       "tags": [
@@ -6400,6 +6569,991 @@
         "flags": [],
         "text": {
           "en-US": "Move gently and listen to your body."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "dynamic-tension-release-full",
+      "title": {
+        "en-US": "Dynamic Tension Release"
+      },
+      "subtitle": {
+        "en-US": "Channel excess energy through structured movement"
+      },
+      "tier": "full",
+      "duration_min": 10,
+      "intensity": "moderate",
+      "tags": [
+        "moves_qi",
+        "calms_shen"
+      ],
+      "goals": [
+        "stress",
+        "energy"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "neutral_excess_busy_mind",
+        "neutral_balanced_steady_core",
+        "warm_excess_overclocked",
+        "warm_balanced_high_flame"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-1"
+          },
+          "cue": {
+            "en-US": "Stand with feet wide, knees soft. Shake your hands at your sides"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-2"
+          },
+          "cue": {
+            "en-US": "Let the shaking travel up your arms and through your whole body"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-3"
+          },
+          "cue": {
+            "en-US": "Transition to arm swings: twist your torso, letting arms swing freely"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-4"
+          },
+          "cue": {
+            "en-US": "Add gentle bouncing in your knees as you swing. Find a rhythm"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-5"
+          },
+          "cue": {
+            "en-US": "Wide-legged forward fold. Let your upper body hang and sway"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-6"
+          },
+          "cue": {
+            "en-US": "Rise slowly. Horse stance: wide squat with arms extended. Hold"
+          },
+          "seconds": 45
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-7"
+          },
+          "cue": {
+            "en-US": "Pulse gently in horse stance. Up an inch, down an inch"
+          },
+          "seconds": 45
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-8"
+          },
+          "cue": {
+            "en-US": "Stand up. Resume full-body shaking, slower now"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-9"
+          },
+          "cue": {
+            "en-US": "Gradually slow to stillness. Stand with eyes closed"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/dynamic-tension-10"
+          },
+          "cue": {
+            "en-US": "Place palms on your lower belly. Three deep breaths to close"
+          },
+          "seconds": 30
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "Structured movement gives excess energy a productive outlet."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "When your body carries more energy than it can use calmly, dynamic movement provides a controlled release valve."
+          },
+          "tcm": {
+            "en-US": "Moves stagnant Qi, clears excess heat through muscular engagement, and settles the Shen through rhythmic movement."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Move at your own pace. Skip horse stance if you have knee issues."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "quick-qi-warm-up-medium",
+      "title": {
+        "en-US": "Quick Qi Warm-Up"
+      },
+      "subtitle": {
+        "en-US": "Get warmth flowing in five minutes"
+      },
+      "tier": "medium",
+      "duration_min": 5,
+      "intensity": "gentle",
+      "tags": [
+        "warming",
+        "moves_qi"
+      ],
+      "goals": [
+        "energy"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-1"
+          },
+          "cue": {
+            "en-US": "Stand comfortably. Rub your palms together briskly until they're warm"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-2"
+          },
+          "cue": {
+            "en-US": "Place warm palms on your lower back (kidney area). Breathe warmth in"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-3"
+          },
+          "cue": {
+            "en-US": "Rub palms again. This time place them on your belly"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-4"
+          },
+          "cue": {
+            "en-US": "Circle your arms slowly overhead, inhaling as they rise"
+          },
+          "seconds": 40
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-5"
+          },
+          "cue": {
+            "en-US": "Exhale, bringing arms down with palms facing the floor"
+          },
+          "seconds": 40
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-6"
+          },
+          "cue": {
+            "en-US": "Repeat arm circles 5 more times, building gentle warmth"
+          },
+          "seconds": 80
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-7"
+          },
+          "cue": {
+            "en-US": "March in place gently. Pump your arms as you go"
+          },
+          "seconds": 40
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/qi-warm-up-8"
+          },
+          "cue": {
+            "en-US": "Come to stillness. Rub palms one more time and place on your heart"
+          },
+          "seconds": 20
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "A quick practice to build internal warmth when your body runs cool."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Gentle friction and rhythmic movement generate warmth from inside, helping cold-pattern bodies feel more alive."
+          },
+          "tcm": {
+            "en-US": "Palm rubbing stimulates the Laogong point (PC-8), warming the channels. Kidney area warming tonifies Ming Men fire."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Move gently and listen to your body."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "cooling-breath-flow-medium",
+      "title": {
+        "en-US": "Cooling Breath Flow"
+      },
+      "subtitle": {
+        "en-US": "Calm heat with slow, cooling breaths"
+      },
+      "tier": "medium",
+      "duration_min": 5,
+      "intensity": "restorative",
+      "tags": [
+        "cooling",
+        "calms_shen"
+      ],
+      "goals": [
+        "stress",
+        "sleep"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "warm_balanced_high_flame",
+        "warm_excess_overclocked",
+        "warm_deficient_bright_but_thin"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-1"
+          },
+          "cue": {
+            "en-US": "Sit comfortably. Rest your hands on your thighs, palms up"
+          },
+          "seconds": 15
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-2"
+          },
+          "cue": {
+            "en-US": "Curl your tongue like a straw. Inhale slowly through it (Sitali breath)"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-3"
+          },
+          "cue": {
+            "en-US": "Close your mouth. Exhale slowly through your nose. Repeat 5 times"
+          },
+          "seconds": 60
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-4"
+          },
+          "cue": {
+            "en-US": "Switch to left-nostril breathing: block right nostril, inhale left"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-5"
+          },
+          "cue": {
+            "en-US": "Exhale through the right nostril. Repeat 8 cycles"
+          },
+          "seconds": 80
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-6"
+          },
+          "cue": {
+            "en-US": "Return to natural breathing. Notice the coolness in your body"
+          },
+          "seconds": 40
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cooling-breath-7"
+          },
+          "cue": {
+            "en-US": "Sit in silence for a moment before moving on"
+          },
+          "seconds": 30
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "Specific breathing techniques lower internal heat and calm an overactive mind."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Cooling breaths like Sitali and left-nostril breathing activate the parasympathetic nervous system, lowering body temperature."
+          },
+          "tcm": {
+            "en-US": "Descends Yang Qi and clears heat from the Heart. Left-nostril breathing nourishes Yin and cools the Liver."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "If Sitali causes discomfort, breathe normally through your nose instead."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "standing-warm-up-lite",
+      "title": {
+        "en-US": "Standing Warm-Up"
+      },
+      "subtitle": {
+        "en-US": "Quick warmth when you're running cold"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "gentle",
+      "tags": [
+        "warming",
+        "moves_qi"
+      ],
+      "goals": [
+        "energy"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/standing-warm-up-1"
+          },
+          "cue": {
+            "en-US": "Stand and rub your palms together vigorously"
+          },
+          "seconds": 15
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/standing-warm-up-2"
+          },
+          "cue": {
+            "en-US": "Place warm palms on your lower back. Breathe in warmth"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/standing-warm-up-3"
+          },
+          "cue": {
+            "en-US": "March gently in place, swinging your arms"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/standing-warm-up-4"
+          },
+          "cue": {
+            "en-US": "Come to stillness. Feel the warmth spreading through your body"
+          },
+          "seconds": 15
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "A 90-second burst of gentle activity to build warmth when you're running cold."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Quick warming movements and palm friction generate internal heat without needing a full practice."
+          },
+          "tcm": {
+            "en-US": "Activates the Laogong point and Ming Men fire through friction and gentle movement of Qi."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Move gently and listen to your body."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "three-deep-breaths-lite",
+      "title": {
+        "en-US": "Three Deep Breaths"
+      },
+      "subtitle": {
+        "en-US": "The simplest reset that works"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "restorative",
+      "tags": [
+        "calms_shen"
+      ],
+      "goals": [
+        "stress",
+        "sleep"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery",
+        "neutral_balanced_steady_core",
+        "neutral_excess_busy_mind",
+        "warm_deficient_bright_but_thin",
+        "warm_balanced_high_flame",
+        "warm_excess_overclocked"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/three-breaths-1"
+          },
+          "cue": {
+            "en-US": "Stop what you're doing. Close your eyes"
+          },
+          "seconds": 10
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/three-breaths-2"
+          },
+          "cue": {
+            "en-US": "Inhale deeply through your nose for 4 counts. Exhale for 6 counts"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/three-breaths-3"
+          },
+          "cue": {
+            "en-US": "Second breath: deeper inhale, longer exhale. Feel your belly expand"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/three-breaths-4"
+          },
+          "cue": {
+            "en-US": "Third breath: the deepest yet. Let everything soften on the exhale"
+          },
+          "seconds": 20
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "Three intentional breaths shift your nervous system from stress to calm."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Extended exhales activate the vagus nerve, dropping your heart rate and calming the mind in under two minutes."
+          },
+          "tcm": {
+            "en-US": "Deep breathing descends Lung Qi and settles the Shen. Even three breaths can shift the body's energy."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Breathe at whatever depth feels comfortable."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "cool-down-exhale-lite",
+      "title": {
+        "en-US": "Cool-Down Exhale"
+      },
+      "subtitle": {
+        "en-US": "Release heat with extended exhales"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "restorative",
+      "tags": [
+        "cooling",
+        "calms_shen"
+      ],
+      "goals": [
+        "stress",
+        "sleep"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "warm_balanced_high_flame",
+        "warm_excess_overclocked",
+        "warm_deficient_bright_but_thin"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cool-exhale-1"
+          },
+          "cue": {
+            "en-US": "Sit or stand comfortably. Drop your shoulders"
+          },
+          "seconds": 10
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cool-exhale-2"
+          },
+          "cue": {
+            "en-US": "Inhale gently for 3 counts. Exhale slowly through pursed lips for 8 counts"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cool-exhale-3"
+          },
+          "cue": {
+            "en-US": "Repeat: inhale 3 counts, exhale 8 counts. Feel the cooling sensation"
+          },
+          "seconds": 30
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/cool-exhale-4"
+          },
+          "cue": {
+            "en-US": "One more round. Let the exhale carry away any heat or tension"
+          },
+          "seconds": 20
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "Extended exhales through pursed lips cool internal heat in under two minutes."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Pursed-lip breathing lengthens the exhale, activating the body's cooling and calming response."
+          },
+          "tcm": {
+            "en-US": "Descends Yang Qi and vents heat from the upper body. Settles Heart fire through the Lung's descending function."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Breathe at whatever depth feels comfortable."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "shoulder-drop-reset-lite",
+      "title": {
+        "en-US": "Shoulder Drop Reset"
+      },
+      "subtitle": {
+        "en-US": "One minute to release what you're holding"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "restorative",
+      "tags": [
+        "moves_qi",
+        "calms_shen"
+      ],
+      "goals": [
+        "stress"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "cold_deficient_low_flame",
+        "cold_balanced_cool_core",
+        "neutral_deficient_low_battery",
+        "neutral_balanced_steady_core",
+        "neutral_excess_busy_mind",
+        "warm_deficient_bright_but_thin",
+        "warm_balanced_high_flame",
+        "warm_excess_overclocked"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/shoulder-drop-1"
+          },
+          "cue": {
+            "en-US": "Inhale and lift your shoulders up to your ears as high as they'll go"
+          },
+          "seconds": 10
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/shoulder-drop-2"
+          },
+          "cue": {
+            "en-US": "Hold the squeeze for 3 seconds. Then drop them completely on an exhale"
+          },
+          "seconds": 15
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/shoulder-drop-3"
+          },
+          "cue": {
+            "en-US": "Repeat: squeeze up, hold, and drop. Feel the release each time"
+          },
+          "seconds": 25
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/shoulder-drop-4"
+          },
+          "cue": {
+            "en-US": "One more time. This time let your jaw drop open as you release"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/shoulder-drop-5"
+          },
+          "cue": {
+            "en-US": "Roll your shoulders back three times slowly. Breathe naturally"
+          },
+          "seconds": 20
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "Squeeze-and-release resets tension patterns your body doesn't realize it's holding."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Progressive muscle relaxation — tense then release — teaches your body what 'relaxed' actually feels like."
+          },
+          "tcm": {
+            "en-US": "Releases Qi stagnation in the Gallbladder and Triple Burner channels that run through the shoulders."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Move gently and listen to your body."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "seated-twist-lite",
+      "title": {
+        "en-US": "Seated Twist"
+      },
+      "subtitle": {
+        "en-US": "A quick twist to move stuck energy"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "gentle",
+      "tags": [
+        "moves_qi",
+        "supports_digestion"
+      ],
+      "goals": [
+        "digestion",
+        "energy"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "neutral_deficient_low_battery",
+        "neutral_balanced_steady_core",
+        "neutral_excess_busy_mind"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/seated-twist-1"
+          },
+          "cue": {
+            "en-US": "Sit tall in your chair. Feet flat on the floor"
+          },
+          "seconds": 10
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/seated-twist-2"
+          },
+          "cue": {
+            "en-US": "Inhale tall. Exhale and twist to the right, placing left hand on right knee"
+          },
+          "seconds": 25
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/seated-twist-3"
+          },
+          "cue": {
+            "en-US": "Return to center. Exhale and twist to the left"
+          },
+          "seconds": 25
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/seated-twist-4"
+          },
+          "cue": {
+            "en-US": "Return to center. Take one deep breath to close"
+          },
+          "seconds": 15
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "A quick seated twist gets energy moving and supports digestion without leaving your chair."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Twisting gently compresses and releases organs, aiding digestion and moving stuck energy."
+          },
+          "tcm": {
+            "en-US": "Stimulates the Liver and Spleen channels, promoting smooth Qi flow and helping transform dampness."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Twist gently. Never force the rotation."
+        }
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "body-scan-breath-lite",
+      "title": {
+        "en-US": "Body Scan Breath"
+      },
+      "subtitle": {
+        "en-US": "Notice and release in 90 seconds"
+      },
+      "tier": "lite",
+      "duration_min": 2,
+      "intensity": "restorative",
+      "tags": [
+        "calms_shen",
+        "cooling"
+      ],
+      "goals": [
+        "stress",
+        "sleep"
+      ],
+      "seasons": [
+        "all_year"
+      ],
+      "terrain_fit": [
+        "warm_deficient_bright_but_thin",
+        "warm_excess_overclocked",
+        "neutral_excess_busy_mind"
+      ],
+      "frames": [
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/body-scan-1"
+          },
+          "cue": {
+            "en-US": "Close your eyes. Notice where you feel tension in your body"
+          },
+          "seconds": 15
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/body-scan-2"
+          },
+          "cue": {
+            "en-US": "Breathe into your forehead and jaw. Soften them on the exhale"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/body-scan-3"
+          },
+          "cue": {
+            "en-US": "Breathe into your shoulders and chest. Let them drop on the exhale"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/body-scan-4"
+          },
+          "cue": {
+            "en-US": "Breathe into your belly and hips. Release on the exhale"
+          },
+          "seconds": 20
+        },
+        {
+          "asset": {
+            "type": "svg",
+            "uri": "movements/body-scan-5"
+          },
+          "cue": {
+            "en-US": "Open your eyes gently. Carry this softness with you"
+          },
+          "seconds": 10
+        }
+      ],
+      "why": {
+        "one_line": {
+          "en-US": "A quick body scan teaches you to find and release tension you didn't know you were holding."
+        },
+        "expanded": {
+          "plain": {
+            "en-US": "Scanning the body with breath attention activates the relaxation response and reduces unconscious holding patterns."
+          },
+          "tcm": {
+            "en-US": "Directs the mind (Yi) to guide Qi through the body, clearing local stagnation and settling the Shen."
+          }
+        }
+      },
+      "cautions": {
+        "flags": [],
+        "text": {
+          "en-US": "Breathe at whatever depth feels comfortable."
         }
       },
       "review": {

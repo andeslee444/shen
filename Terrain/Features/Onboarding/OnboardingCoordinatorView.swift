@@ -13,11 +13,14 @@ import SwiftData
 final class OnboardingCoordinator {
     enum Step: Int, CaseIterable {
         case welcome = 0
+        case howItWorks
         case goals
         case quiz
         case reveal
+        case tutorial
         case safety
         case notifications
+        case permissions
         case account
         case complete
 
@@ -27,6 +30,7 @@ final class OnboardingCoordinator {
     }
 
     var currentStep: Step = .welcome
+    var tutorialPage: Int = 0
     var selectedGoals: Set<Goal> = []
     var quizResponses: [(questionId: String, optionId: String)] = []
     var currentQuestionIndex: Int = 0
@@ -42,6 +46,19 @@ final class OnboardingCoordinator {
     var enableEveningNotification: Bool = true
 
     private let scoringEngine = TerrainScoringEngine()
+
+    /// Interpolated progress that advances through tutorial sub-pages.
+    /// Other steps snap to their fixed position; the tutorial step smoothly
+    /// crawls from its base to the next step across 5 sub-pages.
+    var progress: Double {
+        let totalSteps = Double(Step.allCases.count - 1) // exclude .complete
+        let base = Double(currentStep.rawValue)
+        if currentStep == .tutorial {
+            let subProgress = Double(tutorialPage) / 5.0
+            return (base + subProgress) / totalSteps
+        }
+        return base / totalSteps
+    }
 
     func nextStep() {
         guard let nextIndex = Step(rawValue: currentStep.rawValue + 1) else { return }
@@ -129,12 +146,13 @@ struct OnboardingCoordinatorView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Progress indicator (except for welcome and complete)
+                // Progress indicator (except for welcome, quiz, account, complete)
                 if coordinator.currentStep != .welcome && coordinator.currentStep != .quiz && coordinator.currentStep != .account && coordinator.currentStep != .complete {
-                    ProgressView(value: coordinator.currentStep.progress)
+                    ProgressView(value: coordinator.progress)
                         .tint(theme.colors.accent)
                         .padding(.horizontal, theme.spacing.lg)
                         .padding(.top, theme.spacing.md)
+                        .animation(.easeInOut(duration: 0.3), value: coordinator.progress)
                 }
 
                 // Content
@@ -142,6 +160,12 @@ struct OnboardingCoordinatorView: View {
                     switch coordinator.currentStep {
                     case .welcome:
                         WelcomeView(onContinue: { coordinator.nextStep() })
+
+                    case .howItWorks:
+                        HowItWorksView(
+                            onContinue: { coordinator.nextStep() },
+                            onBack: { coordinator.previousStep() }
+                        )
 
                     case .goals:
                         GoalsView(
@@ -162,11 +186,22 @@ struct OnboardingCoordinatorView: View {
                             )
                         }
 
+                    case .tutorial:
+                        if let result = coordinator.scoringResult {
+                            TutorialPreviewView(
+                                result: result,
+                                coordinator: coordinator,
+                                onContinue: { coordinator.nextStep() },
+                                onBack: { coordinator.previousStep() }
+                            )
+                        }
+
                     case .safety:
                         SafetyGateView(
                             preferences: $coordinator.safetyPreferences,
                             onContinue: { coordinator.nextStep() },
-                            onSkip: { coordinator.nextStep() }
+                            onSkip: { coordinator.nextStep() },
+                            onBack: { coordinator.previousStep() }
                         )
 
                     case .notifications:
@@ -174,6 +209,13 @@ struct OnboardingCoordinatorView: View {
                             coordinator: coordinator,
                             onContinue: { coordinator.nextStep() },
                             onSkip: { coordinator.nextStep() }
+                        )
+
+                    case .permissions:
+                        PermissionsView(
+                            onContinue: { coordinator.nextStep() },
+                            onSkip: { coordinator.nextStep() },
+                            onBack: { coordinator.previousStep() }
                         )
 
                     case .account:

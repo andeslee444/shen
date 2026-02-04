@@ -197,8 +197,8 @@ enum IngredientBenefit: String, CaseIterable, Identifiable {
         case .energy:    return ["supports_deficiency"]
         case .headache:  return ["moves_qi", "cooling"]
         case .cramps:    return ["moves_qi", "warming"]
-        case .stiffness: return ["moves_qi", "warming"]
-        case .cold:      return ["warming", "supports_deficiency"]
+        case .stiffness: return ["moves_qi", "dries_damp"]
+        case .cold:      return ["warming"]
         case .beauty:    return ["moistens_dryness"]
         }
     }
@@ -218,25 +218,45 @@ enum IngredientBenefit: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Whether this benefit requires ALL matchingTags to be present (AND)
+    /// rather than any single one (OR). Headache needs both cooling + moves_qi
+    /// to avoid pulling in every cooling or qi-moving ingredient.
+    private var requiresAllTags: Bool {
+        switch self {
+        case .headache: return true
+        default: return false
+        }
+    }
+
     /// Returns true if the ingredient's tags or goals match this benefit
     func matches(_ ingredient: Ingredient) -> Bool {
-        let hasTag = ingredient.tags.contains { matchingTags.contains($0) }
+        let hasTag: Bool
+        if requiresAllTags {
+            hasTag = matchingTags.allSatisfy { tag in
+                ingredient.tags.contains(tag)
+            }
+        } else {
+            hasTag = ingredient.tags.contains { matchingTags.contains($0) }
+        }
         let hasGoal = ingredient.goals.contains { matchingGoals.contains($0) }
         return hasTag || hasGoal
     }
 }
 
-/// Ingredient categories
+/// Ingredient categories — must match the `category` strings in base-content-pack.json.
+/// The JSON uses: fruit, grain, herb, legume, meat, mushroom, other, root, seed, spice, tea, vegetable.
 enum IngredientCategory: String, Codable, CaseIterable, Identifiable {
     case spice
     case root
     case fruit
     case grain
     case legume
-    case fungus
+    case mushroom
     case tea
-    case protein
-    case aromatic
+    case meat
+    case herb
+    case vegetable
+    case seed
     case other
 
     var id: String { rawValue }

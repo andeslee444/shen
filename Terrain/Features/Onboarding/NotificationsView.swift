@@ -118,6 +118,10 @@ struct NotificationsView: View {
         }
     }
 
+    /// Schedules placeholder notifications during onboarding.
+    /// These use generic copy because the user hasn't completed the quiz yet —
+    /// once onboarding finishes and the app comes to foreground, TerrainApp's
+    /// scenePhase handler replaces these with terrain-personalized notifications.
     private func scheduleNotifications() {
         let center = UNUserNotificationCenter.current()
 
@@ -126,6 +130,7 @@ struct NotificationsView: View {
             content.title = "Good morning"
             content.body = "Your daily routine is ready."
             content.sound = .default
+            content.categoryIdentifier = NotificationService.categoryIdentifier
 
             let components = Calendar.current.dateComponents([.hour, .minute], from: coordinator.morningNotificationTime)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
@@ -139,6 +144,7 @@ struct NotificationsView: View {
             content.title = "Wind down"
             content.body = "Time for your evening ritual."
             content.sound = .default
+            content.categoryIdentifier = NotificationService.categoryIdentifier
 
             let components = Calendar.current.dateComponents([.hour, .minute], from: coordinator.eveningNotificationTime)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)

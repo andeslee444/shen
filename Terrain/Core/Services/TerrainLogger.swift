@@ -7,6 +7,7 @@ enum TerrainLogger {
     static let sync        = Logger(subsystem: subsystem, category: "sync")
     static let navigation  = Logger(subsystem: subsystem, category: "navigation")
     static let contentPack = Logger(subsystem: subsystem, category: "contentPack")
-    static let weather     = Logger(subsystem: subsystem, category: "weather")
-    static let health      = Logger(subsystem: subsystem, category: "health")
+    static let weather        = Logger(subsystem: subsystem, category: "weather")
+    static let health         = Logger(subsystem: subsystem, category: "health")
+    static let notifications  = Logger(subsystem: subsystem, category: "notifications")
 }

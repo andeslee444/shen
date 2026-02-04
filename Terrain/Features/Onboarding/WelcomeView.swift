@@ -14,8 +14,11 @@ struct WelcomeView: View {
     @State private var showContent = false
 
     var body: some View {
-        VStack(spacing: theme.spacing.xxl) {
+        VStack(spacing: theme.spacing.xl) {
+            // Top spacer — roughly 1/5 of screen so content sits
+            // in the upper-center, not dead-center or pushed down.
             Spacer()
+                .frame(maxHeight: 120)
 
             // Logo/Title
             VStack(spacing: theme.spacing.md) {
@@ -31,8 +34,8 @@ struct WelcomeView: View {
             .opacity(showContent ? 1 : 0)
             .offset(y: showContent ? 0 : 20)
 
-            // Single poetic subtitle — mystique over features
-            Text("Take a 3-minute assessment.\nGet daily rituals rooted in\nTraditional Chinese Medicine.")
+            // Value prop — names the mechanism and the outputs
+            Text("Not every body needs the same thing.\nSome run cold and need warmth.\nSome run hot and need cooling.\nSome hold tension and need release.")
                 .font(theme.typography.bodyLarge)
                 .foregroundColor(theme.colors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -41,33 +44,34 @@ struct WelcomeView: View {
                 .offset(y: showContent ? 0 : 20)
                 .animation(theme.animation.reveal.delay(0.2), value: showContent)
 
-            // What you'll get
+            // What you'll get — specific outputs
             VStack(spacing: theme.spacing.md) {
-                featureRow(emoji: "🌿", text: "Discover your body's unique pattern")
-                featureRow(emoji: "☀️", text: "Get a personalized daily routine")
-                featureRow(emoji: "🍵", text: "Learn which ingredients suit you")
+                featureRow(emoji: "\u{1F321}\u{FE0F}", text: "Learn if you run cold, warm, or neutral")
+                featureRow(emoji: "\u{1F375}", text: "Get food and drink combos matched to you")
+                featureRow(emoji: "\u{1F9D8}", text: "Follow movements and rituals for your type")
             }
-            .padding(.horizontal, theme.spacing.xl)
+            .padding(.horizontal, theme.spacing.lg)
             .opacity(showContent ? 1 : 0)
             .offset(y: showContent ? 0 : 20)
             .animation(theme.animation.reveal.delay(0.4), value: showContent)
 
+            // Flexible gap — absorbs remaining space between content and button
             Spacer()
 
-            // Continue button
-            TerrainPrimaryButton(title: "Begin", action: onContinue)
-                .padding(.horizontal, theme.spacing.lg)
-                .opacity(showContent ? 1 : 0)
-                .animation(theme.animation.reveal.delay(0.6), value: showContent)
+            // Continue button + terms pinned near bottom
+            VStack(spacing: theme.spacing.sm) {
+                TerrainPrimaryButton(title: "Begin", action: onContinue)
+                    .padding(.horizontal, theme.spacing.lg)
 
-            // Terms
-            Text("By continuing, you agree to our Terms of Service")
-                .font(theme.typography.caption)
-                .foregroundColor(theme.colors.textTertiary)
-                .opacity(showContent ? 1 : 0)
-                .animation(theme.animation.reveal.delay(0.6), value: showContent)
+                Text("By continuing, you agree to our Terms of Service")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
+            }
+            .opacity(showContent ? 1 : 0)
+            .animation(theme.animation.reveal.delay(0.6), value: showContent)
         }
-        .padding(theme.spacing.lg)
+        .padding(.horizontal, theme.spacing.lg)
+        .padding(.bottom, theme.spacing.lg)
         .onAppear {
             withAnimation(theme.animation.reveal) {
                 showContent = true
@@ -75,12 +79,14 @@ struct WelcomeView: View {
         }
     }
     private func featureRow(emoji: String, text: String) -> some View {
-        HStack(spacing: theme.spacing.sm) {
+        HStack(alignment: .top, spacing: theme.spacing.sm) {
             Text(emoji)
                 .font(.title3)
+                .frame(width: 28)
             Text(text)
                 .font(theme.typography.bodyMedium)
                 .foregroundColor(theme.colors.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

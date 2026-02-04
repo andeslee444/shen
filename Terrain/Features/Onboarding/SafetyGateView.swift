@@ -11,18 +11,28 @@ struct SafetyGateView: View {
     @Binding var preferences: SafetyPreferences
     let onContinue: () -> Void
     let onSkip: () -> Void
+    let onBack: () -> Void
 
     @Environment(\.terrainTheme) private var theme
     @State private var showContent = false
 
     var body: some View {
         VStack(spacing: theme.spacing.lg) {
-            // Skip button
+            // Back + Skip
             HStack {
+                Button(action: onBack) {
+                    HStack(spacing: theme.spacing.xs) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Back")
+                            .font(theme.typography.labelMedium)
+                    }
+                    .foregroundColor(theme.colors.textSecondary)
+                }
                 Spacer()
                 TerrainTextButton(title: "Skip", action: onSkip)
             }
-            .padding(.horizontal, theme.spacing.lg)
+            .padding(.horizontal, theme.spacing.md)
 
             // Title — warm and reassuring
             VStack(spacing: theme.spacing.sm) {
@@ -195,7 +205,8 @@ struct SafetySectionLabel: View {
     SafetyGateView(
         preferences: .constant(SafetyPreferences()),
         onContinue: {},
-        onSkip: {}
+        onSkip: {},
+        onBack: {}
     )
     .environment(\.terrainTheme, TerrainTheme.default)
 }

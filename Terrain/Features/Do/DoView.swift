@@ -126,61 +126,115 @@ struct DoView: View {
         return result
     }
 
-    /// Best routine for current terrain + selected level, falling back gracefully
+    // MARK: - Day Phase
+
+    /// Current morning/evening phase, derived from the existing 60-second timer.
+    /// When the hour crosses 5 PM, SwiftUI re-evaluates and re-renders.
+    private var currentPhase: DayPhase {
+        DayPhase.current(for: timerTick)
+    }
+
+    /// Best routine for current terrain + selected level + day phase.
+    ///
+    /// Scoring (higher wins):
+    ///   - Terrain fit:       +10 (dominant signal — right constitution match)
+    ///   - Phase affinity:    +2  per matching tag (e.g., "warming" in morning)
+    ///   - Phase anti-affinity: -3 per tag matching the OTHER phase
+    ///
+    /// Falls back gracefully: best score → any tier match → any routine.
     private var selectedRoutine: Routine? {
         let tier = selectedLevel.rawValue
         let profileId = terrainProfileId ?? ""
+        let phase = currentPhase
 
-        // 1. Exact terrain match + correct tier
-        if let match = allRoutines.first(where: {
-            $0.tier == tier && $0.terrainFit.contains(profileId)
-        }) {
-            return match
+        let candidates = allRoutines.filter { $0.tier == tier }
+        guard !candidates.isEmpty else { return allRoutines.first }
+
+        let scored = candidates.map { routine -> (Routine, Int) in
+            var score = 0
+            if routine.terrainFit.contains(profileId) { score += 10 }
+            score += phase.netPhaseScore(for: routine.tags)
+            return (routine, score)
         }
+        .sorted { $0.1 > $1.1 }
 
-        // 2. Any routine with correct tier (fallback)
-        if let match = allRoutines.first(where: { $0.tier == tier }) {
-            return match
-        }
-
-        // 3. Any routine at all
-        return allRoutines.first
+        return scored.first?.0 ?? allRoutines.first
     }
 
-    /// Best movement for current terrain + selected level
+    /// Best movement for current terrain + selected level + day phase.
+    /// Filters by tier first (mirroring routines), then scores by terrain fit,
+    /// phase affinity, and intensity match. Falls back to unfiltered if no
+    /// tier-matched movements exist (backward compat for content packs
+    /// without tier fields).
     private var selectedMovement: Movement? {
+        let tier = selectedLevel.rawValue
         let profileId = terrainProfileId ?? ""
+        let phase = currentPhase
+        let preferredIntensity = phase.preferredIntensity(for: selectedLevel)
 
-        let matched = allMovements.filter { $0.terrainFit.contains(profileId) }
+        let candidates = allMovements.filter { $0.tier == tier }
+        let pool = candidates.isEmpty ? allMovements : candidates
 
-        let preferredIntensity: String = {
-            switch selectedLevel {
-            case .full: return "moderate"
-            case .medium: return "gentle"
-            case .lite: return "restorative"
-            }
-        }()
-
-        if let intensityMatch = matched.first(where: { $0.intensity.rawValue == preferredIntensity }) {
-            return intensityMatch
+        let scored = pool.map { movement -> (Movement, Int) in
+            var score = 0
+            if movement.terrainFit.contains(profileId) { score += 10 }
+            score += phase.netPhaseScore(for: movement.tags)
+            if movement.intensity.rawValue == preferredIntensity { score += 3 }
+            return (movement, score)
         }
-        if let anyMatch = matched.first {
-            return anyMatch
-        }
+        .sorted { $0.1 > $1.1 }
 
-        if let fallback = allMovements.first(where: { $0.intensity.rawValue == preferredIntensity }) {
-            return fallback
-        }
-        return allMovements.first
+        return scored.first?.0 ?? allMovements.first
     }
 
-    /// Quick needs reordered by today's symptoms
+    /// Quick needs reordered by today's symptoms, with terrain-contradictory needs removed.
+    /// A TCM practitioner would never recommend warming herbs to someone running warm.
     private var orderedNeeds: [QuickNeed] {
-        suggestionEngine.orderedNeeds(for: todaysSymptoms)
+        let base = suggestionEngine.orderedNeeds(for: todaysSymptoms)
+        let profileId = terrainProfileId ?? ""
+        let isWarm = profileId.contains("warm")
+        let isCold = profileId.contains("cold")
+
+        return base.filter { need in
+            if isWarm && need == .warmth { return false }
+            if isCold && need == .cooling { return false }
+            return true
+        }
     }
 
-    /// Coaching note below the level selector, personalized to terrain type and modifier
-    private var levelCoachingNote: String {
+    /// Dynamic coaching note that rotates by priority:
+    /// 1. Completion state → 2. Today's symptoms → 3. TCM organ clock (子午流注)
+    /// → 4. Modifier-specific → 5. Evening-specific → 6. Terrain-specific fallback
+    private var dynamicCoachingNote: String {
+        // 1. Completion state
+        if completedCount == 2 {
+            return "Both done. Your body is building a new baseline."
+        }
+
+        // 2. Today's symptoms
+        if todaysSymptoms.contains(.tired) {
+            return "Low energy today? Lite level is still real progress."
+        }
+        if todaysSymptoms.contains(.stressed) {
+            return "Stress showing up? Movement first — it unwinds the body faster than food."
+        }
+        if todaysSymptoms.contains(.poorSleep) {
+            return "Rough night? Gentle nourishment over intensity today."
+        }
+
+        // 3. TCM organ clock (子午流注)
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour >= 7 && hour < 9 {
+            return "Stomach hour (7-9am). Perfect time to nourish your center."
+        } else if hour >= 11 && hour < 13 {
+            return "Heart time (11am-1pm). A calm practice steadies your afternoon."
+        } else if hour >= 17 && hour < 19 {
+            return "Kidney hour (5-7pm). Gentle movement replenishes your reserves."
+        } else if hour >= 19 {
+            return "Evening mode. Gentle movement over intensity tonight."
+        }
+
+        // 4. Modifier-specific
         let profileId = terrainProfileId ?? ""
 
         switch terrainModifier {
@@ -196,6 +250,18 @@ struct DoView: View {
             break
         }
 
+        // 5. Evening-specific coaching (phase-aware)
+        if currentPhase == .evening {
+            if profileId.contains("cold") {
+                return "Evening warmth matters for you. A gentle routine protects what you built today."
+            } else if profileId.contains("warm") {
+                return "Evening is your reset. Cooling practices help your body recover."
+            } else {
+                return "Wind down with intention. Even a small evening practice changes how you sleep."
+            }
+        }
+
+        // 6. Terrain-specific fallback (morning / no modifier match)
         if profileId.contains("cold") && profileId.contains("deficient") {
             return "Start with Lite. Build warmth gently — consistency beats intensity for your pattern."
         } else if profileId.contains("cold") {
@@ -211,7 +277,79 @@ struct DoView: View {
         } else if profileId.contains("neutral") && profileId.contains("excess") {
             return "Full level helps channel your energy. Structure is your friend."
         } else {
-            return "Pick the level that fits your morning. Consistency matters more than intensity."
+            return "Pick the level that fits today. Consistency matters more than intensity."
+        }
+    }
+
+    // MARK: - Per-Level Completion
+
+    /// Whether the *currently displayed* routine is completed (not any routine across levels).
+    private var currentRoutineCompleted: Bool {
+        guard let routineId = selectedRoutine?.id else { return false }
+        return todaysLog?.completedRoutineIds.contains(routineId) ?? false
+    }
+
+    /// Whether the *currently displayed* movement is completed (not any movement across levels).
+    private var currentMovementCompleted: Bool {
+        guard let movementId = selectedMovement?.id else { return false }
+        return todaysLog?.completedMovementIds.contains(movementId) ?? false
+    }
+
+    /// Current phase completion count (for the 2 cards shown right now).
+    private var completedCount: Int {
+        (currentRoutineCompleted ? 1 : 0) + (currentMovementCompleted ? 1 : 0)
+    }
+
+    // MARK: - Phase-Aware Progress
+
+    /// Checks if the user completed ANY nourish practice with positive affinity for the given phase.
+    /// This lets progress dots aggregate across levels within a phase.
+    private func isNourishCompleted(for phase: DayPhase) -> Bool {
+        guard let completedIds = todaysLog?.completedRoutineIds else { return false }
+        return allRoutines.contains { routine in
+            guard completedIds.contains(routine.id) else { return false }
+            // Exclude quick-fix IDs (they start with "rightnow-")
+            guard !routine.id.hasPrefix("rightnow-") else { return false }
+            return phase.netPhaseScore(for: routine.tags) >= 0
+        }
+    }
+
+    /// Checks if the user completed ANY movement with positive affinity for the given phase.
+    private func isMoveCompleted(for phase: DayPhase) -> Bool {
+        guard let completedIds = todaysLog?.completedMovementIds else { return false }
+        return allMovements.contains { movement in
+            completedIds.contains(movement.id) && phase.netPhaseScore(for: movement.tags) >= 0
+        }
+    }
+
+    /// Whether morning phase had at least one nourish + one movement completed.
+    private var morningFullyCompleted: Bool {
+        isNourishCompleted(for: .morning) && isMoveCompleted(for: .morning)
+    }
+
+    private var dailyProgressText: String {
+        let phase = currentPhase
+        let phaseNourish = isNourishCompleted(for: phase)
+        let phaseMove = isMoveCompleted(for: phase)
+        let phaseCount = (phaseNourish ? 1 : 0) + (phaseMove ? 1 : 0)
+
+        // All 4 practices done across both phases
+        if morningFullyCompleted && isNourishCompleted(for: .evening) && isMoveCompleted(for: .evening) {
+            return "All done. Your body thanks you."
+        }
+
+        // Evening: show morning status as prefix
+        if phase == .evening && morningFullyCompleted {
+            if phaseCount == 2 {
+                return "All done. Your body thanks you."
+            }
+            return "Morning \u{2713} \u{00B7} \(phaseCount) of 2 done"
+        }
+
+        switch phaseCount {
+        case 2: return "Both done for \(phase == .morning ? "morning" : "evening")."
+        case 1: return "1 of 2 done"
+        default: return "0 of 2 done"
         }
     }
 
@@ -230,11 +368,29 @@ struct DoView: View {
             ZStack {
                 ScrollView {
                     VStack(spacing: theme.spacing.xl) {
-                        // Level Selector + Coaching Note
+                        // Level Selector + Progress + Coaching Note
                         VStack(spacing: theme.spacing.sm) {
+                            // Daily progress strip — dots track current phase
+                            HStack(spacing: theme.spacing.xs) {
+                                Circle()
+                                    .fill(isNourishCompleted(for: currentPhase) ? theme.colors.success : theme.colors.textTertiary.opacity(0.3))
+                                    .frame(width: 8, height: 8)
+                                Circle()
+                                    .fill(isMoveCompleted(for: currentPhase) ? theme.colors.success : theme.colors.textTertiary.opacity(0.3))
+                                    .frame(width: 8, height: 8)
+
+                                Text(dailyProgressText)
+                                    .font(theme.typography.caption)
+                                    .foregroundColor(completedCount == 2 ? theme.colors.success : theme.colors.textSecondary)
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, theme.spacing.lg)
+                            .animation(theme.animation.quick, value: completedCount)
+
                             levelSelector
 
-                            Text(levelCoachingNote)
+                            Text(dynamicCoachingNote)
                                 .font(theme.typography.bodySmall)
                                 .foregroundColor(theme.colors.textSecondary)
                                 .multilineTextAlignment(.center)
@@ -277,6 +433,7 @@ struct DoView: View {
         .sheet(isPresented: $showMovementPlayer) {
             MovementPlayerSheet(
                 level: selectedLevel,
+                movementModel: selectedMovement,
                 onComplete: { markMovementComplete() }
             )
         }
@@ -329,20 +486,27 @@ struct DoView: View {
 
     private var capsuleSection: some View {
         VStack(spacing: theme.spacing.md) {
-            Text("Today's Practice")
-                .font(theme.typography.headlineSmall)
-                .foregroundColor(theme.colors.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, theme.spacing.lg)
+            // Phase-aware header
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: currentPhase.icon)
+                    .font(.system(size: 16))
+                    .foregroundColor(currentPhase == .morning ? theme.colors.terrainWarm : theme.colors.terrainCool)
+                Text(currentPhase.displayTitle)
+                    .font(theme.typography.headlineSmall)
+                    .foregroundColor(theme.colors.textPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, theme.spacing.lg)
+            .animation(theme.animation.standard, value: currentPhase)
 
-            // Routine module
+            // Routine module — isCompleted checks the SPECIFIC routine shown
             if let routine = selectedRoutine {
                 RoutineModuleCard(
                     type: .eatDrink,
                     title: routine.displayName,
                     subtitle: routine.subtitle?.localized ?? "",
                     duration: "\(routine.durationMin) min",
-                    isCompleted: todaysLog?.completedRoutineIds.isEmpty == false,
+                    isCompleted: currentRoutineCompleted,
                     onTap: { showRoutineDetail = true }
                 )
                 .padding(.horizontal, theme.spacing.lg)
@@ -352,20 +516,20 @@ struct DoView: View {
                     title: routineTitle(for: selectedLevel),
                     subtitle: routineSubtitle(for: selectedLevel),
                     duration: routineDuration(for: selectedLevel),
-                    isCompleted: todaysLog?.completedRoutineIds.isEmpty == false,
+                    isCompleted: currentRoutineCompleted,
                     onTap: { showRoutineDetail = true }
                 )
                 .padding(.horizontal, theme.spacing.lg)
             }
 
-            // Movement module
+            // Movement module — isCompleted checks the SPECIFIC movement shown
             if let movement = selectedMovement {
                 RoutineModuleCard(
                     type: .movement,
                     title: movement.displayName,
                     subtitle: movement.subtitle?.localized ?? "Wake up your body gently",
-                    duration: "\(movement.durationMin) min",
-                    isCompleted: todaysLog?.completedMovementIds.isEmpty == false,
+                    duration: movement.durationDisplay,
+                    isCompleted: currentMovementCompleted,
                     onTap: { showMovementPlayer = true }
                 )
                 .padding(.horizontal, theme.spacing.lg)
@@ -375,7 +539,7 @@ struct DoView: View {
                     title: movementTitle(for: selectedLevel),
                     subtitle: movementSubtitle(for: selectedLevel),
                     duration: movementDuration(for: selectedLevel),
-                    isCompleted: todaysLog?.completedMovementIds.isEmpty == false,
+                    isCompleted: currentMovementCompleted,
                     onTap: { showMovementPlayer = true }
                 )
                 .padding(.horizontal, theme.spacing.lg)
@@ -461,14 +625,12 @@ struct DoView: View {
                     suggestion: (suggestion.title, suggestion.description, suggestion.avoidHours),
                     isCompleted: isNeedCompletedToday(need),
                     avoidTimeText: avoidTimeText(for: need),
+                    whyForYou: generateQuickFixWhy(for: need),
                     onDoThis: {
                         markSuggestionComplete(need: need, avoidHours: suggestion.avoidHours)
                     },
                     onUndo: {
                         undoSuggestionComplete(need: need)
-                    },
-                    onSaveGoTo: {
-                        HapticManager.light()
                     }
                 )
                 .padding(.horizontal, theme.spacing.lg)
@@ -493,6 +655,13 @@ struct DoView: View {
                 Text("You completed \(need.displayName.lowercased())")
                     .font(theme.typography.bodyMedium)
                     .foregroundColor(theme.colors.textSecondary)
+
+                // TCM post-practice micro-guidance
+                Text(postPracticeGuidance(for: need))
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, theme.spacing.xxs)
             }
         }
         .padding(theme.spacing.xl)
@@ -502,6 +671,24 @@ struct DoView: View {
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
         .accessibilityLabel("Completed\(completedNeed.map { ". You completed \($0.displayName.lowercased())" } ?? "")")
         .accessibilityAddTraits(.isStaticText)
+    }
+
+    /// TCM post-practice guidance — teaches principles in the moment they matter most
+    private func postPracticeGuidance(for need: QuickNeed) -> String {
+        switch need {
+        case .warmth:
+            return "Avoid cold foods and drinks for the next hour."
+        case .digestion:
+            return "Rest a moment. Let your body focus on processing."
+        case .calm:
+            return "Hold this stillness. Avoid screens for a few minutes."
+        case .energy:
+            return "Move gently in the next 20 minutes to circulate the boost."
+        case .cooling:
+            return "Stay in shade if possible. Avoid heavy meals."
+        case .focus:
+            return "Channel this clarity now. Start your most important task."
+        }
     }
 
     // MARK: - Suggestion Engine Integration
@@ -561,6 +748,18 @@ struct DoView: View {
         } else {
             return "\(avoidNote) for \(minutes)m more"
         }
+    }
+
+    // MARK: - Quick Fix Why
+
+    /// Generates a terrain-specific "why" for quick fix suggestions using InsightEngine
+    private func generateQuickFixWhy(for need: QuickNeed) -> String? {
+        let insightEngine = InsightEngine()
+        return insightEngine.generateWhyForYou(
+            routineTags: need.relevantTags,
+            terrainType: terrainType,
+            modifier: terrainModifier
+        )
     }
 
     // MARK: - Helpers
@@ -650,7 +849,7 @@ struct DoView: View {
             }
             HapticManager.success()
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                 withAnimation(reduceMotion ? nil : theme.animation.standard) {
                     showCompletionFeedback = false
                 }
@@ -681,7 +880,7 @@ struct DoView: View {
     }
 
     private func markRoutineComplete() {
-        let routineId = selectedRoutine?.id ?? "warm-start-congee-\(selectedLevel.rawValue)"
+        guard let routineId = selectedRoutine?.id else { return }
 
         if let log = todaysLog {
             log.markRoutineComplete(routineId, level: selectedLevel)
@@ -696,7 +895,7 @@ struct DoView: View {
     }
 
     private func markMovementComplete() {
-        let movementId = selectedMovement?.id ?? "morning-qi-flow-\(selectedLevel.rawValue)"
+        guard let movementId = selectedMovement?.id else { return }
 
         if let log = todaysLog {
             log.markMovementComplete(movementId)

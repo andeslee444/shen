@@ -21,13 +21,21 @@ struct IngredientsView: View {
     @State private var selectedCategory: IngredientCategory?
     @State private var selectedBenefit: IngredientBenefit?
     @State private var selectedIngredient: Ingredient?
+    @State private var inSeasonOnly = false
+
+    /// Which filter dimension is showing: category chips or benefit chips
+    enum FilterMode: String, CaseIterable {
+        case category = "Category"
+        case benefit = "Benefit"
+    }
+    @State private var filterMode: FilterMode = .category
 
     // MARK: - Computed Properties
 
     /// Whether the user has an active search/category filter.
     /// Think of this as asking "is the user narrowing their view?"
     private var hasActiveFilter: Bool {
-        !searchText.isEmpty || selectedCategory != nil || selectedBenefit != nil
+        !searchText.isEmpty || selectedCategory != nil || selectedBenefit != nil || inSeasonOnly
     }
 
     /// Single source of truth for "does this ingredient pass the current filter?"
@@ -39,7 +47,9 @@ struct IngredientsView: View {
             IngredientCategory(rawValue: ingredient.category) == selectedCategory
         let matchesBenefit = selectedBenefit == nil ||
             selectedBenefit!.matches(ingredient)
-        return matchesSearch && matchesCategory && matchesBenefit
+        let matchesSeason = !inSeasonOnly ||
+            ingredient.seasons.contains(currentSeason)
+        return matchesSearch && matchesCategory && matchesBenefit && matchesSeason
     }
 
     /// All ingredients that pass the current search + category filter
@@ -74,29 +84,23 @@ struct IngredientsView: View {
         }
     }
 
-    /// Current season based on calendar month
+    /// Current season using TCM's five-season model (五季).
+    /// Late summer (长夏) is the Earth-element transition period (August–September)
+    /// when dampness peaks and damp-draining foods are most relevant.
     private var currentSeason: String {
         let month = Calendar.current.component(.month, from: Date())
         switch month {
         case 3...5: return "spring"
-        case 6...8: return "summer"
-        case 9...11: return "autumn"
+        case 6...7: return "summer"
+        case 8, 9: return "late_summer"
+        case 10, 11: return "autumn"
         default: return "winter"
         }
     }
 
     /// Display name for the current season
     private var seasonDisplayName: String {
-        currentSeason.capitalized
-    }
-
-    /// Seasonal ingredients that also pass the current filter
-    private var filteredSeasonalIngredients: [Ingredient] {
-        allIngredients.filter { ingredient in
-            matchesFilter(ingredient) &&
-            (ingredient.seasons.contains(currentSeason) ||
-             ingredient.seasons.contains("all_year"))
-        }
+        currentSeason == "late_summer" ? "Late Summer" : currentSeason.capitalized
     }
 
     // MARK: - Body
@@ -108,11 +112,8 @@ struct IngredientsView: View {
                     // Search
                     searchBar
 
-                    // Category filters
-                    categoryFilters
-
-                    // Benefit filters
-                    benefitFilters
+                    // Consolidated filter row
+                    filterRow
 
                     // My Cabinet section
                     if cabinetItems.isEmpty {
@@ -129,11 +130,6 @@ struct IngredientsView: View {
                     // Recommended for you section (terrain-aware)
                     if !filteredRecommendedIngredients.isEmpty {
                         recommendedSection
-                    }
-
-                    // In Season section
-                    if !filteredSeasonalIngredients.isEmpty {
-                        seasonalSection
                     }
 
                     // All ingredients
@@ -170,70 +166,145 @@ struct IngredientsView: View {
                 .font(theme.typography.bodyMedium)
                 .accessibilityLabel("Search ingredients")
                 .accessibilityHint("Search by ingredient name")
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                    HapticManager.light()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(theme.colors.textTertiary)
+                }
+            }
         }
         .padding(theme.spacing.sm)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.medium)
+        .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 1)
         .padding(.horizontal, theme.spacing.lg)
     }
 
-    private var categoryFilters: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+    /// Consolidated filter: Category ↔ Benefit chip toggle + In Season toggle
+    private var filterRow: some View {
+        VStack(spacing: theme.spacing.xs) {
+            // Toggle header + In Season + clear button
             HStack(spacing: theme.spacing.xs) {
-                TerrainChip(
-                    title: "All",
-                    isSelected: selectedCategory == nil,
-                    action: {
-                        selectedCategory = nil
+                ForEach(FilterMode.allCases, id: \.self) { mode in
+                    Button {
+                        withAnimation(theme.animation.quick) {
+                            filterMode = mode
+                        }
                         HapticManager.selection()
+                    } label: {
+                        Text(mode.rawValue)
+                            .font(theme.typography.labelSmall)
+                            .foregroundColor(filterMode == mode ? theme.colors.accent : theme.colors.textTertiary)
+                            .padding(.horizontal, theme.spacing.sm)
+                            .padding(.vertical, theme.spacing.xxs)
                     }
-                )
+                }
 
-                ForEach(IngredientCategory.allCases) { category in
-                    TerrainChip(
-                        title: category.displayName,
-                        isSelected: selectedCategory == category,
-                        action: {
-                            selectedCategory = category
-                            HapticManager.selection()
+                // In Season — independent toggle that layers on top of category/benefit
+                Button {
+                    withAnimation(theme.animation.quick) {
+                        inSeasonOnly.toggle()
+                    }
+                    HapticManager.selection()
+                } label: {
+                    HStack(spacing: theme.spacing.xxs) {
+                        Image(systemName: seasonIcon)
+                            .font(.system(size: 10))
+                        Text("In Season")
+                            .font(theme.typography.labelSmall)
+                    }
+                    .foregroundColor(inSeasonOnly ? theme.colors.accent : theme.colors.textTertiary)
+                    .padding(.horizontal, theme.spacing.sm)
+                    .padding(.vertical, theme.spacing.xxs)
+                    .background(inSeasonOnly ? theme.colors.accent.opacity(0.12) : Color.clear)
+                    .cornerRadius(theme.cornerRadius.full)
+                }
+
+                Spacer()
+
+                // Clear button — only visible when a filter is active
+                if selectedCategory != nil || selectedBenefit != nil || inSeasonOnly {
+                    Button {
+                        withAnimation(theme.animation.quick) {
+                            selectedCategory = nil
+                            selectedBenefit = nil
+                            inSeasonOnly = false
                         }
-                    )
+                        HapticManager.light()
+                    } label: {
+                        Text("Clear")
+                            .font(theme.typography.labelSmall)
+                            .foregroundColor(theme.colors.accent)
+                    }
                 }
             }
             .padding(.horizontal, theme.spacing.lg)
-        }
-    }
 
-    private var benefitFilters: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: theme.spacing.xs) {
-                ForEach(IngredientBenefit.allCases) { benefit in
-                    TerrainChip(
-                        title: benefit.displayName,
-                        icon: benefit.icon,
-                        isSelected: selectedBenefit == benefit,
-                        action: {
-                            selectedBenefit = selectedBenefit == benefit ? nil : benefit
-                            HapticManager.selection()
+            // Active chip row
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: theme.spacing.xs) {
+                    switch filterMode {
+                    case .category:
+                        TerrainChip(
+                            title: "All",
+                            isSelected: selectedCategory == nil,
+                            action: {
+                                selectedCategory = nil
+                                HapticManager.selection()
+                            }
+                        )
+
+                        ForEach(IngredientCategory.allCases) { category in
+                            TerrainChip(
+                                title: category.displayName,
+                                isSelected: selectedCategory == category,
+                                action: {
+                                    selectedCategory = category
+                                    HapticManager.selection()
+                                }
+                            )
                         }
-                    )
+
+                    case .benefit:
+                        ForEach(IngredientBenefit.allCases) { benefit in
+                            TerrainChip(
+                                title: benefit.displayName,
+                                icon: benefit.icon,
+                                isSelected: selectedBenefit == benefit,
+                                action: {
+                                    selectedBenefit = selectedBenefit == benefit ? nil : benefit
+                                    HapticManager.selection()
+                                }
+                            )
+                        }
+                    }
                 }
+                .padding(.horizontal, theme.spacing.lg)
             }
-            .padding(.horizontal, theme.spacing.lg)
         }
     }
 
     private var cabinetSection: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(spacing: theme.spacing.xs) {
-                Image(systemName: "cabinet.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(theme.colors.accent)
-                    .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                HStack(spacing: theme.spacing.xs) {
+                    Image(systemName: "cabinet.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(theme.colors.accent)
+                        .accessibilityHidden(true)
 
-                Text("My Cabinet")
-                    .font(theme.typography.labelLarge)
-                    .foregroundColor(theme.colors.textPrimary)
+                    Text("My Cabinet")
+                        .font(theme.typography.labelLarge)
+                        .foregroundColor(theme.colors.textPrimary)
+                }
+
+                Text("\(filteredCabinetItems.count) ingredient\(filteredCabinetItems.count == 1 ? "" : "s") saved")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
             }
             .accessibilityAddTraits(.isHeader)
             .padding(.horizontal, theme.spacing.lg)
@@ -260,14 +331,20 @@ struct IngredientsView: View {
 
     private var recommendedSection: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(spacing: theme.spacing.xs) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 14))
-                    .foregroundColor(theme.colors.accent)
+            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                HStack(spacing: theme.spacing.xs) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 14))
+                        .foregroundColor(theme.colors.accent)
 
-                Text("Recommended for You")
-                    .font(theme.typography.labelLarge)
-                    .foregroundColor(theme.colors.textPrimary)
+                    Text("Recommended for You")
+                        .font(theme.typography.labelLarge)
+                        .foregroundColor(theme.colors.textPrimary)
+                }
+
+                Text("Based on your terrain profile")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
             }
             .padding(.horizontal, theme.spacing.lg)
 
@@ -280,43 +357,10 @@ struct IngredientsView: View {
                         } label: {
                             IngredientCard(
                                 ingredient: ingredient,
-                                isInCabinet: isInCabinet(ingredient.id)
+                                isInCabinet: isInCabinet(ingredient.id),
+                                activeBenefit: selectedBenefit
                             )
-                            .frame(width: 160)
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                    }
-                }
-                .padding(.horizontal, theme.spacing.lg)
-            }
-        }
-    }
-
-    private var seasonalSection: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            HStack(spacing: theme.spacing.xs) {
-                Image(systemName: seasonIcon)
-                    .font(.system(size: 14))
-                    .foregroundColor(theme.colors.accent)
-
-                Text("In Season (\(seasonDisplayName))")
-                    .font(theme.typography.labelLarge)
-                    .foregroundColor(theme.colors.textPrimary)
-            }
-            .padding(.horizontal, theme.spacing.lg)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: theme.spacing.md) {
-                    ForEach(filteredSeasonalIngredients.prefix(8)) { ingredient in
-                        Button {
-                            selectedIngredient = ingredient
-                            HapticManager.light()
-                        } label: {
-                            IngredientCard(
-                                ingredient: ingredient,
-                                isInCabinet: isInCabinet(ingredient.id)
-                            )
-                            .frame(width: 160)
+                            .frame(width: gridCardWidth)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -328,10 +372,22 @@ struct IngredientsView: View {
 
     private var allIngredientsSection: some View {
         VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            Text("All Ingredients")
-                .font(theme.typography.labelLarge)
-                .foregroundColor(theme.colors.textPrimary)
-                .padding(.horizontal, theme.spacing.lg)
+            HStack {
+                Text("All Ingredients")
+                    .font(theme.typography.labelLarge)
+                    .foregroundColor(theme.colors.textPrimary)
+
+                Spacer()
+
+                Text("\(filteredIngredients.count)")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
+                    .padding(.horizontal, theme.spacing.xs)
+                    .padding(.vertical, theme.spacing.xxs)
+                    .background(theme.colors.backgroundSecondary)
+                    .cornerRadius(theme.cornerRadius.small)
+            }
+            .padding(.horizontal, theme.spacing.lg)
 
             if filteredIngredients.isEmpty && !allIngredients.isEmpty {
                 Text("No ingredients match your search")
@@ -360,7 +416,8 @@ struct IngredientsView: View {
                         } label: {
                             IngredientCard(
                                 ingredient: ingredient,
-                                isInCabinet: isInCabinet(ingredient.id)
+                                isInCabinet: isInCabinet(ingredient.id),
+                                activeBenefit: selectedBenefit
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -372,6 +429,15 @@ struct IngredientsView: View {
     }
 
     // MARK: - Helpers
+
+    /// Card width that matches the 2-column grid in All Ingredients.
+    /// Formula mirrors LazyVGrid: (screen - left padding - right padding - column gap) / 2
+    private var gridCardWidth: CGFloat {
+        let screenWidth = UIScreen.main.bounds.width
+        let horizontalPadding = theme.spacing.lg * 2
+        let columnSpacing = theme.spacing.md
+        return floor((screenWidth - horizontalPadding - columnSpacing) / 2)
+    }
 
     private var seasonIcon: String {
         switch currentSeason {
@@ -431,14 +497,19 @@ struct CabinetIngredientCard: View {
         ingredients.first { $0.id == ingredientId }?.displayName ?? ingredientId.capitalized
     }
 
+    /// Looks up the ingredient's emoji via the IngredientEmoji extension
+    private var ingredientEmoji: String {
+        ingredients.first { $0.id == ingredientId }?.emoji ?? "🌿"
+    }
+
     var body: some View {
         VStack(spacing: theme.spacing.xs) {
             Circle()
                 .fill(theme.colors.accent.opacity(0.1))
                 .frame(width: 60, height: 60)
                 .overlay(
-                    Image(systemName: "leaf.fill")
-                        .foregroundColor(theme.colors.accent)
+                    Text(ingredientEmoji)
+                        .font(.system(size: 28))
                 )
 
             Text(ingredientName)
@@ -449,70 +520,97 @@ struct CabinetIngredientCard: View {
     }
 }
 
-// MARK: - Ingredient Card
+// MARK: - Ingredient Card (Compact)
 
 struct IngredientCard: View {
     let ingredient: Ingredient
     var isInCabinet: Bool = false
+    /// When a benefit filter is active, this ensures the filtered benefit
+    /// is the one displayed on the card (not buried in the "+N" count).
+    var activeBenefit: IngredientBenefit? = nil
 
     @Environment(\.terrainTheme) private var theme
 
-    /// Maps the ingredient's raw tags/goals to user-facing benefit labels
-    private var displayTags: [String] {
-        IngredientBenefit.allCases
-            .filter { $0.matches(ingredient) }
-            .prefix(3)
-            .map { $0.displayName }
+    /// All benefits that match this ingredient
+    private var allBenefits: [IngredientBenefit] {
+        IngredientBenefit.allCases.filter { $0.matches(ingredient) }
+    }
+
+    /// The benefit to display on the card. If the user is filtering by a
+    /// benefit, that one gets priority so the card explains *why* it appeared.
+    private var displayedBenefit: IngredientBenefit? {
+        if let active = activeBenefit, active.matches(ingredient) {
+            return active
+        }
+        return allBenefits.first
+    }
+
+    /// How many additional benefits exist beyond the one shown.
+    /// e.g. 4 total - 1 shown = "+3"
+    private var additionalBenefitCount: Int {
+        max(allBenefits.count - 1, 0)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-            // Image placeholder
-            RoundedRectangle(cornerRadius: theme.cornerRadius.medium)
-                .fill(theme.colors.backgroundSecondary)
-                .frame(height: 100)
-                .overlay(
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(theme.colors.accent.opacity(0.5))
-                )
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            // Emoji + name row
+            HStack(spacing: theme.spacing.sm) {
+                Circle()
+                    .fill(theme.colors.accent.opacity(0.08))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Text(ingredient.emoji)
+                            .font(.system(size: 22))
+                    )
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(ingredient.displayName)
-                        .font(theme.typography.labelMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-                        .lineLimit(1)
+                VStack(alignment: .leading, spacing: 1) {
+                    HStack(spacing: theme.spacing.xxs) {
+                        Text(ingredient.displayName)
+                            .font(theme.typography.labelMedium)
+                            .foregroundColor(theme.colors.textPrimary)
+                            .lineLimit(1)
 
-                    if isInCabinet {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(theme.colors.success)
+                        Spacer(minLength: 0)
+
+                        if isInCabinet {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 12))
+                                .foregroundColor(theme.colors.success)
+                        }
                     }
-                }
 
-                if let category = IngredientCategory(rawValue: ingredient.category) {
-                    Text(category.displayName)
-                        .font(theme.typography.caption)
-                        .foregroundColor(theme.colors.textTertiary)
-                }
+                    // Benefit label + additional count
+                    if let benefit = displayedBenefit {
+                        HStack(spacing: theme.spacing.xxs) {
+                            Text(benefit.displayName)
+                                .font(theme.typography.caption)
+                                .foregroundColor(theme.colors.textTertiary)
 
-                FlowLayout(spacing: 4) {
-                    ForEach(displayTags, id: \.self) { tag in
-                        Text(tag)
-                            .font(theme.typography.caption)
-                            .foregroundColor(theme.colors.accent)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(theme.colors.accent.opacity(0.1))
-                            .cornerRadius(4)
+                            if additionalBenefitCount > 0 {
+                                Text("+\(additionalBenefitCount)")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(theme.colors.accent)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1)
+                                    .background(theme.colors.accent.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
+                        }
                     }
                 }
             }
+
+            // 2-line description teaser
+            Text(ingredient.whyItHelps.plain.localized)
+                .font(theme.typography.caption)
+                .foregroundColor(theme.colors.textSecondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(theme.spacing.sm)
+        .padding(theme.spacing.md)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.large)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 }
 

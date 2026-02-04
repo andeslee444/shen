@@ -358,8 +358,16 @@ enum ModuleType {
 
     var label: String {
         switch self {
-        case .eatDrink: return "Eat/Drink"
+        case .eatDrink: return "Nourish"
         case .movement: return "Move"
+        }
+    }
+
+    /// Type-specific tint: warm amber for nourish (Spleen/Stomach), cool blue-gray for movement (meridian circulation)
+    func tintColor(theme: TerrainTheme) -> Color {
+        switch self {
+        case .eatDrink: return theme.colors.terrainWarm
+        case .movement: return theme.colors.terrainCool
         }
     }
 }
@@ -374,18 +382,22 @@ struct RoutineModuleCard: View {
 
     @Environment(\.terrainTheme) private var theme
 
+    private var tint: Color {
+        type.tintColor(theme: theme)
+    }
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: theme.spacing.md) {
-                // Icon
+                // Icon — uses type-specific tint color
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? theme.colors.success.opacity(0.15) : theme.colors.accent.opacity(0.1))
+                        .fill(isCompleted ? theme.colors.success.opacity(0.15) : tint.opacity(0.12))
                         .frame(width: 48, height: 48)
 
                     Image(systemName: isCompleted ? "checkmark" : type.icon)
                         .font(.system(size: 20))
-                        .foregroundColor(isCompleted ? theme.colors.success : theme.colors.accent)
+                        .foregroundColor(isCompleted ? theme.colors.success : tint)
                 }
 
                 // Content
@@ -394,7 +406,6 @@ struct RoutineModuleCard: View {
                         Text(type.label)
                             .font(theme.typography.labelSmall)
                             .foregroundColor(theme.colors.textTertiary)
-                            .textCase(.uppercase)
 
                         Spacer()
 
@@ -427,6 +438,7 @@ struct RoutineModuleCard: View {
                 RoundedRectangle(cornerRadius: theme.cornerRadius.large)
                     .stroke(isCompleted ? theme.colors.success.opacity(0.3) : Color.clear, lineWidth: 1)
             )
+            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
