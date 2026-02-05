@@ -2,9 +2,8 @@
 //  EnhancedPatternMapView.swift
 //  Terrain
 //
-//  Merged constitution readout + pattern map — shows each axis
-//  with its label, value text, slider bar, and expandable tooltip.
-//  Replaces both ConstitutionCardView and PatternMapView.
+//  Colorful pattern map matching the onboarding "How It Works" style.
+//  Shows each axis with emoji, gradient bar, and user's position.
 //
 
 import SwiftUI
@@ -14,153 +13,161 @@ struct EnhancedPatternMapView: View {
     let vector: TerrainVector
 
     @Environment(\.terrainTheme) private var theme
-    @State private var activeTooltipIndex: Int?
     @State private var appeared = false
 
-    private struct AxisConfig {
+    // MARK: - Axis Configuration
+
+    private struct AxisDisplay {
+        let emoji: String
+        let label: String
         let leftLabel: String
         let rightLabel: String
+        let leftColor: Color
+        let rightColor: Color
         let value: Int
         let minVal: Int
         let maxVal: Int
     }
 
-    /// Plain-language explanation for each axis (shown beneath the axis label)
-    private static let axisPlainLabels: [String] = [
-        "Temperature tendency (cold ← → warm)",
-        "Energy reserves (depleted ← → overflowing)",
-        "Fluid balance (heavy/damp ← → dry/parched)",
-        "Flow (stuck ← → free-flowing)",
-        "Mind & sleep (restless ← → settled)"
-    ]
-
-    private var axisConfigs: [AxisConfig] {
+    private var axes: [AxisDisplay] {
         [
-            AxisConfig(leftLabel: "Cold", rightLabel: "Hot", value: vector.coldHeat, minVal: -10, maxVal: 10),
-            AxisConfig(leftLabel: "Deficient", rightLabel: "Excess", value: vector.defExcess, minVal: -10, maxVal: 10),
-            AxisConfig(leftLabel: "Damp", rightLabel: "Dry", value: vector.dampDry, minVal: -10, maxVal: 10),
-            AxisConfig(leftLabel: "Stagnant", rightLabel: "Smooth", value: 10 - vector.qiStagnation, minVal: 0, maxVal: 10),
-            AxisConfig(leftLabel: "Restless", rightLabel: "Settled", value: 10 - vector.shenUnsettled, minVal: 0, maxVal: 10)
+            AxisDisplay(
+                emoji: "🌡️",
+                label: "Temperature",
+                leftLabel: "Cold",
+                rightLabel: "Hot",
+                leftColor: Color(hex: "7A8E9E"),
+                rightColor: Color(hex: "C9956E"),
+                value: vector.coldHeat,
+                minVal: -10,
+                maxVal: 10
+            ),
+            AxisDisplay(
+                emoji: "🔋",
+                label: "Energy",
+                leftLabel: "Depleted",
+                rightLabel: "Full",
+                leftColor: Color(hex: "9E9E8E"),
+                rightColor: Color(hex: "7A9E7E"),
+                value: vector.defExcess,
+                minVal: -10,
+                maxVal: 10
+            ),
+            AxisDisplay(
+                emoji: "💧",
+                label: "Moisture",
+                leftLabel: "Damp",
+                rightLabel: "Dry",
+                leftColor: Color(hex: "6B8FA3"),
+                rightColor: Color(hex: "C9A96E"),
+                value: vector.dampDry,
+                minVal: -10,
+                maxVal: 10
+            ),
+            AxisDisplay(
+                emoji: "🌊",
+                label: "Flow",
+                leftLabel: "Stuck",
+                rightLabel: "Free",
+                leftColor: Color(hex: "A07A7A"),
+                rightColor: Color(hex: "7A9E7E"),
+                value: 10 - vector.qiStagnation,
+                minVal: 0,
+                maxVal: 10
+            ),
+            AxisDisplay(
+                emoji: "🧠",
+                label: "Mind",
+                leftLabel: "Restless",
+                rightLabel: "Settled",
+                leftColor: Color(hex: "B08EA0"),
+                rightColor: Color(hex: "7A8E9E"),
+                value: 10 - vector.shenUnsettled,
+                minVal: 0,
+                maxVal: 10
+            )
         ]
     }
 
     var body: some View {
-        VStack(spacing: theme.spacing.md) {
-            ForEach(Array(readout.axes.enumerated()), id: \.offset) { index, axis in
-                VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-                    // Axis label + plain-language explanation + tooltip
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack {
-                            Text(axis.label)
-                                .font(theme.typography.labelSmall)
-                                .foregroundColor(theme.colors.textTertiary)
-
-                            Spacer()
-
-                            Button {
-                                withAnimation(theme.animation.quick) {
-                                    activeTooltipIndex = activeTooltipIndex == index ? nil : index
-                                }
-                                HapticManager.light()
-                            } label: {
-                                Image(systemName: "questionmark.circle")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(theme.colors.textTertiary)
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-
-                        if index < Self.axisPlainLabels.count {
-                            Text(Self.axisPlainLabels[index])
-                                .font(theme.typography.caption)
-                                .foregroundColor(theme.colors.textTertiary.opacity(0.7))
-                        }
-                    }
-
-                    // Value text from ConstitutionReadout
-                    Text(axis.value)
-                        .font(theme.typography.bodyMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-
-                    // Slider bar
-                    if index < axisConfigs.count {
-                        axisBar(axisConfigs[index])
-                    }
-
-                    // Expandable tooltip
-                    if activeTooltipIndex == index {
-                        Text(axis.tooltip)
-                            .font(theme.typography.caption)
-                            .foregroundColor(theme.colors.textSecondary)
-                            .padding(theme.spacing.sm)
-                            .background(theme.colors.backgroundSecondary)
-                            .cornerRadius(theme.cornerRadius.medium)
-                            .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .top)))
-                    }
-                }
-
-                if index < readout.axes.count - 1 {
-                    Divider()
-                }
+        VStack(spacing: theme.spacing.sm) {
+            ForEach(Array(axes.enumerated()), id: \.offset) { index, axis in
+                axisRow(axis)
             }
         }
-        .padding(theme.spacing.lg)
+        .padding(theme.spacing.md)
         .background(theme.colors.surface)
         .cornerRadius(theme.cornerRadius.large)
         .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
         .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
         .onAppear {
-            withAnimation(theme.animation.standard) {
+            withAnimation(theme.animation.standard.delay(0.2)) {
                 appeared = true
             }
         }
     }
 
-    // MARK: - Slider Bar
+    // MARK: - Axis Row
 
-    private func axisBar(_ config: AxisConfig) -> some View {
-        HStack {
-            Text(config.leftLabel)
-                .font(theme.typography.caption)
-                .foregroundColor(theme.colors.textTertiary)
-                .frame(width: 64, alignment: .leading)
+    private func axisRow(_ axis: AxisDisplay) -> some View {
+        VStack(alignment: .leading, spacing: theme.spacing.xs) {
+            // Emoji + label
+            HStack(spacing: theme.spacing.xs) {
+                Text(axis.emoji)
+                    .font(.system(size: 18))
+                Text(axis.label)
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.textPrimary)
+            }
 
+            // Gradient bar with position indicator
             GeometryReader { geo in
-                let range = Double(config.maxVal - config.minVal)
+                let range = Double(axis.maxVal - axis.minVal)
                 let normalized = range > 0
-                    ? (Double(config.value - config.minVal) / range)
+                    ? (Double(axis.value - axis.minVal) / range)
                     : 0.5
-                let dotX = normalized * geo.size.width
+                let clampedNormalized = min(max(normalized, 0), 1)
+                let dotX = clampedNormalized * geo.size.width
 
                 ZStack(alignment: .leading) {
-                    // Track
-                    Capsule()
-                        .fill(theme.colors.backgroundSecondary)
-                        .frame(height: 4)
+                    // Gradient track
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [axis.leftColor, axis.rightColor],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: 8)
 
-                    // Center mark for bipolar axes
-                    if config.minVal < 0 {
-                        Rectangle()
-                            .fill(theme.colors.textTertiary.opacity(0.3))
-                            .frame(width: 1, height: 8)
-                            .position(x: geo.size.width / 2, y: 4)
-                    }
-
-                    // Dot
+                    // Position indicator (white dot with shadow)
                     Circle()
-                        .fill(theme.colors.accent)
-                        .frame(width: 10, height: 10)
-                        .offset(x: appeared ? dotX - CGFloat(5) : (config.minVal < 0 ? geo.size.width / 2 - CGFloat(5) : CGFloat(-5)))
-                        .animation(theme.animation.standard, value: appeared)
+                        .fill(Color.white)
+                        .frame(width: 16, height: 16)
+                        .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white, lineWidth: 2)
+                        )
+                        .offset(x: appeared ? dotX - CGFloat(8) : (axis.minVal < 0 ? geo.size.width / 2 - CGFloat(8) : CGFloat(-8)))
+                        .animation(theme.animation.spring, value: appeared)
                 }
-                .frame(height: 10)
+                .frame(height: 16)
             }
-            .frame(height: 10)
+            .frame(height: 16)
 
-            Text(config.rightLabel)
-                .font(theme.typography.caption)
-                .foregroundColor(theme.colors.textTertiary)
-                .frame(width: 64, alignment: .trailing)
+            // Axis labels
+            HStack {
+                Text(axis.leftLabel)
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
+                Spacer()
+                Text(axis.rightLabel)
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
+            }
         }
+        .padding(.vertical, theme.spacing.xs)
     }
 }

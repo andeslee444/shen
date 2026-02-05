@@ -12,6 +12,8 @@ struct WelcomeView: View {
 
     @Environment(\.terrainTheme) private var theme
     @State private var showContent = false
+    @State private var showingTerms = false
+    @State private var showingPrivacy = false
 
     var body: some View {
         VStack(spacing: theme.spacing.xl) {
@@ -63,12 +65,33 @@ struct WelcomeView: View {
                 TerrainPrimaryButton(title: "Begin", action: onContinue)
                     .padding(.horizontal, theme.spacing.lg)
 
-                Text("By continuing, you agree to our Terms of Service")
-                    .font(theme.typography.caption)
-                    .foregroundColor(theme.colors.textTertiary)
+                HStack(spacing: 4) {
+                    Text("By continuing, you agree to our")
+                    Text("Terms")
+                        .underline()
+                        .onTapGesture {
+                            showingTerms = true
+                            HapticManager.light()
+                        }
+                    Text("and")
+                    Text("Privacy Policy")
+                        .underline()
+                        .onTapGesture {
+                            showingPrivacy = true
+                            HapticManager.light()
+                        }
+                }
+                .font(theme.typography.caption)
+                .foregroundColor(theme.colors.textTertiary)
             }
             .opacity(showContent ? 1 : 0)
             .animation(theme.animation.reveal.delay(0.6), value: showContent)
+        }
+        .sheet(isPresented: $showingTerms) {
+            SafariView(url: LegalURLs.termsOfService)
+        }
+        .sheet(isPresented: $showingPrivacy) {
+            SafariView(url: LegalURLs.privacyPolicy)
         }
         .padding(.horizontal, theme.spacing.lg)
         .padding(.bottom, theme.spacing.lg)

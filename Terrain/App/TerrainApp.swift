@@ -114,7 +114,7 @@ struct TerrainApp: App {
 
                 // Step 2: Now that content is loaded, configure sync and do initial pull
                 syncService.configure(modelContext: modelContainer.mainContext)
-                await syncService.sync()
+                await syncService.sync(force: true)
             } catch {
                 loadingError = error
                 TerrainLogger.contentPack.error("Failed to load content pack: \(error)")

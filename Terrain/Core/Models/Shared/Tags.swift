@@ -181,7 +181,7 @@ enum IngredientBenefit: String, CaseIterable, Identifiable {
         case .stress:    return "brain.head.profile"
         case .energy:    return "battery.25"
         case .headache:  return "exclamationmark.circle"
-        case .cramps:    return "waveform.path"
+        case .cramps:    return "drop.fill"
         case .stiffness: return "figure.walk"
         case .cold:      return "thermometer.snowflake"
         case .beauty:    return "sparkles"

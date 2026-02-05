@@ -52,6 +52,11 @@ final class UserProfile {
     var alcoholFrequency: String?    // "never", "rarely", "weekly", "daily"
     var smokingStatus: String?       // "never", "former", "occasional", "regular"
 
+    // Demographics (from onboarding)
+    var age: Int?                    // Exact age (18-100)
+    var gender: String?              // "male", "female", "non_binary"
+    var ethnicity: String?           // "chinese", "east_asian", "south_asian", etc.
+
     // Safety preferences
     var safetyPreferences: SafetyPreferences
 
@@ -59,6 +64,13 @@ final class UserProfile {
     var morningNotificationTime: Date?
     var eveningNotificationTime: Date?
     var notificationsEnabled: Bool
+
+    // MARK: - Phase 14 TCM Personalization
+    var hydrationPattern: HydrationPattern?
+    var sweatPattern: SweatPattern?
+
+    // MARK: - Pulse Check-In
+    var lastPulseCheckInDate: Date?
 
     // Timestamps
     var createdAt: Date
@@ -86,6 +98,9 @@ final class UserProfile {
         displayName: String? = nil,
         alcoholFrequency: String? = nil,
         smokingStatus: String? = nil,
+        age: Int? = nil,
+        gender: String? = nil,
+        ethnicity: String? = nil,
         safetyPreferences: SafetyPreferences = SafetyPreferences(),
         morningNotificationTime: Date? = nil,
         eveningNotificationTime: Date? = nil,
@@ -111,6 +126,9 @@ final class UserProfile {
         self.displayName = displayName
         self.alcoholFrequency = alcoholFrequency
         self.smokingStatus = smokingStatus
+        self.age = age
+        self.gender = gender
+        self.ethnicity = ethnicity
         self.safetyPreferences = safetyPreferences
         self.morningNotificationTime = morningNotificationTime
         self.eveningNotificationTime = eveningNotificationTime
@@ -228,4 +246,72 @@ struct TerrainDelta: Codable, Hashable {
 // Helper function
 private func clamp(_ value: Int, min: Int, max: Int) -> Int {
     Swift.min(Swift.max(value, min), max)
+}
+
+// MARK: - Hydration Pattern (Phase 14)
+
+/// Hydration preference — TCM uses fluid cravings as a diagnostic signal.
+/// Someone constantly thirsty for cold water signals internal heat;
+/// someone who rarely drinks signals possible dampness or cold.
+enum HydrationPattern: String, Codable, CaseIterable, Identifiable {
+    case prefersWarm = "prefers_warm"
+    case prefersCold = "prefers_cold"
+    case rarelyThirsty = "rarely_thirsty"
+    case constantlyThirsty = "constantly_thirsty"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .prefersWarm: return "Prefers Warm"
+        case .prefersCold: return "Prefers Cold"
+        case .rarelyThirsty: return "Rarely Thirsty"
+        case .constantlyThirsty: return "Constantly Thirsty"
+        }
+    }
+
+    /// TCM diagnostic meaning
+    var tcmSignal: String {
+        switch self {
+        case .prefersWarm: return "Cold pattern — body craves warmth"
+        case .prefersCold: return "Internal heat — body seeks cooling"
+        case .rarelyThirsty: return "Possible yin deficiency or dampness"
+        case .constantlyThirsty: return "Heat or yin deficiency consuming fluids"
+        }
+    }
+}
+
+// MARK: - Sweat Pattern (Phase 14)
+
+/// Sweat pattern — TCM distinguishes spontaneous daytime sweating (qi deficiency)
+/// from night sweats (yin deficiency), each pointing to different underlying patterns.
+enum SweatPattern: String, Codable, CaseIterable, Identifiable {
+    case normal
+    case spontaneousDaytime = "spontaneous_daytime"
+    case nightSweats = "night_sweats"
+    case rarelySweat = "rarely_sweat"
+    case heavyWithExertion = "heavy_with_exertion"
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .normal: return "Normal"
+        case .spontaneousDaytime: return "Spontaneous Daytime"
+        case .nightSweats: return "Night Sweats"
+        case .rarelySweat: return "Rarely Sweat"
+        case .heavyWithExertion: return "Heavy with Exertion"
+        }
+    }
+
+    /// TCM diagnostic meaning
+    var tcmSignal: String {
+        switch self {
+        case .normal: return "Balanced — sweating is appropriate to activity"
+        case .spontaneousDaytime: return "Qi deficiency — the body can't hold fluids"
+        case .nightSweats: return "Yin deficiency — heat escapes when yang subsides"
+        case .rarelySweat: return "Possible yang excess or surface constraint"
+        case .heavyWithExertion: return "Possible qi deficiency or internal heat"
+        }
+    }
 }

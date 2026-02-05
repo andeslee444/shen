@@ -33,13 +33,9 @@ struct TerrainHeroHeaderView: View {
                 .foregroundColor(theme.colors.textTertiary)
                 .tracking(3)
 
-            Text(terrainType.label)
-                .font(theme.typography.headlineLarge)
-                .foregroundColor(theme.colors.textPrimary)
-
             Text(terrainType.nickname)
-                .font(theme.typography.headlineMedium)
-                .foregroundColor(theme.colors.accent)
+                .font(theme.typography.displayMedium)
+                .foregroundColor(theme.colors.textPrimary)
                 .shadow(color: terrainGlowColor.opacity(0.4), radius: 8)
 
             if modifier != .none {

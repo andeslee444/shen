@@ -67,3 +67,44 @@ struct TrendResult {
     let icon: String           // SF Symbol for the category
     let dailyRates: [Double]   // 14 values (0.0-1.0), one per day in the window
 }
+
+// MARK: - Terrain-Aware Trends (Phase 13)
+
+/// An annotated trend result with terrain-specific prioritization and interpretation
+struct AnnotatedTrendResult: Identifiable {
+    let id = UUID()
+    let base: TrendResult
+    let priority: Int           // 1 = highest priority for this terrain type
+    let terrainNote: String     // "For your terrain, this means..."
+    let isWatchFor: Bool        // True if this is a "watch for" category for this terrain
+
+    var category: String { base.category }
+    var direction: TrendDirection { base.direction }
+    var icon: String { base.icon }
+    var dailyRates: [Double] { base.dailyRates }
+}
+
+/// A healthy zone range for a trend category, specific to terrain type
+struct TerrainHealthyZone {
+    let category: String
+    let range: ClosedRange<Double>  // 0.0-1.0 scale
+    let label: String               // "Your healthy range"
+    let terrainContext: String      // Why this range differs for this terrain
+}
+
+/// Activity minutes breakdown by type
+struct ActivityMinutesResult {
+    let routineMinutes: [Double]    // Daily routine (food/drink) minutes, one per day
+    let movementMinutes: [Double]   // Daily movement minutes, one per day
+    let totalRoutineMinutes: Double
+    let totalMovementMinutes: Double
+    let windowDays: Int
+}
+
+/// Personalized terrain pulse insight for the hero card
+struct TerrainPulseInsight {
+    let headline: String            // Editorial-style headline
+    let body: String                // Terrain-specific interpretation
+    let accentCategory: String?     // Which trend category this references (optional)
+    let isUrgent: Bool              // True for declining trends needing attention
+}

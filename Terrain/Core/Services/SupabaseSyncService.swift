@@ -44,10 +44,17 @@ final class SupabaseSyncService {
     private let client: SupabaseClient
     private var modelContext: ModelContext?
 
+    /// Timestamp of the last successful sync start — used for debouncing.
+    private var lastSyncTime: Date?
+
+    /// Minimum seconds between sync() calls. Prevents rapid-fire syncs
+    /// (e.g., repeated foreground/background transitions) from hammering Supabase.
+    private let minimumSyncInterval: TimeInterval = 30
+
     // MARK: - Init
 
     /// Reads Supabase credentials from Supabase.plist bundled in the app.
-    /// Falls back to hardcoded project values if the plist is missing.
+    /// If the plist is missing or malformed, sync is disabled gracefully.
     init() {
         let url: URL
         let key: String
@@ -59,14 +66,8 @@ final class SupabaseSyncService {
            let parsedURL = URL(string: plistURL) {
             url = parsedURL
             key = plistKey
-        } else if let fallbackURL = URL(string: "https://xsxiykrjwzayrhwxwxbv.supabase.co") {
-            // Fallback to project defaults
-            url = fallbackURL
-            key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeGl5a3Jqd3pheXJod3h3eGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3NTI0NzksImV4cCI6MjA4NTMyODQ3OX0.XY06FTCJBUa2YjtfV0_Zi1nYI1uHoC4fcfcnxCis5iA"
         } else {
-            // This should never happen — the fallback URL is a compile-time constant.
-            // But if it does, we log and provide a dummy client that will fail gracefully on use.
-            TerrainLogger.sync.critical("Could not parse any Supabase URL — sync will be unavailable")
+            TerrainLogger.sync.critical("Supabase.plist missing or malformed — sync will be unavailable")
             url = URL(string: "https://invalid.supabase.co")!
             key = ""
         }
@@ -105,11 +106,31 @@ final class SupabaseSyncService {
         currentUserEmail = session.user.email
     }
 
-    /// Sign out
-    func signOut() async throws {
+    /// Sign out and optionally clear all local user data.
+    ///
+    /// - Parameter clearLocalData: When `true` (default), deletes all SwiftData user
+    ///   records so the next person signing in on this device cannot see the previous
+    ///   user's health data. Cloud data is unaffected — signing back in will re-sync.
+    func signOut(clearLocalData: Bool = true) async throws {
         try await client.auth.signOut()
+
+        if clearLocalData, let context = modelContext {
+            do {
+                for profile in try context.fetch(FetchDescriptor<UserProfile>()) { context.delete(profile) }
+                for log in try context.fetch(FetchDescriptor<DailyLog>()) { context.delete(log) }
+                for record in try context.fetch(FetchDescriptor<ProgressRecord>()) { context.delete(record) }
+                for item in try context.fetch(FetchDescriptor<UserCabinet>()) { context.delete(item) }
+                for enrollment in try context.fetch(FetchDescriptor<ProgramEnrollment>()) { context.delete(enrollment) }
+                try context.save()
+                TerrainLogger.sync.info("Local user data cleared on sign-out")
+            } catch {
+                TerrainLogger.sync.error("Failed to clear local data on sign-out: \(error)")
+            }
+        }
+
         currentUserId = nil
         currentUserEmail = nil
+        lastSyncTime = nil
     }
 
     /// Restore session from stored token on app launch
@@ -128,28 +149,40 @@ final class SupabaseSyncService {
 
     /// Full bidirectional sync: push local changes up, pull remote changes down.
     /// Call this on app launch, after significant writes, or on app resume.
-    func sync() async {
+    ///
+    /// Each table syncs independently — a failure in `daily_logs` won't block
+    /// `user_profiles` from syncing. Think of it like five separate postal
+    /// deliveries: if the "logs" truck breaks down, the other four still deliver.
+    ///
+    /// - Parameter force: Bypass the debounce timer (use after auth or quiz changes).
+    func sync(force: Bool = false) async {
         guard let userId = currentUserId, let context = modelContext else { return }
         guard !isSyncing else { return }
 
-        isSyncing = true
-        lastSyncError = nil
-
-        do {
-            try await syncUserProfile(userId: userId, context: context)
-            try await syncDailyLogs(userId: userId, context: context)
-            try await syncProgressRecord(userId: userId, context: context)
-            try await syncCabinet(userId: userId, context: context)
-            try await syncEnrollments(userId: userId, context: context)
-        } catch {
-            lastSyncError = error
-            TerrainLogger.sync.error("Sync error: \(error)")
+        // Debounce: skip if last sync was less than 30 seconds ago (unless forced)
+        if !force, let lastSync = lastSyncTime,
+           Date().timeIntervalSince(lastSync) < minimumSyncInterval {
+            TerrainLogger.sync.info("Sync debounced — \(Int(Date().timeIntervalSince(lastSync)))s since last sync")
+            return
         }
 
-        isSyncing = false
+        isSyncing = true
+        lastSyncError = nil
+        defer {
+            isSyncing = false
+            lastSyncTime = Date()
+        }
+
+        let errors = await syncAllTables(userId: userId, context: context)
+
+        if let firstError = errors.values.first {
+            lastSyncError = firstError
+            TerrainLogger.sync.error("Sync completed with \(errors.count) table error(s): \(errors.keys.joined(separator: ", "))")
+        }
     }
 
-    /// Push-only sync for a quick save after a user action
+    /// Push-only sync for a quick save after a user action.
+    /// Same per-table isolation as `sync()`.
     func syncUp() async {
         guard let userId = currentUserId, let context = modelContext else { return }
         guard !isSyncing else { return }
@@ -157,16 +190,55 @@ final class SupabaseSyncService {
         isSyncing = true
         defer { isSyncing = false }
 
+        let errors = await syncAllTables(userId: userId, context: context)
+
+        if let firstError = errors.values.first {
+            lastSyncError = firstError
+            TerrainLogger.sync.error("SyncUp completed with \(errors.count) table error(s)")
+        }
+    }
+
+    /// Syncs each table independently, returning a dictionary of table-name → error
+    /// for any tables that failed. An empty dictionary means full success.
+    private func syncAllTables(userId: UUID, context: ModelContext) async -> [String: Error] {
+        var errors: [String: Error] = [:]
+
         do {
             try await syncUserProfile(userId: userId, context: context)
+        } catch {
+            errors["user_profiles"] = error
+            TerrainLogger.sync.error("Sync user_profiles failed: \(error)")
+        }
+
+        do {
             try await syncDailyLogs(userId: userId, context: context)
+        } catch {
+            errors["daily_logs"] = error
+            TerrainLogger.sync.error("Sync daily_logs failed: \(error)")
+        }
+
+        do {
             try await syncProgressRecord(userId: userId, context: context)
+        } catch {
+            errors["progress_records"] = error
+            TerrainLogger.sync.error("Sync progress_records failed: \(error)")
+        }
+
+        do {
             try await syncCabinet(userId: userId, context: context)
+        } catch {
+            errors["user_cabinets"] = error
+            TerrainLogger.sync.error("Sync user_cabinets failed: \(error)")
+        }
+
+        do {
             try await syncEnrollments(userId: userId, context: context)
         } catch {
-            lastSyncError = error
-            TerrainLogger.sync.error("SyncUp error: \(error)")
+            errors["program_enrollments"] = error
+            TerrainLogger.sync.error("Sync program_enrollments failed: \(error)")
         }
+
+        return errors
     }
 
     // MARK: - User Profile Sync
@@ -186,14 +258,14 @@ final class SupabaseSyncService {
 
         if let remote = remoteRows.first {
             // Compare timestamps — last write wins
-            if local.updatedAt > remote.updatedAt {
+            if local.updatedAt > remote.updatedAtDate {
                 // Local is newer → push up
                 try await client
                     .from("user_profiles")
                     .update(local.toRow(userId: userId))
                     .eq("id", value: remote.id.uuidString)
                     .execute()
-            } else if remote.updatedAt > local.updatedAt {
+            } else if remote.updatedAtDate > local.updatedAt {
                 // Remote is newer → pull down
                 remote.apply(to: local)
                 try context.save()
@@ -232,13 +304,13 @@ final class SupabaseSyncService {
         for local in recentLogs {
             let dateKey = SyncDateFormatters.dateString(from: local.date)
             if let remote = remoteByDate[dateKey]?.first {
-                if local.updatedAt > remote.updatedAt {
+                if local.updatedAt > remote.updatedAtDate {
                     try await client
                         .from("daily_logs")
                         .update(local.toRow(userId: userId))
                         .eq("id", value: remote.id.uuidString)
                         .execute()
-                } else if remote.updatedAt > local.updatedAt {
+                } else if remote.updatedAtDate > local.updatedAt {
                     remote.apply(to: local)
                 }
             } else {
@@ -276,13 +348,13 @@ final class SupabaseSyncService {
             .value
 
         if let remote = remoteRows.first {
-            if local.updatedAt > remote.updatedAt {
+            if local.updatedAt > remote.updatedAtDate {
                 try await client
                     .from("progress_records")
                     .update(local.toRow(userId: userId))
                     .eq("id", value: remote.id.uuidString)
                     .execute()
-            } else if remote.updatedAt > local.updatedAt {
+            } else if remote.updatedAtDate > local.updatedAt {
                 remote.apply(to: local)
                 try context.save()
             }
@@ -316,16 +388,43 @@ final class SupabaseSyncService {
             uniquingKeysWith: { _, latest in latest }
         )
 
-        // Push local items not in remote
         for local in localItems {
-            if remoteByIngredient[local.ingredientId] == nil {
+            if let remote = remoteByIngredient[local.ingredientId] {
+                // Both exist — resolve conflict using lastUsedAt (or addedAt as fallback)
+                let localTimestamp = local.lastUsedAt ?? local.addedAt
+                let remoteTimestamp = remote.lastUsedAtDate ?? remote.addedAtDate
+
+                if localTimestamp > remoteTimestamp {
+                    // Local is newer — push isStaple and lastUsedAt
+                    try await client
+                        .from("user_cabinets")
+                        .update(UserCabinetRow(
+                            id: remote.id,
+                            userId: userId,
+                            ingredientId: local.ingredientId,
+                            addedAt: SyncDateFormatters.iso8601Formatter.string(from: local.addedAt),
+                            isStaple: local.isStaple,
+                            lastUsedAt: local.lastUsedAt.map { SyncDateFormatters.iso8601Formatter.string(from: $0) }
+                        ))
+                        .eq("id", value: remote.id.uuidString)
+                        .execute()
+                } else if remoteTimestamp > localTimestamp {
+                    // Remote is newer — pull isStaple and lastUsedAt
+                    local.isStaple = remote.isStaple
+                    local.lastUsedAt = remote.lastUsedAtDate
+                }
+                // Equal timestamps: no-op (already in sync)
+            } else {
+                // Not in remote — push
                 try await client
                     .from("user_cabinets")
                     .insert(UserCabinetRow(
                         id: UUID(),
                         userId: userId,
                         ingredientId: local.ingredientId,
-                        addedAt: local.addedAt
+                        addedAt: SyncDateFormatters.iso8601Formatter.string(from: local.addedAt),
+                        isStaple: local.isStaple,
+                        lastUsedAt: local.lastUsedAt.map { SyncDateFormatters.iso8601Formatter.string(from: $0) }
                     ))
                     .execute()
             }
@@ -335,6 +434,8 @@ final class SupabaseSyncService {
         for remote in remoteRows {
             if localByIngredient[remote.ingredientId] == nil {
                 let item = UserCabinet(ingredientId: remote.ingredientId)
+                item.isStaple = remote.isStaple
+                item.lastUsedAt = remote.lastUsedAtDate
                 context.insert(item)
             }
         }
@@ -362,13 +463,13 @@ final class SupabaseSyncService {
 
         for local in localEnrollments {
             if let remote = remoteByProgram[local.programId] {
-                if local.updatedAt > remote.updatedAt {
+                if local.updatedAt > remote.updatedAtDate {
                     try await client
                         .from("program_enrollments")
                         .update(local.toRow(userId: userId))
                         .eq("id", value: remote.id.uuidString)
                         .execute()
-                } else if remote.updatedAt > local.updatedAt {
+                } else if remote.updatedAtDate > local.updatedAt {
                     remote.apply(to: local)
                 }
             } else {
@@ -425,8 +526,26 @@ struct UserProfileRow: Codable {
     // Quiz metadata
     var quizVersion: Int
     var lastQuizCompletedAt: String?
-    var createdAt: Date
-    var updatedAt: Date
+    // User identity & lifestyle (previously local-only)
+    var displayName: String?
+    var alcoholFrequency: String?
+    var smokingStatus: String?
+    // Demographics
+    var age: Int?
+    var gender: String?
+    var ethnicity: String?
+    // Phase 14 TCM personalization
+    var hydrationPattern: String?
+    var sweatPattern: String?
+    // Pulse check-in
+    var lastPulseCheckInDate: String?
+    var createdAt: String
+    var updatedAt: String
+
+    /// Parsed updatedAt timestamp
+    var updatedAtDate: Date {
+        SyncDateFormatters.parseTimestamp(updatedAt)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -450,6 +569,15 @@ struct UserProfileRow: Codable {
         case safetyPreferences = "safety_preferences"
         case quizVersion = "quiz_version"
         case lastQuizCompletedAt = "last_quiz_completed_at"
+        case displayName = "display_name"
+        case alcoholFrequency = "alcohol_frequency"
+        case smokingStatus = "smoking_status"
+        case age
+        case gender
+        case ethnicity
+        case hydrationPattern = "hydration_pattern"
+        case sweatPattern = "sweat_pattern"
+        case lastPulseCheckInDate = "last_pulse_check_in_date"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -480,7 +608,22 @@ struct UserProfileRow: Codable {
         if let dateString = lastQuizCompletedAt {
             profile.lastQuizCompletedAt = SyncDateFormatters.iso8601Formatter.date(from: dateString)
         }
-        profile.updatedAt = updatedAt
+        // User identity & lifestyle
+        profile.displayName = displayName
+        profile.alcoholFrequency = alcoholFrequency
+        profile.smokingStatus = smokingStatus
+        // Demographics
+        profile.age = age
+        profile.gender = gender
+        profile.ethnicity = ethnicity
+        // Phase 14 TCM personalization
+        profile.hydrationPattern = hydrationPattern.flatMap { HydrationPattern(rawValue: $0) }
+        profile.sweatPattern = sweatPattern.flatMap { SweatPattern(rawValue: $0) }
+        // Pulse check-in
+        if let dateString = lastPulseCheckInDate {
+            profile.lastPulseCheckInDate = SyncDateFormatters.iso8601Formatter.date(from: dateString)
+        }
+        profile.updatedAt = updatedAtDate
     }
 
     private static let iso8601Formatter = ISO8601DateFormatter()
@@ -549,8 +692,36 @@ struct DailyLogRow: Codable {
     var routineFeedback: [RoutineFeedbackDTO]
     var quickFixCompletionTimes: [String: String]
     var notes: String?
-    var createdAt: Date
-    var updatedAt: Date
+    // Previously local-only fields — now synced
+    var moodRating: Int?
+    var weatherCondition: String?
+    var temperatureCelsius: Double?
+    var stepCount: Int?
+    var microActionCompletedAt: String?
+    // TCM diagnostic signals (Phase 13)
+    var sleepQuality: String?
+    var dominantEmotion: String?
+    var thermalFeeling: String?
+    var digestiveState: DigestiveStateDTO?
+    // HealthKit cached data (Phase 14)
+    var sleepDurationMinutes: Double?
+    var sleepInBedMinutes: Double?
+    var restingHeartRate: Int?
+    // Phase 14 TCM personalization
+    var cyclePhase: String?
+    var symptomQuality: String?
+    var createdAt: String
+    var updatedAt: String
+
+    /// Parsed createdAt timestamp
+    var createdAtDate: Date {
+        SyncDateFormatters.parseTimestamp(createdAt)
+    }
+
+    /// Parsed updatedAt timestamp
+    var updatedAtDate: Date {
+        SyncDateFormatters.parseTimestamp(updatedAt)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -566,6 +737,20 @@ struct DailyLogRow: Codable {
         case routineFeedback = "routine_feedback"
         case quickFixCompletionTimes = "quick_fix_completion_times"
         case notes
+        case moodRating = "mood_rating"
+        case weatherCondition = "weather_condition"
+        case temperatureCelsius = "temperature_celsius"
+        case stepCount = "step_count"
+        case microActionCompletedAt = "micro_action_completed_at"
+        case sleepQuality = "sleep_quality"
+        case dominantEmotion = "dominant_emotion"
+        case thermalFeeling = "thermal_feeling"
+        case digestiveState = "digestive_state"
+        case sleepDurationMinutes = "sleep_duration_minutes"
+        case sleepInBedMinutes = "sleep_in_bed_minutes"
+        case restingHeartRate = "resting_heart_rate"
+        case cyclePhase = "cycle_phase"
+        case symptomQuality = "symptom_quality"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -590,7 +775,27 @@ struct DailyLogRow: Codable {
         }
         log.quickFixCompletionTimes = parsedTimes
         log.notes = notes
-        log.updatedAt = updatedAt
+        // Previously local-only fields
+        log.moodRating = moodRating
+        log.weatherCondition = weatherCondition
+        log.temperatureCelsius = temperatureCelsius
+        log.stepCount = stepCount
+        if let isoString = microActionCompletedAt {
+            log.microActionCompletedAt = SyncDateFormatters.iso8601Formatter.date(from: isoString)
+        }
+        // TCM diagnostic signals
+        log.sleepQuality = sleepQuality.flatMap { SleepQuality(rawValue: $0) }
+        log.dominantEmotion = dominantEmotion.flatMap { DominantEmotion(rawValue: $0) }
+        log.thermalFeeling = thermalFeeling.flatMap { ThermalFeeling(rawValue: $0) }
+        log.digestiveState = digestiveState?.toModel()
+        // HealthKit cached data
+        log.sleepDurationMinutes = sleepDurationMinutes
+        log.sleepInBedMinutes = sleepInBedMinutes
+        log.restingHeartRate = restingHeartRate
+        // Phase 14 TCM personalization
+        log.cyclePhase = cyclePhase.flatMap { CyclePhase(rawValue: $0) }
+        log.symptomQuality = symptomQuality.flatMap { SymptomQuality(rawValue: $0) }
+        log.updatedAt = updatedAtDate
     }
 
     /// Create a new DailyLog model from this row
@@ -607,7 +812,7 @@ struct DailyLogRow: Codable {
             }
         }
 
-        return DailyLog(
+        let log = DailyLog(
             date: logDate,
             symptoms: symptoms.compactMap { Symptom(rawValue: $0) },
             symptomOnset: symptomOnset.flatMap { SymptomOnset(rawValue: $0) },
@@ -618,7 +823,53 @@ struct DailyLogRow: Codable {
             routineLevel: routineLevel.flatMap { RoutineLevel(rawValue: $0) },
             routineFeedback: routineFeedback.map { $0.toModel() },
             quickFixCompletionTimes: parsedTimes,
+            moodRating: moodRating,
+            weatherCondition: weatherCondition,
+            temperatureCelsius: temperatureCelsius,
             notes: notes
+        )
+        // Fields not in DailyLog init — set after construction
+        log.stepCount = stepCount
+        if let isoString = microActionCompletedAt {
+            log.microActionCompletedAt = SyncDateFormatters.iso8601Formatter.date(from: isoString)
+        }
+        // TCM diagnostic signals
+        log.sleepQuality = sleepQuality.flatMap { SleepQuality(rawValue: $0) }
+        log.dominantEmotion = dominantEmotion.flatMap { DominantEmotion(rawValue: $0) }
+        log.thermalFeeling = thermalFeeling.flatMap { ThermalFeeling(rawValue: $0) }
+        log.digestiveState = digestiveState?.toModel()
+        // HealthKit cached data
+        log.sleepDurationMinutes = sleepDurationMinutes
+        log.sleepInBedMinutes = sleepInBedMinutes
+        log.restingHeartRate = restingHeartRate
+        // Phase 14 TCM personalization
+        log.cyclePhase = cyclePhase.flatMap { CyclePhase(rawValue: $0) }
+        log.symptomQuality = symptomQuality.flatMap { SymptomQuality(rawValue: $0) }
+        // Preserve remote timestamp
+        log.updatedAt = updatedAtDate
+        return log
+    }
+}
+
+/// Codable DTO for DigestiveState to/from Supabase JSON column
+struct DigestiveStateDTO: Codable {
+    var appetiteLevel: String
+    var stoolQuality: String
+
+    init(appetiteLevel: String = "normal", stoolQuality: String = "normal") {
+        self.appetiteLevel = appetiteLevel
+        self.stoolQuality = stoolQuality
+    }
+
+    init(from model: DigestiveState) {
+        self.appetiteLevel = model.appetiteLevel.rawValue
+        self.stoolQuality = model.stoolQuality.rawValue
+    }
+
+    func toModel() -> DigestiveState {
+        DigestiveState(
+            appetiteLevel: AppetiteLevel(rawValue: appetiteLevel) ?? .normal,
+            stoolQuality: StoolQuality(rawValue: stoolQuality) ?? .normal
         )
     }
 }
@@ -652,8 +903,13 @@ struct ProgressRecordRow: Codable {
     var totalCompletions: Int
     var lastCompletionDate: String?
     var monthlyCompletions: [String: Int]
-    var createdAt: Date
-    var updatedAt: Date
+    var createdAt: String
+    var updatedAt: String
+
+    /// Parsed updatedAt timestamp
+    var updatedAtDate: Date {
+        SyncDateFormatters.parseTimestamp(updatedAt)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -675,7 +931,7 @@ struct ProgressRecordRow: Codable {
             record.lastCompletionDate = SyncDateFormatters.dateFormatter.date(from: dateString)
         }
         record.monthlyCompletions = monthlyCompletions
-        record.updatedAt = updatedAt
+        record.updatedAt = updatedAtDate
     }
 }
 
@@ -683,13 +939,27 @@ struct UserCabinetRow: Codable {
     let id: UUID
     let userId: UUID
     var ingredientId: String
-    var addedAt: Date
+    var addedAt: String
+    var isStaple: Bool
+    var lastUsedAt: String?
+
+    /// Parsed addedAt timestamp
+    var addedAtDate: Date {
+        SyncDateFormatters.parseTimestamp(addedAt)
+    }
+
+    /// Parsed lastUsedAt timestamp
+    var lastUsedAtDate: Date? {
+        lastUsedAt.map { SyncDateFormatters.parseTimestamp($0) }
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
         case ingredientId = "ingredient_id"
         case addedAt = "added_at"
+        case isStaple = "is_staple"
+        case lastUsedAt = "last_used_at"
     }
 }
 
@@ -701,9 +971,19 @@ struct ProgramEnrollmentRow: Codable {
     var currentDay: Int
     var dayCompletions: [ProgramDayCompletion]
     var isActive: Bool
-    var completedAt: Date?
-    var createdAt: Date
-    var updatedAt: Date
+    var completedAt: String?
+    var createdAt: String
+    var updatedAt: String
+
+    /// Parsed completedAt timestamp
+    var completedAtDate: Date? {
+        completedAt.map { SyncDateFormatters.parseTimestamp($0) }
+    }
+
+    /// Parsed updatedAt timestamp
+    var updatedAtDate: Date {
+        SyncDateFormatters.parseTimestamp(updatedAt)
+    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -722,8 +1002,8 @@ struct ProgramEnrollmentRow: Codable {
         enrollment.currentDay = currentDay
         enrollment.dayCompletions = dayCompletions
         enrollment.isActive = isActive
-        enrollment.completedAt = completedAt
-        enrollment.updatedAt = updatedAt
+        enrollment.completedAt = completedAtDate
+        enrollment.updatedAt = updatedAtDate
     }
 
     func toModel() -> ProgramEnrollment {
@@ -736,7 +1016,7 @@ struct ProgramEnrollmentRow: Codable {
             currentDay: currentDay,
             dayCompletions: dayCompletions,
             isActive: isActive,
-            completedAt: completedAt
+            completedAt: completedAtDate
         )
     }
 }
@@ -775,8 +1055,17 @@ extension UserProfile {
             safetyPreferences: SafetyPreferencesDTO(from: safetyPreferences),
             quizVersion: quizVersion,
             lastQuizCompletedAt: lastQuizCompletedAt.map { isoFormatter.string(from: $0) },
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            displayName: displayName,
+            alcoholFrequency: alcoholFrequency,
+            smokingStatus: smokingStatus,
+            age: age,
+            gender: gender,
+            ethnicity: ethnicity,
+            hydrationPattern: hydrationPattern?.rawValue,
+            sweatPattern: sweatPattern?.rawValue,
+            lastPulseCheckInDate: lastPulseCheckInDate.map { isoFormatter.string(from: $0) },
+            createdAt: isoFormatter.string(from: createdAt),
+            updatedAt: isoFormatter.string(from: updatedAt)
         )
     }
 }
@@ -807,15 +1096,30 @@ extension DailyLog {
                 uniquingKeysWith: { _, latest in latest }
             ),
             notes: notes,
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            moodRating: moodRating,
+            weatherCondition: weatherCondition,
+            temperatureCelsius: temperatureCelsius,
+            stepCount: stepCount,
+            microActionCompletedAt: microActionCompletedAt.map { isoFormatter.string(from: $0) },
+            sleepQuality: sleepQuality?.rawValue,
+            dominantEmotion: dominantEmotion?.rawValue,
+            thermalFeeling: thermalFeeling?.rawValue,
+            digestiveState: digestiveState.map { DigestiveStateDTO(from: $0) },
+            sleepDurationMinutes: sleepDurationMinutes,
+            sleepInBedMinutes: sleepInBedMinutes,
+            restingHeartRate: restingHeartRate,
+            cyclePhase: cyclePhase?.rawValue,
+            symptomQuality: symptomQuality?.rawValue,
+            createdAt: isoFormatter.string(from: createdAt),
+            updatedAt: isoFormatter.string(from: updatedAt)
         )
     }
 }
 
 extension ProgressRecord {
     func toRow(userId: UUID) -> ProgressRecordRow {
-        ProgressRecordRow(
+        let isoFormatter = SyncDateFormatters.iso8601Formatter
+        return ProgressRecordRow(
             id: id,
             userId: userId,
             currentStreak: currentStreak,
@@ -823,15 +1127,16 @@ extension ProgressRecord {
             totalCompletions: totalCompletions,
             lastCompletionDate: lastCompletionDate.map { SyncDateFormatters.dateFormatter.string(from: $0) },
             monthlyCompletions: monthlyCompletions,
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            createdAt: isoFormatter.string(from: createdAt),
+            updatedAt: isoFormatter.string(from: updatedAt)
         )
     }
 }
 
 extension ProgramEnrollment {
     func toRow(userId: UUID) -> ProgramEnrollmentRow {
-        ProgramEnrollmentRow(
+        let isoFormatter = SyncDateFormatters.iso8601Formatter
+        return ProgramEnrollmentRow(
             id: id,
             userId: userId,
             programId: programId,
@@ -839,9 +1144,9 @@ extension ProgramEnrollment {
             currentDay: currentDay,
             dayCompletions: dayCompletions,
             isActive: isActive,
-            completedAt: completedAt,
-            createdAt: createdAt,
-            updatedAt: updatedAt
+            completedAt: completedAt.map { isoFormatter.string(from: $0) },
+            createdAt: isoFormatter.string(from: createdAt),
+            updatedAt: isoFormatter.string(from: updatedAt)
         )
     }
 }
@@ -872,7 +1177,45 @@ enum SyncDateFormatters {
         return f
     }()
 
+    /// PostgreSQL timestamp format: "2026-02-05 06:54:06.536161+00"
+    static let postgresTimestampFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSSZZZZZ"
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
+    /// Fallback PostgreSQL timestamp without fractional seconds
+    static let postgresTimestampBasicFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZZZ"
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
     static func dateString(from date: Date) -> String {
         dateFormatter.string(from: date)
+    }
+
+    /// Parse PostgreSQL or ISO8601 timestamp string to Date
+    static func parseTimestamp(_ string: String) -> Date {
+        // Try ISO8601 with fractional seconds first
+        if let date = iso8601Formatter.date(from: string) {
+            return date
+        }
+        // Try ISO8601 basic (no fractional seconds)
+        if let date = iso8601BasicFormatter.date(from: string) {
+            return date
+        }
+        // Try PostgreSQL format (space instead of T)
+        if let date = postgresTimestampFormatter.date(from: string) {
+            return date
+        }
+        // Try PostgreSQL basic format
+        if let date = postgresTimestampBasicFormatter.date(from: string) {
+            return date
+        }
+        // Last resort: return distant past
+        return Date.distantPast
     }
 }

@@ -426,7 +426,7 @@ struct DoView: View {
                 RoutineDetailSheet(
                     level: selectedLevel,
                     routineModel: routine,
-                    onComplete: { markRoutineComplete() }
+                    onComplete: { startedAt in markRoutineComplete(startedAt: startedAt) }
                 )
             }
         }
@@ -434,7 +434,7 @@ struct DoView: View {
             MovementPlayerSheet(
                 level: selectedLevel,
                 movementModel: selectedMovement,
-                onComplete: { markMovementComplete() }
+                onComplete: { startedAt in markMovementComplete(startedAt: startedAt) }
             )
         }
         .onReceive(timer) { _ in
@@ -879,14 +879,14 @@ struct DoView: View {
         }
     }
 
-    private func markRoutineComplete() {
+    private func markRoutineComplete(startedAt: Date? = nil) {
         guard let routineId = selectedRoutine?.id else { return }
 
         if let log = todaysLog {
-            log.markRoutineComplete(routineId, level: selectedLevel)
+            log.markRoutineComplete(routineId, level: selectedLevel, startedAt: startedAt)
         } else {
             let log = DailyLog()
-            log.markRoutineComplete(routineId, level: selectedLevel)
+            log.markRoutineComplete(routineId, level: selectedLevel, startedAt: startedAt)
             modelContext.insert(log)
         }
 
@@ -894,14 +894,14 @@ struct DoView: View {
         try? modelContext.save()
     }
 
-    private func markMovementComplete() {
+    private func markMovementComplete(startedAt: Date? = nil) {
         guard let movementId = selectedMovement?.id else { return }
 
         if let log = todaysLog {
-            log.markMovementComplete(movementId)
+            log.markMovementComplete(movementId, startedAt: startedAt)
         } else {
             let log = DailyLog()
-            log.markMovementComplete(movementId)
+            log.markMovementComplete(movementId, startedAt: startedAt)
             modelContext.insert(log)
         }
         try? modelContext.save()
@@ -913,6 +913,104 @@ struct DoView: View {
            let record = records.first {
             record.recordCompletion()
         }
+    }
+}
+
+// MARK: - Module Card (formerly in TodayView.swift)
+
+enum ModuleType {
+    case eatDrink
+    case movement
+
+    var icon: String {
+        switch self {
+        case .eatDrink: return "cup.and.saucer.fill"
+        case .movement: return "figure.walk"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .eatDrink: return "Nourish"
+        case .movement: return "Move"
+        }
+    }
+
+    func tintColor(theme: TerrainTheme) -> Color {
+        switch self {
+        case .eatDrink: return theme.colors.terrainWarm
+        case .movement: return theme.colors.terrainCool
+        }
+    }
+}
+
+struct RoutineModuleCard: View {
+    let type: ModuleType
+    let title: String
+    let subtitle: String
+    let duration: String
+    var isCompleted: Bool = false
+    let onTap: () -> Void
+
+    @Environment(\.terrainTheme) private var theme
+
+    private var tint: Color {
+        type.tintColor(theme: theme)
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: theme.spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ? theme.colors.success.opacity(0.15) : tint.opacity(0.12))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: isCompleted ? "checkmark" : type.icon)
+                        .font(.system(size: 20))
+                        .foregroundColor(isCompleted ? theme.colors.success : tint)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(type.label)
+                            .font(theme.typography.labelSmall)
+                            .foregroundColor(theme.colors.textTertiary)
+
+                        Spacer()
+
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 10))
+                            Text(duration)
+                                .font(theme.typography.caption)
+                        }
+                        .foregroundColor(theme.colors.textTertiary)
+                    }
+
+                    Text(title)
+                        .font(theme.typography.bodyLarge)
+                        .foregroundColor(theme.colors.textPrimary)
+
+                    Text(subtitle)
+                        .font(theme.typography.bodySmall)
+                        .foregroundColor(theme.colors.textSecondary)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14))
+                    .foregroundColor(theme.colors.textTertiary)
+            }
+            .padding(theme.spacing.md)
+            .background(theme.colors.surface)
+            .cornerRadius(theme.cornerRadius.large)
+            .overlay(
+                RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                    .stroke(isCompleted ? theme.colors.success.opacity(0.3) : Color.clear, lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

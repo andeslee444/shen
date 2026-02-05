@@ -2,13 +2,13 @@
 //  DoDontView.swift
 //  Terrain
 //
-//  Two-column Do/Don't behavioral list for the Home tab
+//  Clean list-style Do/Don't recommendations matching "Your Day" section vibe
 //
 
 import SwiftUI
 
-/// Two-column display of personalized do's and don'ts based on terrain type.
-/// Clean, scannable format for quick reference throughout the day.
+/// Clean list display of personalized do's and don'ts based on terrain type.
+/// Matches the visual style of the "Your Day" life areas section.
 struct DoDontView: View {
     let dos: [DoDontItem]
     let donts: [DoDontItem]
@@ -16,131 +16,122 @@ struct DoDontView: View {
     @Environment(\.terrainTheme) private var theme
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Do column
+        VStack(alignment: .leading, spacing: theme.spacing.lg) {
+            // Do section
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                HStack(spacing: theme.spacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.colors.success)
+                Text("Do")
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.textTertiary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .padding(.horizontal, theme.spacing.lg)
 
-                    Text("Do")
-                        .font(theme.typography.labelMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-                }
-
-                ForEach(dos) { item in
-                    DoDontRow(item: item, isDo: true)
-                }
+                DoDontListSection(items: dos, isDo: true)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Divider
-            Rectangle()
-                .fill(theme.colors.backgroundSecondary)
-                .frame(width: 1)
-                .padding(.vertical, theme.spacing.xs)
-
-            // Don't column
+            // Don't section
             VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                HStack(spacing: theme.spacing.xs) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.colors.error)
+                Text("Don't")
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.textTertiary)
+                    .textCase(.uppercase)
+                    .tracking(0.5)
+                    .padding(.horizontal, theme.spacing.lg)
 
-                    Text("Don't")
-                        .font(theme.typography.labelMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-                }
-
-                ForEach(donts) { item in
-                    DoDontRow(item: item, isDo: false)
-                }
+                DoDontListSection(items: donts, isDo: false)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, theme.spacing.md)
         }
-        .padding(theme.spacing.md)
-        .background(theme.colors.surface)
-        .cornerRadius(theme.cornerRadius.large)
+    }
+}
+
+/// List section for Do or Don't items
+struct DoDontListSection: View {
+    let items: [DoDontItem]
+    let isDo: Bool
+
+    @Environment(\.terrainTheme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(items) { item in
+                DoDontRow(item: item, isDo: isDo)
+
+                if item.id != items.last?.id {
+                    Divider()
+                        .padding(.leading, theme.spacing.lg + 20)
+                }
+            }
+        }
         .padding(.horizontal, theme.spacing.lg)
     }
 }
 
-/// Individual row in the Do/Don't list with expandable "why" explanation
+/// Individual row - static display, not tappable
 struct DoDontRow: View {
     let item: DoDontItem
     let isDo: Bool
-    let startExpanded: Bool
 
     @Environment(\.terrainTheme) private var theme
-    @State private var isExpanded = false
-
-    init(item: DoDontItem, isDo: Bool, startExpanded: Bool = false) {
-        self.item = item
-        self.isDo = isDo
-        self.startExpanded = startExpanded
-        self._isExpanded = State(initialValue: startExpanded)
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: theme.spacing.xxs) {
-            Button(action: {
-                if item.whyForYou != nil {
-                    withAnimation(theme.animation.quick) {
-                        isExpanded.toggle()
-                    }
-                    HapticManager.selection()
-                }
-            }) {
-                HStack(alignment: .top, spacing: theme.spacing.xs) {
-                    Text("·")
-                        .font(theme.typography.bodyMedium)
-                        .foregroundColor(isDo ? theme.colors.success : theme.colors.error)
+        HStack(alignment: .top, spacing: theme.spacing.md) {
+            // Indicator (checkmark or X)
+            indicator
+                .frame(width: 12, height: 12)
+                .padding(.top, 4)
 
-                    Text(item.text)
+            // Item text and why
+            VStack(alignment: .leading, spacing: theme.spacing.xxs) {
+                Text(item.text)
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textPrimary)
+
+                if let why = item.whyForYou {
+                    Text(why)
                         .font(theme.typography.bodySmall)
                         .foregroundColor(theme.colors.textSecondary)
-                        .multilineTextAlignment(.leading)
-
-                    if item.whyForYou != nil {
-                        Spacer(minLength: 2)
-                        Image(systemName: isExpanded ? "chevron.up" : "info.circle")
-                            .font(.system(size: 10))
-                            .foregroundColor(theme.colors.textTertiary)
-                    }
                 }
             }
-            .buttonStyle(PlainButtonStyle())
 
-            if isExpanded, let why = item.whyForYou {
-                Text(why)
-                    .font(theme.typography.caption)
-                    .foregroundColor(theme.colors.accent)
-                    .italic()
-                    .padding(.leading, theme.spacing.md)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+            Spacer()
+        }
+        .padding(.vertical, theme.spacing.sm)
+    }
+
+    @ViewBuilder
+    private var indicator: some View {
+        if isDo {
+            Image(systemName: "checkmark")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(theme.colors.success)
+        } else {
+            Image(systemName: "xmark")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(theme.colors.error)
         }
     }
 }
 
-#Preview {
-    DoDontView(
-        dos: [
-            DoDontItem(text: "Warm start", priority: 1),
-            DoDontItem(text: "Cooked food", priority: 2),
-            DoDontItem(text: "Gentle movement", priority: 3),
-            DoDontItem(text: "Rest when tired", priority: 4)
-        ],
-        donts: [
-            DoDontItem(text: "Ice drinks", priority: 1),
-            DoDontItem(text: "Raw salads", priority: 2),
-            DoDontItem(text: "Skipping meals", priority: 3),
-            DoDontItem(text: "Overexertion", priority: 4)
-        ]
-    )
-    .padding(.vertical, 40)
+#Preview("Do/Don't List") {
+    ScrollView {
+        VStack(spacing: 24) {
+            DoDontView(
+                dos: [
+                    DoDontItem(text: "Moistening foods", priority: 1, whyForYou: "Your warmth dries you out from inside. Moistening foods like pear and honey replenish what heat depletes."),
+                    DoDontItem(text: "Early rest", priority: 2, whyForYou: "You burn bright but thin. Evening rest prevents the wired-tired state your type is prone to."),
+                    DoDontItem(text: "Gentle hydration", priority: 3, whyForYou: "Sipping throughout the day keeps you nourished. Gulping cold water shocks your system."),
+                    DoDontItem(text: "Calming routine", priority: 4, whyForYou: "Your mind races more than most. A structured wind-down gives your spirit a place to settle.")
+                ],
+                donts: [
+                    DoDontItem(text: "Drying foods", priority: 1, whyForYou: "Your warmth already dries you out. Dry, crunchy foods accelerate fluid loss."),
+                    DoDontItem(text: "Excess coffee", priority: 2, whyForYou: "Coffee heats and dries — both things your type needs less of."),
+                    DoDontItem(text: "Late nights", priority: 3, whyForYou: "Night is your repair window. Your reserves are thinner — use sleep wisely."),
+                    DoDontItem(text: "Screen time late", priority: 4, whyForYou: "Screens stimulate an already-active mind. Your shen needs quiet signals to settle for sleep.")
+                ]
+            )
+        }
+        .padding(.vertical, 24)
+    }
     .background(Color(hex: "FAFAF8"))
     .environment(\.terrainTheme, TerrainTheme.default)
 }

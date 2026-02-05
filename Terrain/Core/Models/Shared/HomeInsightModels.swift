@@ -40,7 +40,7 @@ enum QuickSymptom: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .cold: return "thermometer.snowflake"
         case .bloating: return "wind"
-        case .cramps: return "waveform.path"
+        case .cramps: return "drop.fill"
         case .stressed: return "brain.head.profile"
         case .tired: return "battery.25"
         case .headache: return "exclamationmark.circle"
@@ -117,13 +117,35 @@ struct DailyTone: Codable, Hashable {
 
 // MARK: - Headline Content
 
-/// Content for the main headline on Home tab
+/// Content for the main headline on Home tab (Co-Star style)
+/// Punchy headline (2-5 words) + flowing paragraph of personalized truths
 struct HeadlineContent: Codable, Hashable {
-    let text: String
+    let headline: String         // Short punchy phrase (e.g., "Warm the center.")
+    let paragraph: String        // Flowing sentences about what to do/stop/questions
     let isSymptomAdjusted: Bool
 
+    // Legacy compatibility
+    var text: String { headline }
+    var wisdom: String { headline }
+    var truths: [String] { paragraph.isEmpty ? [] : [paragraph] }
+
+    init(headline: String, paragraph: String, isSymptomAdjusted: Bool = false) {
+        self.headline = headline
+        self.paragraph = paragraph
+        self.isSymptomAdjusted = isSymptomAdjusted
+    }
+
+    // Legacy initializer
     init(text: String, isSymptomAdjusted: Bool = false) {
-        self.text = text
+        self.headline = text
+        self.paragraph = ""
+        self.isSymptomAdjusted = isSymptomAdjusted
+    }
+
+    // Previous format initializer
+    init(wisdom: String, truths: [String], isSymptomAdjusted: Bool = false) {
+        self.headline = wisdom
+        self.paragraph = truths.joined(separator: " ")
         self.isSymptomAdjusted = isSymptomAdjusted
     }
 }
@@ -305,5 +327,116 @@ struct TypeBlockComponents: Codable, Hashable {
             modifier: modifierChip,
             nickname: terrainType.nickname
         )
+    }
+}
+
+// MARK: - Life Area (Co-Star Style)
+
+/// Life areas with dot indicators and personalized readings
+enum LifeAreaType: String, CaseIterable, Codable, Identifiable {
+    case energy
+    case digestion
+    case sleep
+    case mood
+    case seasonality
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .energy: return "Energy"
+        case .digestion: return "Digestion"
+        case .sleep: return "Sleep"
+        case .mood: return "Mood"
+        case .seasonality: return "Seasonality"
+        }
+    }
+}
+
+/// Focus level indicator (empty, half, full dot)
+enum FocusLevel: Int, Codable, Comparable {
+    case neutral = 0   // ○ empty
+    case moderate = 1  // ◐ half
+    case priority = 2  // ● full
+
+    static func < (lhs: FocusLevel, rhs: FocusLevel) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
+/// A reason why a life area reading was generated
+struct ReadingReason: Codable, Hashable, Identifiable {
+    var id: String { source + ": " + detail }
+    let source: String  // "Quiz", "Weather", "Symptoms", "Patterns", "Activity"
+    let detail: String  // "You prefer warm drinks over cold"
+
+    init(source: String, detail: String) {
+        self.source = source
+        self.detail = detail
+    }
+}
+
+/// Content for a life area with focus level and personalized reading
+struct LifeAreaReading: Codable, Hashable, Identifiable {
+    var id: LifeAreaType { type }
+    let type: LifeAreaType
+    let focusLevel: FocusLevel
+    let reading: String           // Personalized paragraph
+    let balanceAdvice: String     // How to balance (food/drink, movement, rest)
+    let reasons: [ReadingReason]  // Why this reading was generated
+    let imageAsset: String?       // Optional chic image name
+
+    init(
+        type: LifeAreaType,
+        focusLevel: FocusLevel,
+        reading: String,
+        balanceAdvice: String,
+        reasons: [ReadingReason] = [],
+        imageAsset: String? = nil
+    ) {
+        self.type = type
+        self.focusLevel = focusLevel
+        self.reading = reading
+        self.balanceAdvice = balanceAdvice
+        self.reasons = reasons
+        self.imageAsset = imageAsset
+    }
+}
+
+/// Special modifier area that appears when conditions warrant
+enum ModifierAreaType: String, Codable, Identifiable {
+    case innerClimate   // Temperature imbalance
+    case fluidBalance   // Damp/dry patterns
+    case qiMovement     // Stagnation/flow
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .innerClimate: return "Inner Climate"
+        case .fluidBalance: return "Fluid Balance"
+        case .qiMovement: return "Qi Movement"
+        }
+    }
+}
+
+/// Content for a modifier area (appears when relevant)
+struct ModifierAreaReading: Codable, Hashable, Identifiable {
+    var id: ModifierAreaType { type }
+    let type: ModifierAreaType
+    let reading: String
+    let balanceAdvice: String
+    let reasons: [ReadingReason]
+
+    init(
+        type: ModifierAreaType,
+        reading: String,
+        balanceAdvice: String,
+        reasons: [ReadingReason] = []
+    ) {
+        self.type = type
+        self.reading = reading
+        self.balanceAdvice = balanceAdvice
+        self.reasons = reasons
     }
 }

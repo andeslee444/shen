@@ -329,4 +329,187 @@ final class InsightEngineTests: XCTestCase {
                             "\(season) contentPackKey should match rawValue")
         }
     }
+
+    // MARK: - generateLifeAreaReadings
+
+    func testLifeAreaReadings_Returns5Areas() {
+        let readings = engine.generateLifeAreaReadings(for: .neutralBalanced)
+        XCTAssertEqual(readings.count, 5, "Should return exactly 5 life area readings")
+
+        let types = readings.map { $0.type }
+        XCTAssertTrue(types.contains(.energy), "Should include energy")
+        XCTAssertTrue(types.contains(.digestion), "Should include digestion")
+        XCTAssertTrue(types.contains(.sleep), "Should include sleep")
+        XCTAssertTrue(types.contains(.mood), "Should include mood")
+        XCTAssertTrue(types.contains(.seasonality), "Should include seasonality")
+    }
+
+    func testLifeAreaReadings_ColdDeficient_EnergyIsModerate() {
+        let readings = engine.generateLifeAreaReadings(for: .coldDeficient)
+        let energy = readings.first { $0.type == .energy }
+        XCTAssertNotNil(energy)
+        XCTAssertEqual(energy?.focusLevel, .moderate, "Cold deficient energy should be moderate focus")
+    }
+
+    func testLifeAreaReadings_WarmExcess_EnergyIsPriority() {
+        let readings = engine.generateLifeAreaReadings(for: .warmExcess)
+        let energy = readings.first { $0.type == .energy }
+        XCTAssertNotNil(energy)
+        XCTAssertEqual(energy?.focusLevel, .priority, "Warm excess energy should be priority focus")
+    }
+
+    func testLifeAreaReadings_NeutralBalanced_EnergyIsNeutral() {
+        let readings = engine.generateLifeAreaReadings(for: .neutralBalanced)
+        let energy = readings.first { $0.type == .energy }
+        XCTAssertNotNil(energy)
+        XCTAssertEqual(energy?.focusLevel, .neutral, "Neutral balanced energy should be neutral focus")
+    }
+
+    func testLifeAreaReadings_TiredSymptom_RaisesEnergyToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            symptoms: [.tired]
+        )
+        let energy = readings.first { $0.type == .energy }
+        XCTAssertNotNil(energy)
+        XCTAssertEqual(energy?.focusLevel, .priority, "Tired symptom should raise energy to priority")
+        XCTAssertTrue(energy?.reasons.contains { $0.source == "Symptoms" } ?? false,
+                      "Should include Symptoms reason")
+    }
+
+    func testLifeAreaReadings_BloatingSymptom_RaisesDigestionToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            symptoms: [.bloating]
+        )
+        let digestion = readings.first { $0.type == .digestion }
+        XCTAssertNotNil(digestion)
+        XCTAssertEqual(digestion?.focusLevel, .priority, "Bloating symptom should raise digestion to priority")
+    }
+
+    func testLifeAreaReadings_PoorSleepSymptom_RaisesSleepToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            symptoms: [.poorSleep]
+        )
+        let sleep = readings.first { $0.type == .sleep }
+        XCTAssertNotNil(sleep)
+        XCTAssertEqual(sleep?.focusLevel, .priority, "Poor sleep symptom should raise sleep to priority")
+    }
+
+    func testLifeAreaReadings_StressedSymptom_RaisesMoodToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            symptoms: [.stressed]
+        )
+        let mood = readings.first { $0.type == .mood }
+        XCTAssertNotNil(mood)
+        XCTAssertEqual(mood?.focusLevel, .priority, "Stressed symptom should raise mood to priority")
+    }
+
+    func testLifeAreaReadings_DampModifier_RaisesDigestionToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            modifier: .damp
+        )
+        let digestion = readings.first { $0.type == .digestion }
+        XCTAssertNotNil(digestion)
+        XCTAssertEqual(digestion?.focusLevel, .priority, "Damp modifier should raise digestion to priority")
+    }
+
+    func testLifeAreaReadings_ShenModifier_RaisesSleepToPriority() {
+        let readings = engine.generateLifeAreaReadings(
+            for: .neutralBalanced,
+            modifier: .shen
+        )
+        let sleep = readings.first { $0.type == .sleep }
+        XCTAssertNotNil(sleep)
+        XCTAssertEqual(sleep?.focusLevel, .priority, "Shen modifier should raise sleep to priority")
+    }
+
+    func testLifeAreaReadings_AllHaveReadingAndAdvice() {
+        let readings = engine.generateLifeAreaReadings(for: .coldDeficient, modifier: .damp)
+        for reading in readings {
+            XCTAssertFalse(reading.reading.isEmpty, "\(reading.type) should have non-empty reading")
+            XCTAssertFalse(reading.balanceAdvice.isEmpty, "\(reading.type) should have non-empty advice")
+        }
+    }
+
+    func testLifeAreaReadings_AllHaveAtLeastOneReason() {
+        let readings = engine.generateLifeAreaReadings(for: .warmExcess, modifier: .stagnation)
+        for reading in readings {
+            XCTAssertFalse(reading.reasons.isEmpty, "\(reading.type) should have at least one reason")
+        }
+    }
+
+    // MARK: - generateModifierAreaReadings
+
+    func testModifierAreaReadings_ColdDeficient_ReturnsInnerClimate() {
+        let readings = engine.generateModifierAreaReadings(for: .coldDeficient)
+        XCTAssertTrue(readings.contains { $0.type == .innerClimate },
+                      "Cold deficient should produce Inner Climate reading")
+    }
+
+    func testModifierAreaReadings_WarmExcess_ReturnsInnerClimate() {
+        let readings = engine.generateModifierAreaReadings(for: .warmExcess)
+        XCTAssertTrue(readings.contains { $0.type == .innerClimate },
+                      "Warm excess should produce Inner Climate reading")
+    }
+
+    func testModifierAreaReadings_NeutralBalanced_NoInnerClimate() {
+        let readings = engine.generateModifierAreaReadings(for: .neutralBalanced)
+        XCTAssertFalse(readings.contains { $0.type == .innerClimate },
+                       "Neutral balanced should NOT produce Inner Climate reading")
+    }
+
+    func testModifierAreaReadings_DampModifier_ReturnsFluidBalance() {
+        let readings = engine.generateModifierAreaReadings(for: .neutralBalanced, modifier: .damp)
+        XCTAssertTrue(readings.contains { $0.type == .fluidBalance },
+                      "Damp modifier should produce Fluid Balance reading")
+    }
+
+    func testModifierAreaReadings_DryModifier_ReturnsFluidBalance() {
+        let readings = engine.generateModifierAreaReadings(for: .neutralBalanced, modifier: .dry)
+        XCTAssertTrue(readings.contains { $0.type == .fluidBalance },
+                      "Dry modifier should produce Fluid Balance reading")
+    }
+
+    func testModifierAreaReadings_StagnationModifier_ReturnsQiMovement() {
+        let readings = engine.generateModifierAreaReadings(for: .neutralBalanced, modifier: .stagnation)
+        XCTAssertTrue(readings.contains { $0.type == .qiMovement },
+                      "Stagnation modifier should produce Qi Movement reading")
+    }
+
+    func testModifierAreaReadings_StiffSymptom_ReturnsQiMovement() {
+        let readings = engine.generateModifierAreaReadings(
+            for: .neutralBalanced,
+            modifier: .none,
+            symptoms: [.stiff]
+        )
+        XCTAssertTrue(readings.contains { $0.type == .qiMovement },
+                      "Stiff symptom should produce Qi Movement reading")
+    }
+
+    func testModifierAreaReadings_StressedSymptom_ReturnsQiMovement() {
+        let readings = engine.generateModifierAreaReadings(
+            for: .neutralBalanced,
+            modifier: .none,
+            symptoms: [.stressed]
+        )
+        XCTAssertTrue(readings.contains { $0.type == .qiMovement },
+                      "Stressed symptom should produce Qi Movement reading")
+    }
+
+    func testModifierAreaReadings_NoModifierNoSymptoms_ReturnsEmpty() {
+        let readings = engine.generateModifierAreaReadings(for: .neutralBalanced, modifier: .none)
+        XCTAssertTrue(readings.isEmpty, "No modifier + neutral terrain should produce no readings")
+    }
+
+    func testModifierAreaReadings_AllHaveReadingAndAdvice() {
+        let readings = engine.generateModifierAreaReadings(for: .coldDeficient, modifier: .damp, symptoms: [.stiff])
+        for reading in readings {
+            XCTAssertFalse(reading.reading.isEmpty, "\(reading.type) should have non-empty reading")
+            XCTAssertFalse(reading.balanceAdvice.isEmpty, "\(reading.type) should have non-empty advice")
+        }
+    }
 }

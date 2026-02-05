@@ -230,8 +230,8 @@ struct AuthView: View {
             } else {
                 try await syncService.signIn(email: email, password: password)
             }
-            // Trigger full sync after auth
-            await syncService.sync()
+            // Trigger full sync after auth (force bypasses debounce)
+            await syncService.sync(force: true)
             dismiss()
         } catch {
             errorMessage = friendlyError(error)
@@ -246,7 +246,8 @@ struct AuthView: View {
             guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
                   let tokenData = credential.identityToken,
                   let idToken = String(data: tokenData, encoding: .utf8) else {
-                errorMessage = "Could not process Apple Sign In"
+                errorMessage = "Could not process Apple Sign In credentials"
+                TerrainLogger.sync.error("Apple Sign In: missing credential or token data")
                 return
             }
 
@@ -257,35 +258,46 @@ struct AuthView: View {
 
             guard let nonce = currentNonce, !nonce.isEmpty else {
                 errorMessage = "Security validation failed. Please try again."
+                TerrainLogger.sync.error("Apple Sign In: nonce is empty or missing")
                 return
             }
 
             isLoading = true
+            errorMessage = nil
             Task {
                 do {
                     try await syncService.signInWithApple(
                         idToken: idToken,
                         nonce: nonce
                     )
-                    await syncService.sync()
-                    dismiss()
+                    await syncService.sync(force: true)
+                    await MainActor.run { dismiss() }
                 } catch {
-                    errorMessage = friendlyError(error)
+                    TerrainLogger.sync.error("Apple Sign In Supabase error: \(error.localizedDescription)")
+                    await MainActor.run {
+                        errorMessage = friendlyError(error)
+                    }
                 }
-                isLoading = false
+                await MainActor.run { isLoading = false }
             }
 
         case .failure(let error):
-            let errorCode = ASAuthorizationError.Code(rawValue: (error as NSError).code)
+            TerrainLogger.sync.error("Apple Sign In ASAuthorization error: \(error.localizedDescription)")
+            let nsError = error as NSError
+            let errorCode = ASAuthorizationError.Code(rawValue: nsError.code)
             switch errorCode {
             case .canceled:
-                break // User tapped Cancel — not an error
+                // User tapped Cancel — not an error, but log it
+                TerrainLogger.sync.info("Apple Sign In: user canceled")
             case .notHandled, .invalidResponse:
                 errorMessage = "Apple Sign In is temporarily unavailable. Please try again."
             case .notInteractive:
                 errorMessage = "Apple Sign In could not be shown. Please try again."
+            case .unknown:
+                // This often happens when the simulator isn't signed into an Apple ID
+                errorMessage = "Apple Sign In failed. Make sure you're signed into an Apple ID in Settings."
             default:
-                errorMessage = friendlyError(error)
+                errorMessage = "Apple Sign In error: \(nsError.localizedDescription)"
             }
         }
     }

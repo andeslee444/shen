@@ -31,13 +31,17 @@ struct YouView: View {
 
     @State private var showRetakeQuizConfirmation = false
     @State private var showQuizEdit = false
+    @State private var showPulseCheckIn = false
     @State private var selectedSubTab: YouSubTab = .terrain
     @State private var showPatternMap = false
     @State private var showReference = false
     @Namespace private var tabNamespace
     @State private var cachedTrends: [TrendResult] = []
+    @State private var cachedAnnotatedTrends: [AnnotatedTrendResult] = []
     @State private var cachedRoutineScores: [(name: String, score: Double)] = []
     @State private var cachedDailyBriefItems: [(icon: String, text: String)] = []
+    @State private var cachedTerrainPulse: TerrainPulseInsight?
+    @State private var cachedActivityMinutes: ActivityMinutesResult?
 
     private let constitutionService = ConstitutionService()
     private let trendEngine = TrendEngine()
@@ -102,6 +106,26 @@ struct YouView: View {
     private func recomputeTrends() {
         let logs = Array(dailyLogs)
         cachedTrends = trendEngine.computeTrends(logs: logs)
+
+        // Compute terrain-aware prioritized trends (Phase 13)
+        if let type = terrainType {
+            cachedAnnotatedTrends = trendEngine.prioritizeTrends(
+                logs: logs,
+                terrainType: type,
+                modifier: terrainModifier
+            )
+            cachedTerrainPulse = trendEngine.generateTerrainPulse(
+                logs: logs,
+                terrainType: type,
+                modifier: terrainModifier
+            )
+        } else {
+            cachedAnnotatedTrends = []
+            cachedTerrainPulse = nil
+        }
+
+        // Compute activity minutes
+        cachedActivityMinutes = trendEngine.computeActivityMinutes(logs: logs)
 
         let routineIdsWithFeedback = Set(logs.flatMap { $0.routineFeedback.map(\.routineOrMovementId) })
         cachedRoutineScores = routineIdsWithFeedback.compactMap { routineId in
@@ -194,6 +218,22 @@ struct YouView: View {
             .sheet(isPresented: $showQuizEdit) {
                 if let profile = userProfile {
                     QuizEditView(userProfile: profile)
+                }
+            }
+            .sheet(isPresented: $showPulseCheckIn) {
+                if let profile = userProfile,
+                   let terrainId = profile.terrainProfileId {
+                    PulseCheckInView(
+                        currentTerrainId: terrainId,
+                        currentModifier: profile.terrainModifier,
+                        onRequestRetake: {
+                            showRetakeQuizConfirmation = true
+                        },
+                        onComplete: { date in
+                            profile.lastPulseCheckInDate = date
+                            profile.updatedAt = Date()
+                        }
+                    )
                 }
             }
         }
@@ -305,6 +345,11 @@ struct YouView: View {
                 }
             }
         }
+
+        // Terrain Pulse Check-In
+        if userProfile?.terrainProfileId != nil {
+            pulseCheckInCard
+        }
     }
 
     // MARK: - Daily Brief Card
@@ -341,6 +386,76 @@ struct YouView: View {
         .cornerRadius(theme.cornerRadius.large)
         .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
         .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
+    }
+
+    // MARK: - Pulse Check-In Card
+
+    private var pulseCheckInCard: some View {
+        let daysSinceLastCheckIn: Int? = {
+            guard let lastDate = userProfile?.lastPulseCheckInDate else { return nil }
+            return Calendar.current.dateComponents([.day], from: lastDate, to: Date()).day
+        }()
+
+        let daysSinceQuiz: Int? = {
+            guard let quizDate = userProfile?.lastQuizCompletedAt else { return nil }
+            return Calendar.current.dateComponents([.day], from: quizDate, to: Date()).day
+        }()
+
+        // Emphasize when 90+ days since quiz or last check-in
+        let isProminent = (daysSinceQuiz ?? 91) >= 90 && (daysSinceLastCheckIn ?? 91) >= 90
+
+        return Button {
+            HapticManager.light()
+            showPulseCheckIn = true
+        } label: {
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                HStack(spacing: theme.spacing.xs) {
+                    Image(systemName: "waveform.path.ecg")
+                        .foregroundColor(isProminent ? theme.colors.accent : theme.colors.textTertiary)
+                        .font(.system(size: 14))
+                    Text("Terrain Pulse")
+                        .font(theme.typography.labelLarge)
+                        .foregroundColor(theme.colors.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(theme.colors.textTertiary)
+                        .font(.system(size: 12))
+                }
+
+                Text("A quick 5-question check to see if your body pattern has shifted.")
+                    .font(theme.typography.bodySmall)
+                    .foregroundColor(theme.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let days = daysSinceLastCheckIn {
+                    Text("Last checked \(days) day\(days == 1 ? "" : "s") ago")
+                        .font(theme.typography.caption)
+                        .foregroundColor(theme.colors.textTertiary)
+                } else if daysSinceQuiz != nil {
+                    Text("You haven't taken a pulse check yet")
+                        .font(theme.typography.caption)
+                        .foregroundColor(theme.colors.textTertiary)
+                }
+            }
+            .padding(theme.spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                    .fill(theme.colors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                    .stroke(
+                        isProminent ? theme.colors.accent.opacity(0.2) : Color.clear,
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
+            .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("Terrain Pulse check-in")
+        .accessibilityHint("Take a quick quiz to check if your terrain has shifted")
     }
 
     // MARK: - Disclosure Section Helper
@@ -390,11 +505,16 @@ struct YouView: View {
     private var trendsTabContent: some View {
         EvolutionTrendsView(
             trends: cachedTrends,
+            annotatedTrends: cachedAnnotatedTrends,
             routineScores: cachedRoutineScores,
             currentStreak: progress?.currentStreak ?? 0,
             longestStreak: progress?.longestStreak ?? 0,
             totalCompletions: progress?.totalCompletions ?? 0,
-            dailyLogs: dailyLogs
+            dailyLogs: dailyLogs,
+            terrainType: terrainType,
+            modifier: terrainModifier,
+            terrainPulse: cachedTerrainPulse,
+            activityMinutes: cachedActivityMinutes
         )
     }
 

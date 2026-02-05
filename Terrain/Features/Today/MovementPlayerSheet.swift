@@ -10,7 +10,8 @@ import SwiftUI
 struct MovementPlayerSheet: View {
     let level: RoutineLevel
     var movementModel: Movement? = nil
-    let onComplete: () -> Void
+    /// Callback with the start timestamp for duration analytics
+    let onComplete: (Date?) -> Void
 
     @Environment(\.terrainTheme) private var theme
     @Environment(\.dismiss) private var dismiss
@@ -20,6 +21,8 @@ struct MovementPlayerSheet: View {
     @State private var timer: Timer?
     @State private var playButtonScale: CGFloat = 1.0
     @State private var showFeedbackSheet = false
+    /// Tracks when the movement was started for duration analytics
+    @State private var startedAt: Date = Date()
 
     /// Uses real SwiftData model when available, falls back to mock data
     private var movement: MovementData {
@@ -529,7 +532,8 @@ struct MovementPlayerSheet: View {
             stopTimer()
         }
         .sheet(isPresented: $showFeedbackSheet, onDismiss: {
-            onComplete()
+            // Fire the completion callback with start time for duration analytics
+            onComplete(startedAt)
             dismiss()
         }) {
             PostRoutineFeedbackSheet(
@@ -659,6 +663,6 @@ struct MovementFrameData {
 }
 
 #Preview {
-    MovementPlayerSheet(level: .full, onComplete: {})
+    MovementPlayerSheet(level: .full, onComplete: { _ in })
         .environment(\.terrainTheme, TerrainTheme.default)
 }

@@ -393,7 +393,7 @@ final class ConstitutionService {
         case .damp:
             items.append(WatchForItem(text: "Heavy, foggy feeling after eating", icon: "cloud.fog"))
         case .dry:
-            items.append(WatchForItem(text: "Dry cough or scratchy throat", icon: "waveform.path"))
+            items.append(WatchForItem(text: "Dry cough or scratchy throat", icon: "lungs.fill"))
         case .stagnation:
             items.append(WatchForItem(text: "Tension that moves — neck, ribs, temples", icon: "arrow.triangle.branch"))
         case .shen:

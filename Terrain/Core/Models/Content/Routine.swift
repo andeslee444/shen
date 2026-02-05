@@ -47,6 +47,9 @@ final class Routine {
     // Review
     var reviewStatus: String
 
+    // Hero image for detail sheet (bundled path or remote URL)
+    var heroImageUri: String?
+
     init(
         id: String,
         type: RoutineType = .eatDrink,
@@ -66,7 +69,8 @@ final class Routine {
         avoidForHours: Int = 0,
         avoidNotes: LocalizedString? = nil,
         cautions: Cautions = Cautions(),
-        reviewStatus: String = "draft"
+        reviewStatus: String = "draft",
+        heroImageUri: String? = nil
     ) {
         self.id = id
         self.type = type
@@ -87,6 +91,7 @@ final class Routine {
         self.avoidNotes = avoidNotes
         self.cautions = cautions
         self.reviewStatus = reviewStatus
+        self.heroImageUri = heroImageUri
     }
 
     /// Display name for the routine

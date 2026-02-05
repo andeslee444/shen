@@ -6,8 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Terrain** is a TCM (Traditional Chinese Medicine) daily rituals iOS app built with SwiftUI and SwiftData. The app determines a user's "Terrain" (body constitution) through a quiz, then delivers personalized daily routines.
 
-**Platform**: iOS 17+ (iPhone only)
+**Platform**: iOS 17+ (iPhone only, portrait only)
 **Positioning**: "Co-Star clarity + Muji calm" for TCM lifestyle routines
+**Repository**: `https://github.com/andeslee444/Terrain-App.git`
 
 ## Git Identity
 
@@ -23,14 +24,14 @@ Write code as if the maintainer is a violent psychopath who knows where you live
 
 ## Documentation Workflow
 
-A PostToolUse hook runs after every Edit/Write on files under `Core/`, `Features/`, `DesignSystem/`, `Engine/`, or `Services/`. After significant changes:
+A PostToolUse hook (`.claude/hooks/docs-reminder.sh`) runs after every Edit/Write on files under `Core/`, `Features/`, `DesignSystem/`, `Engine/`, or `Services/`. The hook prints a reminder to stderr — it's **informational only** and never blocks. After significant changes:
 - Update `TODO.md` with task status or new items
 - Update this `CLAUDE.md` if architecture changed or new files added
 - Update `Terrain/README.md` if features changed
 
 ## Change Log Protocol
 
-After completing any action that modifies 2+ files or makes non-trivial logic changes, append an entry to `REVIEW_LOG.md` in the project root before moving to the next task. Create the file if it doesn't exist yet. This leaves breadcrumbs for a senior engineer to review the work.
+After completing any action that modifies 2+ files or makes non-trivial logic changes, append an entry to `REVIEW_LOG.md` in the project root before moving to the next task. **Create the file if it doesn't exist yet** — the first entry should include a header like `# Review Log`.
 
 ### What counts as "non-trivial"
 - Any new file created
@@ -47,20 +48,15 @@ After completing any action that modifies 2+ files or makes non-trivial logic ch
 
 **Files touched:**
 - `path/to/file.swift` — what changed in this file (1 sentence)
-- `path/to/other.swift` — what changed (1 sentence)
 
 **What changed (plain English):**
 2-3 sentences a non-engineer could understand. Use metaphors if helpful.
-Example: "Added two new questions to the quiz about drinking and smoking.
-These act like seasoning on the terrain score — they nudge it slightly
-but can't change the main dish."
 
 **Why:**
 1 sentence on the motivation or user request that drove this.
 
 **Risks / watch-fors:**
 - Anything that could break, regress, or surprise someone
-- Migration concerns (e.g., "new optional field — existing users get nil, no migration needed")
 - "None identified" is acceptable if genuinely low-risk
 
 **Testing status:**
@@ -71,53 +67,79 @@ but can't change the main dish."
 
 **Reviewer nudge:**
 One sentence pointing the reviewer to the most important thing to look at.
-Example: "Double-check the 0.4 weight on lifestyle questions doesn't
-shift boundary cases in TerrainScoringEngineTests."
 ```
 
 ## Build and Run Commands
 
-All commands run from the `Terrain/` subdirectory (where `Terrain.xcodeproj` lives).
+**Working directory**: The Xcode project lives in `Terrain/` (one level below the repo root). All `xcodebuild` commands run from there.
 
 ```bash
-# Open in Xcode and run (Cmd+R)
+# Open in Xcode
 cd Terrain && open Terrain.xcodeproj
 
 # Command-line build
 cd Terrain
 xcodebuild -project Terrain.xcodeproj -scheme Terrain \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4' \
   -configuration Debug build
 
-# Run all unit tests
+# Run all unit tests (OS version required — use 18.4 or 18.5)
 xcodebuild test -project Terrain.xcodeproj -scheme Terrain \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4'
 
 # Run a single test class
 xcodebuild test -project Terrain.xcodeproj -scheme Terrain \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4' \
   -only-testing:TerrainTests/TerrainScoringEngineTests
 
 # Run a single test method
 xcodebuild test -project Terrain.xcodeproj -scheme Terrain \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4' \
   -only-testing:TerrainTests/TerrainScoringEngineTests/testColdDeficientType
 ```
 
 ### Test Suites
 
-All in `Terrain/Tests/`:
+All in `Terrain/Tests/` — **276 unit tests** across 14 files:
 
 | File | Covers |
 |------|--------|
-| `TerrainScoringEngineTests.swift` | All 8 types + 5 modifiers + boundary cases |
-| `ConstitutionServiceTests.swift` | Readouts, signals, defaults, watch-fors |
-| `ContentPackValidationTests.swift` | Schema integrity, terrain coverage, content pack structure |
-| `ContentPackServiceTests.swift` | JSON parsing, DTO-to-model conversion |
-| `SuggestionEngineTests.swift` | Terrain-aware ingredient/routine suggestions |
-| `DayPhaseTests.swift` | Phase boundaries (5AM/5PM), affinity scoring, intensity shifting |
+| `TerrainScoringEngineTests.swift` | All 8 types + 5 modifiers + boundary cases (38 tests) |
+| `ConstitutionServiceTests.swift` | Readouts, signals, defaults, watch-fors (15 tests) |
+| `ContentPackValidationTests.swift` | Schema integrity, terrain coverage, content pack structure (15 tests) |
+| `ContentPackServiceTests.swift` | JSON parsing, DTO-to-model conversion (9 tests) |
+| `SuggestionEngineTests.swift` | Terrain-aware ingredient/routine suggestions (33 tests) |
+| `DayPhaseTests.swift` | Phase boundaries (5AM/5PM), affinity scoring, intensity shifting (22 tests) |
+| `InsightEngineTests.swift` | Personalized headlines, do/don'ts, themes, symptom-shifted content, life area readings (59 tests) |
+| `IngredientBenefitTests.swift` | Ingredient benefit logic and terrain relevance (18 tests) |
+| `OnboardingDataConsistencyTests.swift` | Onboarding data flow integrity across all screens (10 tests) |
+| `TrendEngineTests.swift` | Terrain-aware trend prioritization, healthy zones, activity minutes, terrain pulse (26 tests) |
+| `SyncDateFormattersTests.swift` | PostgreSQL/ISO8601 timestamp parsing, round-trip, timezone offsets (9 tests) |
+| `SyncFieldsRoundTripTests.swift` | Enum rawValue round-trips for CyclePhase, SymptomQuality, HydrationPattern, SweatPattern (13 tests) |
+| `HealthTrendTests.swift` | Sleep duration + resting heart rate trends, nil handling, priority ordering (9 tests) |
+| `TerrainDriftDetectorTests.swift` | Terrain drift detection: no-change, minor-shift, significant-drift, engine consistency (9 tests) |
 
 ## Architecture
+
+### Directory Layout
+
+```
+Terrain/                        ← Xcode project root
+├── App/                        ← Entry point: TerrainApp, MainTabView, NavigationCoordinator
+├── Core/
+│   ├── Constants/              ← LegalURLs (Terms, Privacy, support email)
+│   ├── Engine/                 ← TerrainScoringEngine (quiz → terrain type)
+│   ├── Models/
+│   │   ├── Content/            ← Ingredient, Routine, Movement, Lesson, Program, TerrainProfile
+│   │   ├── User/               ← UserProfile, UserCabinet, DailyLog, ProgressRecord, ProgramEnrollment
+│   │   ├── Shared/             ← Enums, value types, view models (Tags, SafetyFlags, LocalizedString, etc.)
+│   │   └── TerrainSchemaV1.swift ← SwiftData VersionedSchema + migration plan
+│   └── Services/               ← InsightEngine, ContentPackService, SupabaseSyncService, etc.
+├── Features/                   ← One directory per feature (see Tab Mapping below)
+├── DesignSystem/               ← TerrainTheme, reusable components, HapticManager
+├── Resources/                  ← Assets, base-content-pack.json, Supabase.plist, privacy manifest
+└── Tests/                      ← 11 test files
+```
 
 ### Data Flow
 
@@ -127,8 +149,6 @@ ContentPack (JSON) → ContentPackService (DTOs) → SwiftData Models → Views
 
 Offline-first: `base-content-pack.json` holds all content. `ContentPackService` parses JSON into DTOs with `.toModel()` methods that convert to SwiftData models on first launch. Views query SwiftData via `@Query`. User data (profile, cabinet, logs) persists locally.
 
-**Gotcha**: `loadBundledContentPackIfNeeded()` uses UserDefaults version gating — it compares the content pack version in JSON against the stored version. Bump the version in `base-content-pack.json` to trigger a reload on next launch.
-
 ### Key Architectural Decisions
 
 | Component | Choice | Why |
@@ -137,170 +157,91 @@ Offline-first: `base-content-pack.json` holds all content. `ContentPackService` 
 | Persistence | SwiftData | Native iOS 17+, simpler than Core Data |
 | Content | Bundled JSON | Offline-first, instant startup |
 | Navigation | Coordinators | `NavigationCoordinator` (tabs) + `OnboardingCoordinatorView` (onboarding) |
+| Cloud sync | Supabase | Bidirectional sync (RLS, last-write-wins) with email + Apple Sign In auth |
+| Dependency | SPM via Xcode | Supabase Swift SDK v2.41.0 (only external dep) |
 
-### Navigation Architecture
+### App Startup Sequence
 
-`NavigationCoordinator` is an `@Observable` class initialized as `@State` in `MainTabView` (not app-wide). It manages:
-- Tab selection via `Tab` enum: `.home`, `.do`, `.ingredients`, `.learn`, `.you` (note: `.do` requires backticks in Swift since `do` is a reserved keyword)
-- Cross-tab navigation: `coordinator.navigate(to: .do)` switches tabs programmatically
-- Generic navigation: `coordinator.navigate(to: .ingredients)`
-- Legacy CTA mapping: `handleCTAAction()` routes old action strings to new tabs
+`TerrainApp.init()` creates the `ModelContainer` with migration plan, registers notification categories, wires `NotificationDelegate` (in `App/TerrainApp.swift` — handles deep-link routing from notification taps via `@AppStorage`). On first frame: loads content pack → configures Supabase sync → shows either `OnboardingCoordinatorView` or `MainTabView` based on `@AppStorage("hasCompletedOnboarding")`. On every foreground: syncs with Supabase and refills the 7-day notification window.
+
+### Tab Mapping
+
+| Tab | Feature directory | Purpose |
+|-----|-------------------|---------|
+| **Home** | `Features/Home/` | Insight-driven daily content (InsightEngine-powered) |
+| **Do** | `Features/Do/` + `Features/Today/` (sheets) | Capsule routines + quick fixes, morning/evening phase (5AM/5PM split) |
+| **Ingredients** | `Features/Ingredients/` | Browse/search ingredients, terrain-ranked detail sheets |
+| **Learn** | `Features/Learn/` | TCM education with terrain-relevance scoring |
+| **You** | `Features/You/` | Progress (streaks, trends, heatmap) + settings + terrain re-quiz |
+
+Other feature directories: `Onboarding/` (12-step flow: welcome → howItWorks → goals → demographics → quiz → reveal → tutorial → safety → notifications → permissions → account → complete), `Auth/` (email + Apple Sign In), `Programs/` (multi-day programs).
+
+**Deprecated — do not import or reference** (dead code still on disk):
+- `Features/Today/TodayView.swift`, `Features/RightNow/`, `Features/Progress/ProgressView.swift`, `Features/Settings/SettingsView.swift`
+- `Features/Home/Components/AreasOfLifeView.swift` — deleted, replaced by `LifeAreaRow` + `LifeAreaDetailSheet`
+
+### Navigation
+
+`NavigationCoordinator` (`App/NavigationCoordinator.swift`) is an `@Observable` class initialized as `@State` in `MainTabView` (not app-wide). Tab enum: `.home`, `` .`do` ``, `.ingredients`, `.learn`, `.you`. Cross-tab navigation via `coordinator.navigate(to:)`. CTA action strings via `handleCTAAction()` with legacy mapping for old action names.
 
 ### SwiftData Schema
 
 **User Models** (`Core/Models/User/`):
-- `UserProfile`: Terrain type, goals, quiz responses, notification prefs, `terrainModifier` (persisted)
-- `UserCabinet`: Saved ingredients
-- `DailyLog`: Daily check-in data with `moodRating: Int?` (1-10), `quickSymptoms: [QuickSymptom]`, `routineFeedback: [RoutineFeedbackEntry]`, completion tracking
+- `UserProfile`: Terrain type, goals, quiz responses, notification prefs, `terrainModifier`, lifestyle fields (`displayName`, `alcoholFrequency`, `smokingStatus`), demographics (`age: Int?`, `gender: String?`, `ethnicity: String?`) — all synced
+- `UserCabinet`: Saved ingredients with `isStaple` flag and `lastUsedAt` tracking — all synced
+- `DailyLog`: Check-in data — `moodRating: Int?` (1-10), `quickSymptoms`, `routineFeedback` (includes `startedAt`, `actualDurationSeconds`, `activityType`), completion tracking, `weatherCondition`, `temperatureCelsius`, `stepCount`, `microActionCompletedAt`. TCM diagnostic signals: `sleepQuality: SleepQuality?` (5 cases with TCM pattern mapping), `dominantEmotion: DominantEmotion?` (7 cases with organ mapping), `thermalFeeling: ThermalFeeling?` (5 thermal values), `digestiveState: DigestiveState?` (appetite + stool quality struct stored as JSONB) — all synced
 - `ProgressRecord`: Streaks, completion history
-- `ProgramEnrollment`: Multi-day program enrollment and day progress tracking
+- `ProgramEnrollment`: Multi-day program enrollment and day progress
 
-**Content Models** (`Core/Models/Content/`):
-- `Ingredient`, `Routine`, `Movement`, `Lesson`, `Program`, `TerrainProfile`
-- All loaded from content pack on first launch
+**Content Models** (`Core/Models/Content/`): `Ingredient`, `Routine`, `Movement`, `Lesson`, `Program`, `TerrainProfile` — all loaded from content pack on first launch.
 
-**Migrations** (`Core/Models/TerrainSchemaV1.swift`):
-- SwiftData `VersionedSchema` + `SchemaMigrationPlan`. When adding/removing a model property, define a new schema version here and add a migration stage.
+**Migrations** (`Core/Models/TerrainSchemaV1.swift`): `VersionedSchema` + `SchemaMigrationPlan`. See Common Pitfalls for when you do/don't need a new version.
 
-**Shared Models** (`Core/Models/Shared/`):
-- Enums, value types, and view models: `HomeInsightModels`, `QuickNeed`, `YouViewModels`, `CommunityStats`, `TerrainCopy`, `Tags`, `SafetyFlags`, `LocalizedString`, `MediaAsset`
+### Core Services
 
-### Feature Modules
-
-Each feature in `Features/` is self-contained. Key modules:
-
-| Feature | Key Files | Purpose |
-|---------|-----------|---------|
-| **Home** | `HomeView.swift` + `Components/` (DateBar, Headline, TypeBlock, InlineCheckIn, DoDont, AreasOfLife, ThemeToday, CapsuleStartCTA, WeatherHealthBarView) | Insight-driven home tab |
-| **Do** | `DoView.swift`, `DayPhase.swift` | Capsule routines + quick fixes, morning/evening phase logic (5AM/5PM split based on TCM Kidney hour) |
-| **Ingredients** | `IngredientsView.swift`, `IngredientDetailSheet.swift`, `IngredientEmoji.swift` | Browse/search ingredients, terrain-ranked detail sheets, per-ingredient emoji mapping |
-| **You** | `YouView.swift` + `Components/` (TerrainHeroHeader, TerrainIdentity, Signals, WatchFors, Defaults, EnhancedPatternMap, SymptomHeatmap, EvolutionTrends, TrendSparklineCard, RoutineEffectivenessCard, PreferencesSafety) + `QuizEditView.swift`, `QuizEditResultView.swift` | Progress (streaks, calendar, trends) + settings + terrain re-quiz |
-| **Onboarding** | `OnboardingCoordinatorView.swift`, `WelcomeView.swift`, `HowItWorksView.swift`, `GoalsView.swift`, `QuizView.swift`, `TerrainRevealView.swift`, `TutorialPreviewView.swift`, `SafetyGateView.swift`, `NotificationsView.swift`, `PermissionsView.swift`, `OnboardingCompleteView.swift` | 11-step flow: welcome → how it works → goals → quiz → 2-phase reveal → tutorial (5 pages) → safety → notifications → permissions → account → completion |
-| **Auth** | `AuthView.swift` | Email/password + Apple Sign In, used in onboarding and settings |
-| **Programs** | `ProgramsView.swift`, `ProgramDetailSheet.swift`, `ProgramDayView.swift` | Multi-day programs with enrollment persistence |
-| **Today** | `RoutineDetailSheet.swift`, `MovementPlayerSheet.swift`, `PostRoutineFeedbackSheet.swift`, `DailyCheckInSheet.swift` | Detail sheets used by Do tab (not a tab itself) |
-| **Learn** | `LearnView.swift`, `LessonDetailSheet.swift` | TCM education with terrain-ranked lessons |
-
-**Deprecated — do not import or reference these files** (still on disk but dead code):
-- `Features/Today/TodayView.swift` → replaced by HomeView + DoView
-- `Features/RightNow/RightNowView.swift` → replaced by DoView
-- `Features/Progress/ProgressView.swift` → replaced by YouView
-- `Features/Settings/SettingsView.swift` → replaced by YouView
-
-### InsightEngine (Home Tab Content)
-
-`InsightEngine` (`Core/Services/InsightEngine.swift`) generates personalized content based on terrain type + current symptoms:
-
-| Method | Output | View |
-|--------|--------|------|
-| `generateHeadline()` | Editorial statement (Co-Star style) | HeadlineView |
-| `generateDoDont()` | Two lists of 4 items each (with `whyForYou` text) | DoDontView |
-| `generateAreas()` | 4 life areas with tips | AreasOfLifeView |
-| `generateTheme()` | Concluding paragraph | ThemeTodayView |
-| `generateSeasonalNote()` | Season-specific terrain guidance | SeasonalCardView |
-| `generateWhyForYou()` | Terrain-specific explanation for routines/ingredients | RoutineDetailSheet, IngredientDetailSheet |
-| `sortSymptomsByRelevance()` | Terrain-ranked symptom order | InlineCheckInView |
-| `rankLessons()` | Terrain-relevance scored lessons (+5 terrain_relevance, +3 topic, +2 modifier, +1 goal) | LearnView |
-
-When users select quick symptoms (all 8: cold, bloating, stressed, tired, poorSleep, headache, cramps, stiff), InsightEngine shifts all content to address those symptoms.
-
-### Additional Services
-
-| Service | File | Purpose |
-|---------|------|---------|
-| `ConstitutionService` | `Core/Services/ConstitutionService.swift` | Generates readouts, signals, defaults, and watch-fors per terrain type |
-| `TrendEngine` | `Core/Services/TrendEngine.swift` | 14-day rolling trends across 8 categories (mood, sleep, digestion, stress, energy, headache, cramps, stiffness) + routine effectiveness scoring |
-| `ContentPackService` | `Core/Services/ContentPackService.swift` | Parses bundled JSON into SwiftData models (version-gated reload via UserDefaults) |
-| `SupabaseSyncService` | `Core/Services/SupabaseSyncService.swift` | Bidirectional sync with Supabase (RLS, last-write-wins). Tables: `user_profiles`, `daily_logs`, `progress_records`, `user_cabinets`, `program_enrollments`. Auth: email/password, Apple Sign In |
-| `SuggestionEngine` | `Core/Services/SuggestionEngine.swift` | Terrain-aware ingredient and routine suggestions |
-| `HealthService` | `Core/Services/HealthService.swift` | Reads daily step count from HealthKit, caches on DailyLog. Gracefully handles unavailable/denied authorization |
-| `WeatherService` | `Core/Services/WeatherService.swift` | WeatherKit integration for location-based weather data |
-| `NotificationService` | `Core/Services/NotificationService.swift` | Personalized notification scheduling (7-day rolling window), terrain-aware micro-actions, UNNotificationCenter delegate, deep-link bridge via @AppStorage |
-| `TerrainLogger` | `Core/Services/TerrainLogger.swift` | Structured os.log loggers by category: persistence, sync, navigation, contentPack, weather, health, notifications |
+| Service | Purpose |
+|---------|---------|
+| `InsightEngine` | Personalized headlines, do/don'ts, seasonal notes, "why for you", symptom-shifted content, lesson ranking, life area readings (5 core + 3 modifier areas with focus levels), TCM diagnostic signal interpretation |
+| `ConstitutionService` | Readouts, signals, defaults, watch-fors per terrain type |
+| `TrendEngine` | 14-day rolling trends (mood, sleep, digestion, stress, energy, headache, cramps, stiffness) + routine effectiveness + terrain-aware prioritization, healthy zones, activity minutes, terrain pulse insights |
+| `ContentPackService` | JSON → DTO → SwiftData models (version-gated reload via UserDefaults) |
+| `SuggestionEngine` | Terrain-aware ingredient and routine suggestions |
+| `SupabaseSyncService` | Bidirectional sync (all SwiftData user fields): `user_profiles`, `daily_logs`, `progress_records`, `user_cabinets`, `program_enrollments`. Full column parity with SwiftData models as of Feb 2026 audit. |
+| `NotificationService` | 7-day rolling schedule, terrain-aware micro-actions, deep-link bridge via `@AppStorage` |
+| `HealthService` | HealthKit step count → cached on DailyLog |
+| `WeatherService` | WeatherKit location-based weather data |
+| `TerrainLogger` | Structured `os.log` by category: persistence, sync, navigation, contentPack, weather, health, notifications |
 
 ## Common Pitfalls
 
 - **`.do` tab requires backticks**: `Tab.do` is a Swift reserved keyword. Always write `` Tab.`do` `` or you'll get a cryptic compiler error.
-- **SwiftData migrations — know when you need one**: Adding a new **optional** property to an `@Model` does NOT require a versioned migration — SwiftData handles it automatically (existing rows get `nil`). A new schema version in `Core/Models/TerrainSchemaV1.swift` is only needed for renaming/deleting columns or custom data transforms. **Important**: each `VersionedSchema` must contain distinct model type definitions (nested typealias or separate classes). If two versions both reference the same live `.self` class, SwiftData crashes with "Duplicate version checksums."
+- **SwiftData migrations — know when you need one**: Adding a new **optional** property to an `@Model` does NOT require a versioned migration — SwiftData handles it automatically (existing rows get `nil`). A new schema version in `TerrainSchemaV1.swift` is only needed for renaming/deleting columns or custom data transforms. **Important**: each `VersionedSchema` must contain distinct model type definitions (nested typealias or separate classes). If two versions both reference the same live `.self` class, SwiftData crashes with "Duplicate version checksums."
 - **Content pack version gating**: `ContentPackService.loadBundledContentPackIfNeeded()` compares the JSON version against UserDefaults. If you edit `base-content-pack.json` but don't bump the version number, your changes won't load on existing installs.
 - **Localized string wrapping**: Every user-facing string in `base-content-pack.json` must be an object: `{ "en-US": "..." }`. A bare string will crash the DTO parser.
+- **Content pack startup ordering**: Content must load before Supabase sync runs, otherwise sync may try to reference SwiftData models that don't exist yet. `TerrainApp.loadContentPack()` enforces this sequence.
+- **DayPhase 5AM/5PM split**: `Features/Do/DayPhase.swift` defines `.morning` (5AM–5PM) and `.evening` (5PM–5AM). SuggestionEngine, DoView, and InsightEngine all key off this. If you add time-sensitive content, it must respect this boundary.
+- **TerrainLogger categories**: Use `TerrainLogger.persistence`, `.sync`, `.navigation`, `.contentPack`, `.weather`, `.health`, `.notifications` for structured logging. Don't use `print()`.
+- **Supabase project**: Project ref is `xsxiykrjwzayrhwxwxbv`. Credentials live in `Resources/Supabase.plist` (no fallback — sync is disabled if plist is missing). The 5 synced tables are: `user_profiles`, `daily_logs`, `progress_records`, `user_cabinets`, `program_enrollments` — all with RLS policies using `(select auth.uid()) = user_id` for optimal per-query caching. **MCP tools available**: `mcp__supabase__execute_sql`, `mcp__supabase__apply_migration`, `mcp__supabase__list_tables`, `mcp__supabase__get_logs` for direct database operations.
+- **Supabase timestamp parsing**: PostgreSQL returns timestamps as `2026-02-05 06:54:06.536161+00` (space separator), but Swift's `ISO8601DateFormatter` expects a `T` separator. Always use `SyncDateFormatters.parseTimestamp()` (in `SupabaseSyncService.swift`) when parsing dates from Supabase `Row` — it handles both formats. All Row types store timestamps as `String` with computed `...Date` properties.
 
 ## Design System
 
-Access via `@Environment(\.terrainTheme)`. Theme is set app-wide in `TerrainApp.swift`.
+Access via `@Environment(\.terrainTheme)`. Full token definitions in `DesignSystem/Theme/TerrainTheme.swift`.
 
 ```swift
 @Environment(\.terrainTheme) private var theme
 ```
 
-### Colors
-```swift
-theme.colors.background        // #FAFAF8 warm off-white
-theme.colors.backgroundSecondary // #F5F5F3
-theme.colors.surface           // #FFFFFF
-theme.colors.textPrimary       // #1A1A1A near-black
-theme.colors.textSecondary     // #5C5C5C
-theme.colors.textTertiary      // #8C8C8C
-theme.colors.accent            // #8B7355 warm brown
-theme.colors.accentLight       // #B8A088
-theme.colors.accentDark        // #5E4D3B
-theme.colors.success           // #7A9E7E
-theme.colors.warning           // #C9A96E
-theme.colors.terrainWarm       // #C9956E
-theme.colors.terrainCool       // #7A8E9E
-theme.colors.terrainNeutral    // #9E9E8E
-```
+**Key tokens** (see `TerrainTheme.swift` for complete list):
+- Colors: `theme.colors.background` (#FAFAF8), `.accent` (#8B7355 warm brown), `.textPrimary` (#1A1A1A), `.success`, `.warning`, `.terrainWarm/Cool/Neutral`
+- Spacing (8pt base): `.xxs`(4) through `.xxxl`(64)
+- Corner radius: `.small`(4), `.medium`(8), `.large`(12), `.xl`(16), `.full`(9999 pill)
+- Typography: `displayLarge`/`Medium` (.black), `headlineLarge`/`Medium`/`Small` (.bold), `bodyLarge`/`Medium`/`Small` (.regular), `labelLarge`/`Medium`/`Small`, `caption`
+- Animation: `.quick`(0.15s), `.standard`(0.3s), `.reveal`(0.5s), `.spring`(0.4/0.8)
 
-### Spacing (8pt base)
-```swift
-theme.spacing.xxs  // 4
-theme.spacing.xs   // 8
-theme.spacing.sm   // 12
-theme.spacing.md   // 16
-theme.spacing.lg   // 24
-theme.spacing.xl   // 32
-theme.spacing.xxl  // 48
-theme.spacing.xxxl // 64
-```
+**Reusable components** (`DesignSystem/Components/`): `TerrainPrimaryButton`, `TerrainSecondaryButton`, `TerrainTextButton`, `TerrainChip`, `TerrainIconButton` (all use `HapticManager.light()`), `TerrainCard`, `TerrainTextField`, `TerrainEmptyState`, `SkeletonLoader`, `TerrainPatternBackground`, `AmbientBackground` (phase-aware gradient with floating particles), `ParallaxHeroImage` (0.4x scroll parallax with AsyncImage), `StepJourneyConnector` (horizontal/vertical step progress), `SafariView` (SFSafariViewController wrapper for in-app legal links).
 
-### Corner Radius
-```swift
-theme.cornerRadius.small   // 4
-theme.cornerRadius.medium  // 8
-theme.cornerRadius.large   // 12
-theme.cornerRadius.xl      // 16
-theme.cornerRadius.full    // 9999 (pill shapes)
-```
-
-### Typography
-Full scale: `displayLarge`, `displayMedium`, `headlineLarge`, `headlineMedium`, `headlineSmall`, `bodyLarge`, `bodyMedium`, `bodySmall`, `labelLarge`, `labelMedium`, `labelSmall`, `caption`. Display uses `.black` weight, headlines use `.bold`, body uses `.regular`.
-
-### Animation
-```swift
-theme.animation.quick    // 0.15s easeInOut
-theme.animation.standard // 0.3s easeInOut
-theme.animation.reveal   // 0.5s easeInOut
-theme.animation.spring   // .spring(response: 0.4, dampingFraction: 0.8)
-```
-
-### Reusable Components (`DesignSystem/Components/`)
-```swift
-// Buttons (TerrainButton.swift) — all use HapticManager.light()
-TerrainPrimaryButton(title: "Continue", action: { })
-TerrainSecondaryButton(title: "Back", action: { })
-TerrainTextButton(title: "Skip", action: { })
-TerrainChip(label: "Tag", isSelected: true, action: { })
-TerrainIconButton(systemName: "xmark", action: { })
-
-// Other components
-TerrainCard { ... }              // Standard card container
-TerrainTextField(...)            // Themed text input
-TerrainEmptyState(...)           // Empty state placeholder
-SkeletonLoader(...)              // Loading placeholder
-TerrainPatternBackground(...)    // Animated terrain-type background
-```
-
-### Card Shadow Pattern
+**Card shadow pattern**:
 ```swift
 .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
 .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
@@ -308,7 +249,7 @@ TerrainPatternBackground(...)    // Animated terrain-type background
 
 ## Terrain Scoring System
 
-The quiz produces a 5-axis vector mapping to 8 primary types x 5 modifiers. Scoring engine is in `Core/Engine/TerrainScoringEngine.swift`.
+The quiz produces a 5-axis vector mapping to 8 primary types x 5 modifiers. Engine: `Core/Engine/TerrainScoringEngine.swift`. Full algorithm details in `Terrain Scoring Table.rtf`.
 
 ```
 13 questions across 5 axes:
@@ -329,78 +270,18 @@ Modifier Priority (first match wins):
   4. None
 ```
 
-## Content Pack Schema (base-content-pack.json)
+## Content Pack
 
-All localized strings are objects keyed by locale (e.g., `{ "en-US": "..." }`). This applies to `title`, `subtitle`, `name.common`, `why_it_helps.plain`, `why_it_helps.tcm`, step `text`, etc. When adding content, every user-facing string must be wrapped: `{ "en-US": "..." }`.
+**File**: `Terrain/Resources/ContentPacks/base-content-pack.json` (relative to repo root)
+**Current version**: 1.5.0 — bump this when editing content to trigger reload on existing installs.
+**Counts**: 43 ingredients, 24 routines (8 per tier), 18 movements, 17 lessons, 8 programs, 8 terrain profiles.
+**Routines** may include optional `hero_image_uri` for parallax hero images in detail sheets.
 
-```
-ingredients[]:
-  id, name{ common{}, pinyin, hanzi, other_names[] }, category, tags[], goals[],
-  seasons[], regions[],
-  why_it_helps{ plain{}, tcm{} },
-  how_to_use{ quick_uses[{ text{}, prep_time_min, method_tags[] }], typical_amount{} },
-  cautions{ flags[], text{} }, cultural_context{ blurb{}, common_in[] }, review{}
+All localized strings must be objects: `{ "en-US": "..." }`. Full schema documented in `Content Schema JSON.rtf`.
 
-routines[]:
-  id, type, title{}, subtitle{}, duration_min, difficulty, tier(full|medium|lite),
-  tags[], goals[], seasons[], terrain_fit[], ingredient_refs[],
-  steps[{ text{}, timer_seconds }],
-  why{ one_line{}, expanded{ plain{}, tcm{} } },
-  swaps[], avoid_for_hours, cautions{}, review{}
+Top-level arrays: `ingredients[]`, `routines[]`, `movements[]`, `lessons[]`, `terrain_profiles[]`, `programs[]`. Each content type has `id`, localized display fields, `tags[]`, `goals[]`, `terrain_fit[]` or `terrain_relevance[]`, and type-specific fields. IDs use kebab-case (`"ginger-honey-tea-lite"`) except terrain profiles which use snake_case (`"cold_deficient_low_flame"`).
 
-movements[]:
-  id, title{}, subtitle{}, duration_min, intensity(restorative|gentle|moderate),
-  tags[], goals[], seasons[], terrain_fit[],
-  frames[{ asset{ type, uri }, cue{}, seconds }],
-  why{ one_line{}, expanded{ plain{}, tcm{} } }, cautions{}, review{}
-
-lessons[]:
-  id, title{}, topic,
-  body[{ type(paragraph|bullets|callout), text{} | bullets[] }],
-  takeaway{ one_line{} }, cta{ label{}, action },
-  terrain_relevance[]
-
-terrain_profiles[]:
-  id, label{ primary{} }, nickname{}, modifier{ key, display{} },
-  principles{ yin_yang, cold_heat, def_excess, interior_exterior },
-  superpower{}, trap{}, signature_ritual{}, truths[],
-  recommended_tags[], avoid_tags[],
-  starter_ingredients[], starter_movements[], starter_routines[]
-
-programs[]:
-  id, title{}, subtitle{}, duration_days, tags[], goals[], terrain_fit[],
-  days[{ day, routine_refs[], movement_refs[], lesson_ref }]
-```
-
-## Naming Conventions
-
-```
-Files:
-- Tab views: [Feature]View.swift (HomeView, DoView, YouView, LearnView)
-- Tab components: Features/[Tab]/Components/*.swift
-- Detail sheets: [Feature]DetailSheet.swift or [Item]Sheet.swift
-- Models: PascalCase matching content (Ingredient, Routine, Movement)
-
-IDs in content pack:
-- kebab-case: "ginger-honey-tea-lite", "morning-qi-flow-full"
-- Terrain profiles: "cold_deficient_low_flame", "warm_excess_overclocked"
-
-SwiftUI:
-- State: @State private var showSheet = false
-- Bindings: @Binding var isPresented: Bool
-- Environment: @Environment(\.terrainTheme) private var theme
-- Coordinator: @Environment(NavigationCoordinator.self) private var coordinator
-```
-
-## Content Tone
-
-- Muji-calm, chic, informational
-- Short sentences, gentle confidence
-- **Never say "diagnosis"** → use "profile," "terrain," "pattern"
-- **Never say "treatment"** → use "routine," "ritual," "practice"
-- Surface human-friendly terms; expand TCM vocabulary via tooltips
-
-## UI Patterns
+## Code Conventions
 
 ```swift
 // ALWAYS use theme tokens, never hardcode colors/spacing
@@ -408,42 +289,48 @@ SwiftUI:
 
 // SwiftData queries
 @Query(sort: \Ingredient.id) private var ingredients: [Ingredient]
-@Query private var userProfiles: [UserProfile]
 
 // Sheet presentation
 @State private var selectedItem: Item?
 .sheet(item: $selectedItem) { item in DetailSheet(item: item) }
+
+// Coordinator access
+@Environment(NavigationCoordinator.self) private var coordinator
 ```
+
+**File naming**: Tab views → `[Feature]View.swift`, sub-components → `Features/[Tab]/Components/*.swift`, detail sheets → `[Feature]DetailSheet.swift`, models → PascalCase matching content type.
+
+## Content Tone
+
+- Muji-calm, chic, informational. Short sentences, gentle confidence.
+- **Never say "diagnosis"** → use "profile," "terrain," "pattern"
+- **Never say "treatment"** → use "routine," "ritual," "practice"
+- Surface human-friendly terms; expand TCM vocabulary via tooltips
 
 ## Config Files
 
-- `Resources/Supabase.plist` — Supabase project URL + anon key for cloud sync
-- `Resources/Assets.xcassets/` — Asset catalog (AppIcon placeholder + AccentColor #8B7355)
+- `Resources/Supabase.plist` — Supabase project URL + anon key
 - `Resources/PrivacyInfo.xcprivacy` — Apple privacy manifest (UserDefaults, email collection, no tracking)
-- `Terrain.entitlements` — App capabilities (Sign in with Apple, WeatherKit, HealthKit)
-- `ExportOptions.plist` — App Store export config (team ID `3HC23XC5KA`, automatic signing, symbol upload)
-- `Package.swift` — SPM compatibility shim (primary builds use `Terrain.xcodeproj`)
+- `Terrain.entitlements` — Sign in with Apple, WeatherKit, HealthKit
+- `ExportOptions.plist` — App Store export (team ID `3HC23XC5KA`, automatic signing)
+- `Core/Constants/LegalURLs.swift` — Centralized Terms, Privacy, and support email URLs
+- `package.json` (repo root) — Prettier dev dependency only; not used for app builds
 
-### SPM Dependencies
+## Current Development Phase
 
-Managed via Xcode's SPM integration (see `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`):
-- **Supabase Swift SDK** (v2.41.0) — cloud sync, auth. Pulls in transitive deps: Auth, Functions, PostgREST, Realtime, Storage, Helpers
+**Phase 13 complete** (2026-02-05): Terrain Trends Tab reimagining + TCM diagnostic signals in daily check-in + sync reliability fix.
 
-## App Store Build Settings
+**Phase 14 planned** (TCM Personalization): Menstrual cycle phase, hydration/sweat patterns, symptom quality pickers, quarterly terrain check-in, HealthKit sleep/heart rate expansion.
 
-- **iPhone-only**: `TARGETED_DEVICE_FAMILY = 1` (no iPad)
-- **Portrait-only**: Landscape orientations removed
-- **Entitlements**: `CODE_SIGN_ENTITLEMENTS = Terrain.entitlements`
-- **Notification description**: Daily ritual reminders
-- **Deferred**: `DEVELOPMENT_TEAM`, actual app icon, App Store Connect metadata
+**Phase 15 planned** (Home Tab Redesign): Co-Star-inspired editorial experience with punchy headlines, life area dot indicators, and expandable detail sheets.
 
-## Repository
-
-GitHub: `https://github.com/andeslee444/shen.git`
+See `TODO.md` for detailed task breakdown per phase.
 
 ## Reference Documents
 
-- `PRD - TCM App.rtf` - Full product requirements
-- `Content Schema JSON.rtf` - JSON schema for content packs
-- `Terrain Scoring Table.rtf` - Quiz scoring algorithm details
-- `Copy for Terrain Types.rtf` - Copy templates for all terrain types
+- `PRD - TCM App.rtf` — Full product requirements
+- `Content Schema JSON.rtf` — Complete JSON schema for content packs
+- `Terrain Scoring Table.rtf` — Quiz scoring algorithm details
+- `Copy for Terrain Types.rtf` — Copy templates for all terrain types
+- `docs/notification-system.md` — Notification architecture and micro-action pools
+- `docs/terrain-type-system-audit.md` — Terrain type system audit

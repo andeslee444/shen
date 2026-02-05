@@ -26,6 +26,7 @@ struct TutorialPreviewView: View {
     @State private var currentPage: Int = 0
     @State private var showContent = false
     @State private var selectedSymptoms: Set<QuickSymptom> = []
+    @State private var isNavigatingBack: Bool = false
 
     private let totalPages = 5
     private let insightEngine = InsightEngine()
@@ -67,8 +68,8 @@ struct TutorialPreviewView: View {
                     }
                 }
                 .transition(.asymmetric(
-                    insertion: .move(edge: .trailing).combined(with: .opacity),
-                    removal: .move(edge: .leading).combined(with: .opacity)
+                    insertion: .move(edge: isNavigatingBack ? .leading : .trailing).combined(with: .opacity),
+                    removal: .move(edge: isNavigatingBack ? .trailing : .leading).combined(with: .opacity)
                 ))
             }
         }
@@ -105,6 +106,7 @@ struct TutorialPreviewView: View {
         if currentPage == 0 {
             onBack()
         } else {
+            isNavigatingBack = true
             withAnimation(.easeInOut(duration: 0.3)) {
                 currentPage -= 1
             }
@@ -307,11 +309,6 @@ struct TutorialPreviewView: View {
             modifier: result.modifier
         ).prefix(4))
 
-        let headline = insightEngine.generateHeadline(
-            for: result.primaryType,
-            modifier: result.modifier,
-            symptoms: selectedSymptoms
-        )
         let doDont = insightEngine.generateDoDont(
             for: result.primaryType,
             modifier: result.modifier,
@@ -351,10 +348,11 @@ struct TutorialPreviewView: View {
                                 onTap: {
                                     HapticManager.selection()
                                     withAnimation(theme.animation.standard) {
+                                        // Single-select: clear others and toggle this one
                                         if selectedSymptoms.contains(symptom) {
-                                            selectedSymptoms.remove(symptom)
+                                            selectedSymptoms.removeAll()
                                         } else {
-                                            selectedSymptoms.insert(symptom)
+                                            selectedSymptoms = [symptom]
                                         }
                                     }
                                 }
@@ -364,25 +362,6 @@ struct TutorialPreviewView: View {
                     .padding(.horizontal, theme.spacing.lg)
                     .opacity(showContent ? 1 : 0)
                     .animation(.easeOut(duration: 0.4).delay(staggerDelay(2)), value: showContent)
-
-                    // Headline card — animates on symptom change
-                    Text("\"\(headline.text)\"")
-                        .font(theme.typography.headlineMedium)
-                        .foregroundColor(theme.colors.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .padding(theme.spacing.lg)
-                        .frame(maxWidth: .infinity)
-                        .background(theme.colors.surface)
-                        .cornerRadius(theme.cornerRadius.large)
-                        .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
-                        .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
-                        .padding(.horizontal, theme.spacing.lg)
-                        .id(headline.text)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
-                        .animation(theme.animation.standard, value: headline.text)
 
                     // Single do + single don't card
                     if let firstDo = doDont.dos.first, let firstDont = doDont.donts.first {
@@ -952,6 +931,7 @@ struct TutorialPreviewView: View {
     // MARK: - Page Navigation
 
     private func advancePage() {
+        isNavigatingBack = false
         withAnimation(.easeInOut(duration: 0.3)) {
             currentPage += 1
         }

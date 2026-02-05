@@ -1,6 +1,6 @@
 # TODO - Terrain iOS App
 
-Last updated: 2026-01-30
+Last updated: 2026-02-05 (Phase 14 complete — 276 tests passing)
 
 ## Tab Structure (Updated Phase 3)
 
@@ -12,11 +12,11 @@ Last updated: 2026-01-30
 | **Learn** | LearnView | Field Guide educational content |
 | **You** | YouView | Progress tracking + settings combined |
 
-**Deprecated Views** (content moved):
-- `TodayView.swift` → HomeView (check-in) + DoView (capsule)
-- `RightNowView.swift` → DoView (quick fixes)
-- `ProgressView.swift` → YouView
-- `SettingsView.swift` → YouView
+**Deprecated Views** (deleted — content moved):
+- ~~`TodayView.swift`~~ → HomeView (check-in) + DoView (capsule) — **deleted**
+- ~~`RightNowView.swift`~~ → DoView (quick fixes) — **deleted**
+- ~~`ProgressView.swift`~~ → YouView — **deleted**
+- ~~`SettingsView.swift`~~ → YouView — **deleted**
 
 ## Completed (Phase 10 - 2026-01-30) - Comprehensive UX/UI Audit
 
@@ -75,17 +75,153 @@ Last updated: 2026-01-30
 - [x] Add notification usage description for daily ritual reminders
 - [x] Build succeeds, all tests pass
 
-### Still Deferred (requires Apple Developer Program)
-- [ ] Add actual 1024x1024 app icon PNG
-- [ ] Set `DEVELOPMENT_TEAM` value
+### Completed (Apple Developer Program acquired)
+- [x] Add actual 1024x1024 app icon PNG (216KB, exists at `Resources/Assets.xcassets/AppIcon.appiconset/`)
+- [x] Set `DEVELOPMENT_TEAM = 3HC23XC5KA` in project.pbxproj
+- [x] WeatherKit integration (WeatherService.swift) — weather data cached on DailyLog
+- [x] HealthKit step count integration (HealthService.swift) — steps cached on DailyLog
+- [x] Demographics collection (DemographicsView.swift) — age, gender, ethnicity collected during onboarding
+
+### Still Deferred
 - [ ] App Store Connect metadata (screenshots, description, privacy policy URL)
 - [ ] TestFlight upload
+
+## Completed (Phase 12 - 2026-02-04) - Supabase Schema Audit & Sync Fix
+
+- [x] Diagnosed Apple Sign In failure: provider not enabled in Supabase (error: `provider_disabled`)
+- [x] Added 17 missing columns to `user_profiles` (terrain vector, quiz flags, safety, lifestyle)
+- [x] Added 6 missing columns to `daily_logs` (symptom_onset, mood_rating, weather, steps, micro_action)
+- [x] Added 2 missing columns to `progress_records` (last_completion_date, monthly_completions)
+- [x] Added 2 missing columns to `user_cabinets` (is_staple, last_used_at)
+- [x] Added missing UPDATE RLS policy on `user_cabinets`
+- [x] Added performance indexes on mood_rating and terrain vector columns
+- [x] Updated `UserProfileRow` to sync displayName, alcoholFrequency, smokingStatus
+- [x] Updated `DailyLogRow` to sync moodRating, weatherCondition, temperatureCelsius, stepCount, microActionCompletedAt
+- [x] Updated `UserCabinetRow` to sync isStaple, lastUsedAt
+- [x] Updated all `toRow()`, `apply()`, `toModel()` methods for new fields
+- [x] Build succeeds, all tests pass
+
+## Completed (Phase 13 - 2026-02-05) — Terrain Trends Tab Reimagining + TCM Check-In Enrichment
+
+### Part A: Terrain Trends Tab Reimagining
+**Goal**: Transform generic analytics into a personalized TCM health narrative that interprets data through the user's terrain lens.
+
+- [x] TrendEngine: `prioritizeTrends()` — terrain-aware category ordering for all 8 types
+- [x] TrendEngine: `healthyZone()` — terrain-specific healthy ranges with context copy
+- [x] TrendEngine: `computeActivityMinutes()` — track routine vs movement minutes (user-requested)
+- [x] TrendEngine: `generateTerrainPulse()` — personalized daily insight generation
+- [x] TerrainPulseCard: Hero card with terrain glow colors, pulse animation, urgent indicator
+- [x] AnnotatedTrendCard: Trend cards with priority indicator, watch-for badge, terrain note
+- [x] ActivityLogCard: Stacked bar chart showing 14-day routine vs movement minutes
+- [x] YouViewModels: New types (AnnotatedTrendResult, TerrainHealthyZone, ActivityMinutesResult, TerrainPulseInsight)
+- [x] EvolutionTrendsView: Updated to show new components conditionally
+- [x] YouView: Compute and pass terrain-aware data to EvolutionTrendsView
+- [x] TrendEngineTests: 26 comprehensive tests for all new methods
+- [x] Build succeeds, all tests pass (200+ total)
+
+### Part B: TCM Diagnostic Signals in Daily Check-In
+**Goal**: Add high-value TCM diagnostic signals to the daily check-in flow.
+
+- [x] `sleepQuality: SleepQuality?` — enum: `fellAsleepEasily`, `hardToFallAsleep`, `wokeMiddleOfNight`, `wokeEarly`, `unrefreshing`
+- [x] `dominantEmotion: DominantEmotion?` — enum: `calm`, `irritable`, `worried`, `anxious`, `sad`, `restless`, `overwhelmed`
+- [x] `thermalFeeling: ThermalFeeling?` — enum: `cold`, `cool`, `comfortable`, `warm`, `hot`
+- [x] `digestiveState: DigestiveState?` — enum with appetite and stool quality
+- [x] InlineCheckInView: Optional secondary pickers collapsed by default
+- [x] InsightEngine: Uses TCM diagnostic signals to generate terrain-specific guidance
+- [x] DailyLog model + Supabase sync: All 4 new columns added and syncing
+
+### Part C: Sync Reliability Fix
+- [x] Fixed PostgreSQL timestamp parsing in SupabaseSyncService — sync was failing because PostgreSQL returns `2026-02-05 06:54:06.536161+00` format which Swift's default Codable Date decoder couldn't parse
+- [x] Added `SyncDateFormatters.parseTimestamp()` supporting both PostgreSQL and ISO8601 formats
+- [x] Changed all Row types to use `String` for timestamp fields with computed `...Date` properties
+- [x] Enhanced Apple Sign In error handling with user-friendly messages for all error cases
+
+## Completed (Phase 14 - 2026-02-05) — TCM Personalization: Cycle Phase, Profile Enrichment, HealthKit Expansion & Quarterly Check-In
+
+**Goal**: Add the remaining high-value TCM personalization dimensions that don't fit into daily check-in — menstrual cycle phase (the single strongest content modifier for ~50% of users), hydration/thirst patterns, and sweat patterns. Also build a lightweight "terrain check-in" that re-evaluates key indicators without requiring a full quiz retake.
+
+### Data Foundation & Sync
+- [x] Add `cyclePhase: CyclePhase?` to DailyLog — enum: `menstrual`, `follicular`, `ovulatory`, `luteal`, `notApplicable` with TCM context
+- [x] Add `symptomQuality: SymptomQuality?` to DailyLog — enum: `dull`, `sharp`, `heavy`, `burning`, `migrating` with TCM patterns
+- [x] Add `sleepDurationMinutes: Double?`, `sleepInBedMinutes: Double?`, `restingHeartRate: Int?` to DailyLog (HealthKit cache)
+- [x] Add `hydrationPattern: HydrationPattern?` to UserProfile — 4 cases with TCM signals
+- [x] Add `sweatPattern: SweatPattern?` to UserProfile — 5 cases with TCM signals
+- [x] Add `lastPulseCheckInDate: Date?` to UserProfile
+- [x] Supabase: Add cycle_phase, symptom_quality, sleep/HR columns to daily_logs
+- [x] Supabase: Add hydration_pattern, sweat_pattern, last_pulse_check_in_date to user_profiles
+- [x] SupabaseSyncService: Full bidirectional sync for all new fields (DailyLogRow + UserProfileRow)
+- [x] SyncFieldsRoundTripTests: 13 tests verifying enum rawValue round-trips for data integrity
+
+### HealthKit Expansion
+- [x] Read step count from HealthKit — implemented in `HealthService.swift`, cached on DailyLog.stepCount
+- [x] Read sleep analysis from HealthKit (in-bed time, asleep time, stages on Apple Watch)
+- [x] Read resting heart rate from HealthKit (elevated = heat/shen; low = cold/deficient)
+- [x] Feed sleep/heart rate into TrendEngine: Sleep Duration trend + Resting HR trend
+- [x] Updated terrainPriorityMap, terrainWatchForCategories, healthyZone, terrainNoteForTrend for 2 new categories
+- [x] HealthTrendTests: 9 tests for sleep duration and resting heart rate trends
+
+### Quarterly Terrain Check-In
+- [x] Build lightweight "Terrain Pulse" check-in (5 questions, not full 13-question quiz)
+- [x] TerrainDriftDetector: builds mini TerrainVector, classifies via TerrainScoringEngine, compares against current profile
+- [x] PulseCheckInView: 5-step sheet with radio options, progress dots, and drift result screen
+- [x] Wired into YouView Terrain sub-tab: "Terrain Pulse" card with 90-day prominence logic
+- [x] TerrainDriftDetectorTests: 9 tests covering no-change, minor-shift, significant-drift, engine consistency
+
+### Remaining (Phase 14b — Content Integration)
+- [ ] InsightEngine: shift all content by cycle phase ("Luteal phase — warming, grounding foods.")
+- [ ] SuggestionEngine: boost warming ingredients during luteal, blood-building during follicular
+- [ ] SuggestionEngine: use pain quality to differentiate warming vs cooling ingredient recommendations
+- [ ] UI: Add cycle phase picker and symptom quality secondary picker to check-in flow
+
+## Phase 15 — Home Tab Redesign (Co-Star Inspired)
+
+**Goal**: Transform the Home tab into a Co-Star-style editorial experience with punchy headlines, flowing paragraphs, and expandable life areas with personalized TCM readings.
+
+### Home Tab Structure
+- [x] Header: Date · Weather · Steps (simple inline)
+- [x] Punchy headline (2-5 words, changes daily based on terrain + symptoms + weather)
+- [x] Flowing paragraph (multiple impactful sentences: what to stop, what to do, rhetorical questions)
+- [x] Do/Don't section (clean two-column, no info buttons)
+- [x] Small CTA button: "Begin Today's Practice" → Do tab
+- [x] Life Areas section with dot indicators and expandable detail sheets
+
+### Life Areas (5 Core)
+- [x] **Energy** — Vital fire, focus, metabolic warmth
+- [x] **Digestion** — Earth center, transformation, absorption
+- [x] **Sleep** — Spirit rest, Shen settling, restoration
+- [x] **Mood** — Emotional flow, Liver qi, stress response
+- [x] **Seasonality** — Living in harmony with nature's cycles
+
+### Life Area Features
+- [x] Dot indicator: ○ empty (neutral), ◐ half (moderate focus), ● full (priority)
+- [x] Personalized description: how you feel + how you balance it
+- [x] Tappable → detail sheet slides in from right
+- [x] Detail sheet: description + accuracy buttons + reasons (image deferred)
+
+### Accuracy Feedback System
+- [x] "Not Accurate" / "Accurate" buttons on detail sheet
+- [ ] Info popup explaining how feedback customizes the experience
+- [x] Store feedback via TerrainLogger for future personalization
+- [x] Feedback is data collection only (doesn't change content immediately)
+
+### Modifier Areas (Appear When Relevant)
+- [x] **Inner Climate** — when temperature imbalance detected (cold terrain + cold weather + cold symptom)
+- [x] **Fluid Balance** — when damp/dry modifier active + matching weather/symptoms
+- [x] **Qi Movement** — when stagnation detected (low steps + stiffness + stagnation modifier)
+- [x] Rendered in HomeView below life areas with "Conditions in play" header
+- [x] Tappable → ModifierAreaDetailSheet with reading, balance advice, accuracy feedback, reasons
+
+### Daily Check-In Popup (Future)
+- [ ] Move daily symptom/mood check-in from inline HomeView to modal popup
+- [ ] Trigger popup on first Home tab visit of the day
+- [ ] Make it dismissible but gently persistent
+- [ ] Keep current inline version as fallback until popup is polished
 
 ## Remaining Work
 
 ### Content Pack — Future Expansion
 **File**: `Terrain/Resources/ContentPacks/base-content-pack.json`
-**Current**: 43 ingredients, 24 routines (8 per tier), 9 movements, 17 lessons, 8 programs, 8 terrain profiles (v1.3.0)
+**Current**: 43 ingredients, 24 routines (8 per tier), 18 movements (9 + tier variants), 17 lessons, 8 programs, 8 terrain profiles (v1.5.0)
 **Task**:
 - Add more swap options between routines
 - Add more routines per tier for warm/neutral terrain types
@@ -96,22 +232,15 @@ Last updated: 2026-01-30
 **Status**: ✅ Implemented with DisclosureGroups
 **Details**: Progressive disclosure via collapsible sections + Daily Brief card on terrain sub-tab
 
-## Blocked by External Dependencies
-
-### Weather Integration
-**Blocker**: Requires Apple Developer Program ($99/year)
-**Task**:
-- Integrate Apple WeatherKit
-- Cache weather in DailyLog
-- Adjust recommendations based on weather (cold day → warming routines)
+## Pending External Steps
 
 ### TestFlight Deployment
-**Blocker**: Requires Apple Developer Program ($99/year)
-**Task**:
-- Configure signing & capabilities in Xcode
-- Create App Store Connect record
-- Archive and upload to TestFlight
-- Set up internal testing group
+**Status**: Apple Developer Program acquired, code signing configured
+**Remaining tasks**:
+- [ ] Create App Store Connect record
+- [ ] Archive and upload to TestFlight
+- [ ] Set up internal testing group
+- [ ] Prepare App Store metadata (screenshots, description, privacy policy URL)
 
 ## Completed (Phase 9 - 2026-01-30) - Content Pack Gap-Filling Expansion (v1.2.0 → v1.3.0)
 

@@ -32,8 +32,6 @@ struct CapsuleStartCTA: View {
             .cornerRadius(theme.cornerRadius.large)
         }
         .buttonStyle(ScaleButtonStyle())
-        .padding(.horizontal, theme.spacing.lg)
-        .padding(.vertical, theme.spacing.md)
     }
 }
 

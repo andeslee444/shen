@@ -328,6 +328,7 @@ struct RoutineDTO: Decodable {
     let avoid_notes: LocalizedStringDTO?
     let cautions: CautionsDTO
     let review: ReviewStatusDTO
+    let hero_image_uri: String?
 
     func toModel() -> Routine {
         Routine(
@@ -348,7 +349,8 @@ struct RoutineDTO: Decodable {
             swaps: swaps?.map { $0.toModel() } ?? [],
             avoidForHours: avoid_for_hours ?? 0,
             avoidNotes: avoid_notes?.toModel(),
-            cautions: cautions.toModel()
+            cautions: cautions.toModel(),
+            heroImageUri: hero_image_uri
         )
     }
 }

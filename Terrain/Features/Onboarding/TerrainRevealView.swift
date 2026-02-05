@@ -122,12 +122,6 @@ struct TerrainRevealView: View {
                     .blur(radius: revealPhase >= 1 ? 0 : 10)
                     .shadow(color: reduceMotion ? .clear : terrainGlowColor.opacity(0.5), radius: 10, x: 0, y: 0)
 
-                // Technical label — small, beneath nickname
-                Text(result.primaryType.label)
-                    .font(theme.typography.caption)
-                    .foregroundColor(theme.colors.textTertiary)
-                    .opacity(revealPhase >= 2 ? 1 : 0)
-
                 // Superpower — the emotional hook
                 VStack(spacing: theme.spacing.sm) {
                     Text("Your Superpower")

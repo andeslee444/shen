@@ -25,6 +25,19 @@ struct HomeView: View {
     @State private var hasSkippedCheckIn = false
     @State private var saveTask: Task<Void, Never>?
 
+    // TCM diagnostic signals (Phase 13)
+    @State private var sleepQuality: SleepQuality?
+    @State private var dominantEmotion: DominantEmotion?
+    @State private var thermalFeeling: ThermalFeeling?
+    @State private var digestiveState: DigestiveState?
+
+    // Life area detail sheet state (Phase 15)
+    @State private var selectedLifeAreaReading: LifeAreaReading?
+    @State private var selectedModifierReading: ModifierAreaReading?
+
+    // Daily survey sheet state
+    @State private var showingSurveySheet = false
+
     // Weather service — fetches once per calendar day
     @State private var weatherService = WeatherService()
 
@@ -104,23 +117,29 @@ struct HomeView: View {
         insightEngine.generateAreas(
             for: terrainType,
             modifier: modifier,
-            symptoms: selectedSymptoms
+            symptoms: selectedSymptoms,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState
         )
     }
 
-    private var theme_: ThemeTodayContent {
-        insightEngine.generateTheme(
+    private var lifeAreaReadings: [LifeAreaReading] {
+        insightEngine.generateLifeAreaReadings(
             for: terrainType,
             modifier: modifier,
-            symptoms: selectedSymptoms
+            symptoms: selectedSymptoms,
+            weatherCondition: todaysLog?.weatherCondition,
+            stepCount: healthService.dailyStepCount
         )
     }
 
-    private var seasonalNote: SeasonalNoteContent {
-        insightEngine.generateSeasonalNote(
+    private var modifierAreaReadings: [ModifierAreaReading] {
+        insightEngine.generateModifierAreaReadings(
             for: terrainType,
             modifier: modifier,
-            weatherCondition: todaysLog?.weatherCondition
+            symptoms: selectedSymptoms
         )
     }
 
@@ -130,43 +149,57 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: theme.spacing.lg) {
-                    // 1. Date bar
-                    DateBarView(dailyTone: dailyTone)
-                        .padding(.top, theme.spacing.md)
-                        .accessibilityAddTraits(.isHeader)
-
-                    // 1.5 Weather + Steps bar
-                    WeatherHealthBarView(
+                    // 1. Header with date, weather, and steps
+                    HomeHeaderView(
                         temperatureCelsius: weatherService.temperatureCelsius,
                         weatherCondition: weatherService.currentCondition,
                         stepCount: healthService.dailyStepCount
                     )
+                    .padding(.top, theme.spacing.md)
+                    .accessibilityAddTraits(.isHeader)
 
                     // 2. Headline
                     HeadlineView(content: headline)
                         .accessibilityAddTraits(.isHeader)
 
-                    // 3. Inline check-in (if not done today) — symptoms sorted by terrain relevance
-                    if !hasCheckedInToday {
-                        InlineCheckInView(
-                            selectedSymptoms: $selectedSymptoms,
-                            moodRating: $moodRating,
-                            onSkip: { handleSkipCheckIn() },
-                            sortedSymptoms: insightEngine.sortSymptomsByRelevance(for: terrainType, modifier: modifier, weatherCondition: todaysLog?.weatherCondition)
-                        )
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                        .accessibilityLabel("Quick symptom check-in")
-                    }
-
-                    // 4. Type block
+                    // 3. Type block
                     TypeBlockView(components: typeBlockComponents)
 
-                    // 5. CTA — primary action, prominent and early
-                    CapsuleStartCTA(
-                        onStart: { navigateToDo() }
-                    )
-                    .accessibilityLabel("Start your daily practice")
-                    .accessibilityHint("Navigate to the Do tab to begin")
+                    // 4. Action buttons
+                    VStack(spacing: theme.spacing.sm) {
+                        // Daily Survey button
+                        Button(action: {
+                            HapticManager.light()
+                            showingSurveySheet = true
+                        }) {
+                            HStack(spacing: theme.spacing.xs) {
+                                Image(systemName: "list.clipboard")
+                                    .font(.system(size: 18))
+                                Text("Daily Survey")
+                                    .font(theme.typography.labelLarge)
+                            }
+                            .foregroundColor(theme.colors.accent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, theme.spacing.md)
+                            .background(theme.colors.background)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                                    .stroke(theme.colors.accent, lineWidth: 1.5)
+                            )
+                            .cornerRadius(theme.cornerRadius.large)
+                        }
+                        .buttonStyle(ScaleButtonStyle())
+                        .accessibilityLabel("Daily Survey")
+                        .accessibilityHint("Open daily check-in survey")
+
+                        // Start Today's Practice button
+                        CapsuleStartCTA(
+                            onStart: { navigateToDo() }
+                        )
+                        .accessibilityLabel("Start your daily practice")
+                        .accessibilityHint("Navigate to the Do tab to begin")
+                    }
+                    .padding(.horizontal, theme.spacing.lg)
 
                     // Divider: identity zone → guidance zone
                     Divider()
@@ -176,14 +209,26 @@ struct HomeView: View {
                     DoDontView(dos: doDont.dos, donts: doDont.donts)
                         .accessibilityLabel("Do and Don't recommendations for your terrain")
 
-                    // 7. Areas of life
-                    AreasOfLifeView(areas: areas)
+                    // 7. Life areas (Co-Star style with dot indicators)
+                    VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                        Text("Your day")
+                            .font(theme.typography.labelMedium)
+                            .foregroundColor(theme.colors.textTertiary)
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                            .padding(.horizontal, theme.spacing.lg)
 
-                    // 8. Seasonal note
-                    SeasonalCardView(content: seasonalNote)
+                        LifeAreasSection(
+                            readings: lifeAreaReadings,
+                            selectedReading: $selectedLifeAreaReading
+                        )
+                    }
 
-                    // 9. Theme today
-                    ThemeTodayView(content: theme_)
+                    // 8. Modifier areas (only when modifier-specific conditions are active)
+                    ModifierAreasSection(
+                        readings: modifierAreaReadings,
+                        selectedReading: $selectedModifierReading
+                    )
 
                     Spacer(minLength: theme.spacing.xxl)
                 }
@@ -207,7 +252,68 @@ struct HomeView: View {
             .onChange(of: moodRating) { _, _ in
                 scheduleSave()
             }
+            .onChange(of: sleepQuality) { _, _ in
+                scheduleSave()
+            }
+            .onChange(of: dominantEmotion) { _, _ in
+                scheduleSave()
+            }
+            .onChange(of: thermalFeeling) { _, _ in
+                scheduleSave()
+            }
+            .onChange(of: digestiveState) { _, _ in
+                scheduleSave()
+            }
+            .sheet(item: $selectedLifeAreaReading) { reading in
+                LifeAreaDetailSheet(
+                    reading: reading,
+                    onAccuracyFeedback: { isAccurate in
+                        saveAccuracyFeedback(for: reading, isAccurate: isAccurate)
+                    }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(item: $selectedModifierReading) { reading in
+                ModifierAreaDetailSheet(
+                    reading: reading,
+                    onAccuracyFeedback: { isAccurate in
+                        saveModifierAccuracyFeedback(for: reading, isAccurate: isAccurate)
+                    }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showingSurveySheet) {
+                DailySurveySheet(
+                    selectedSymptoms: $selectedSymptoms,
+                    moodRating: $moodRating,
+                    sleepQuality: $sleepQuality,
+                    dominantEmotion: $dominantEmotion,
+                    thermalFeeling: $thermalFeeling,
+                    digestiveState: $digestiveState,
+                    sortedSymptoms: insightEngine.sortSymptomsByRelevance(for: terrainType, modifier: modifier, weatherCondition: todaysLog?.weatherCondition),
+                    onDismiss: {
+                        showingSurveySheet = false
+                        scheduleSave()
+                    }
+                )
+                .presentationDetents([.fraction(0.7), .large])
+                .presentationDragIndicator(.visible)
+            }
         }
+    }
+
+    // MARK: - Accuracy Feedback
+
+    /// Saves accuracy feedback for a life area reading (for future ML training)
+    private func saveAccuracyFeedback(for reading: LifeAreaReading, isAccurate: Bool) {
+        TerrainLogger.persistence.info("Accuracy feedback: \(reading.type.rawValue) - \(isAccurate ? "accurate" : "not accurate")")
+    }
+
+    /// Saves accuracy feedback for a modifier area reading (for future ML training)
+    private func saveModifierAccuracyFeedback(for reading: ModifierAreaReading, isAccurate: Bool) {
+        TerrainLogger.persistence.info("Modifier accuracy feedback: \(reading.type.rawValue) - \(isAccurate ? "accurate" : "not accurate")")
     }
 
     // MARK: - Actions
@@ -234,6 +340,11 @@ struct HomeView: View {
                 selectedSymptoms = Set(log.quickSymptoms)
             }
             moodRating = log.moodRating
+            // Load TCM diagnostic data
+            sleepQuality = log.sleepQuality
+            dominantEmotion = log.dominantEmotion
+            thermalFeeling = log.thermalFeeling
+            digestiveState = log.digestiveState
         }
     }
 
@@ -241,9 +352,19 @@ struct HomeView: View {
         if let log = todaysLog {
             log.quickSymptoms = Array(symptoms)
             log.moodRating = mood
+            // Save TCM diagnostic data
+            log.sleepQuality = sleepQuality
+            log.dominantEmotion = dominantEmotion
+            log.thermalFeeling = thermalFeeling
+            log.digestiveState = digestiveState
             log.updatedAt = Date()
         } else {
             let log = DailyLog(quickSymptoms: Array(symptoms), moodRating: mood)
+            // Set TCM diagnostic data on new log
+            log.sleepQuality = sleepQuality
+            log.dominantEmotion = dominantEmotion
+            log.thermalFeeling = thermalFeeling
+            log.digestiveState = digestiveState
             modelContext.insert(log)
         }
 

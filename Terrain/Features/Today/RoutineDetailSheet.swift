@@ -2,7 +2,8 @@
 //  RoutineDetailSheet.swift
 //  Terrain
 //
-//  Detailed view of a routine with steps
+//  Beautifully designed routine detail view with hero image,
+//  ambient background, and flowing visual hierarchy.
 //
 
 import SwiftUI
@@ -11,7 +12,8 @@ import SwiftData
 struct RoutineDetailSheet: View {
     let level: RoutineLevel
     let routineModel: Routine
-    let onComplete: () -> Void
+    /// Callback with the start timestamp for duration analytics
+    let onComplete: (Date?) -> Void
 
     @Environment(\.terrainTheme) private var theme
     @Environment(\.dismiss) private var dismiss
@@ -28,8 +30,12 @@ struct RoutineDetailSheet: View {
     @State private var timeRemaining = 0
     @State private var selectedIngredient: Ingredient?
     @State private var showFeedbackSheet = false
+    @State private var scrollOffset: CGFloat = 0
+    /// Tracks when the routine was started for duration analytics
+    @State private var startedAt: Date = Date()
 
-    /// View-friendly representation of the Routine model
+    // MARK: - Computed Properties
+
     private var routineTitle: String { routineModel.displayName }
     private var routineSubtitle: String { routineModel.subtitle?.localized ?? "" }
     private var routineDuration: String { "\(routineModel.durationMin) min" }
@@ -42,7 +48,10 @@ struct RoutineDetailSheet: View {
         routineModel.why.expanded?.plain.localized ?? routineModel.why.oneLine.localized
     }
 
-    /// Maps ingredient ref IDs (e.g. "ginger") to display names (e.g. "Ginger")
+    private var currentPhase: DayPhase {
+        DayPhase.current()
+    }
+
     private func ingredientDisplayNames(for refs: [String]) -> [String] {
         refs.map { ref in
             allIngredients.first(where: { $0.id == ref })?.displayName ?? ref.capitalized
@@ -62,7 +71,6 @@ struct RoutineDetailSheet: View {
         userProfiles.first?.resolvedModifier ?? .none
     }
 
-    /// Terrain-specific explanation for why this routine matters for the user
     private var whyForYourTerrain: String? {
         insightEngine.generateWhyForYou(
             routineTags: routineModel.tags,
@@ -71,145 +79,42 @@ struct RoutineDetailSheet: View {
         )
     }
 
+    // MARK: - Body
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Progress
-                ProgressView(value: Double(currentStep) / Double(routineSteps.count))
-                    .tint(theme.colors.accent)
-                    .padding(.horizontal, theme.spacing.lg)
-                    .padding(.top, theme.spacing.md)
+            ZStack {
+                // Ambient background (phase-aware gradient)
+                AmbientBackground(
+                    phase: currentPhase,
+                    scrollOffset: scrollOffset,
+                    showParticles: true
+                )
 
-                ScrollView {
-                    VStack(spacing: theme.spacing.lg) {
-                        // Header
-                        VStack(spacing: theme.spacing.sm) {
-                            Text(routineTitle)
-                                .font(theme.typography.headlineLarge)
-                                .foregroundColor(theme.colors.textPrimary)
-
-                            Text(routineSubtitle)
-                                .font(theme.typography.bodyMedium)
-                                .foregroundColor(theme.colors.textSecondary)
-
-                            HStack(spacing: theme.spacing.md) {
-                                Label(routineDuration, systemImage: "clock")
-                                Label(routineDifficulty, systemImage: "speedometer")
-                            }
-                            .font(theme.typography.caption)
-                            .foregroundColor(theme.colors.textTertiary)
-                        }
-                        .padding(.horizontal, theme.spacing.lg)
-                        .padding(.top, theme.spacing.md)
-
-                        // Why section
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            Text("Why this helps")
-                                .font(theme.typography.labelMedium)
-                                .foregroundColor(theme.colors.textTertiary)
-
-                            Text(routineWhyText)
-                                .font(theme.typography.bodyMedium)
-                                .foregroundColor(theme.colors.textSecondary)
-
-                            // Terrain-specific "why" section
-                            if let terrainWhy = whyForYourTerrain {
-                                VStack(alignment: .leading, spacing: theme.spacing.xs) {
-                                    Text("For your terrain")
-                                        .font(theme.typography.labelSmall)
-                                        .foregroundColor(theme.colors.accent)
-
-                                    Text(terrainWhy)
-                                        .font(theme.typography.bodySmall)
-                                        .foregroundColor(theme.colors.textSecondary)
-                                        .italic()
+                // Main content
+                VStack(spacing: 0) {
+                    // Custom scroll view with offset tracking
+                    ScrollView {
+                        scrollContent
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .preference(
+                                            key: ScrollOffsetKey.self,
+                                            value: -geo.frame(in: .named("scroll")).minY
+                                        )
                                 }
-                                .padding(theme.spacing.sm)
-                                .background(theme.colors.accent.opacity(0.06))
-                                .cornerRadius(theme.cornerRadius.medium)
-                            }
-                        }
-                        .padding(.horizontal, theme.spacing.lg)
-
-                        // Ingredients
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            Text("Ingredients")
-                                .font(theme.typography.labelMedium)
-                                .foregroundColor(theme.colors.textTertiary)
-
-                            FlowLayout(spacing: theme.spacing.xs) {
-                                ForEach(routineIngredients, id: \.self) { ingredientName in
-                                    let matched = findIngredient(named: ingredientName)
-                                    IngredientChip(
-                                        name: ingredientName,
-                                        isInCabinet: matched.map { isInCabinet($0.id) } ?? false,
-                                        onTap: matched != nil ? {
-                                            selectedIngredient = matched
-                                            HapticManager.light()
-                                        } : nil
-                                    )
-                                }
-                            }
-                        }
-                        .padding(.horizontal, theme.spacing.lg)
-
-                        // Current step
-                        if currentStep < routineSteps.count {
-                            StepCard(
-                                stepNumber: currentStep + 1,
-                                totalSteps: routineSteps.count,
-                                stepText: routineSteps[currentStep].text,
-                                stepTimerSeconds: routineSteps[currentStep].timerSeconds,
-                                isTimerRunning: isTimerRunning,
-                                timeRemaining: timeRemaining,
-                                onStartTimer: startTimer
                             )
-                            .padding(.horizontal, theme.spacing.lg)
-                        }
-
-                        // All steps overview
-                        VStack(alignment: .leading, spacing: theme.spacing.sm) {
-                            Text("All steps")
-                                .font(theme.typography.labelMedium)
-                                .foregroundColor(theme.colors.textTertiary)
-
-                            ForEach(Array(routineSteps.enumerated()), id: \.offset) { index, step in
-                                StepRow(
-                                    number: index + 1,
-                                    text: step.text,
-                                    isCompleted: index < currentStep,
-                                    isCurrent: index == currentStep
-                                )
-                            }
-                        }
-                        .padding(.horizontal, theme.spacing.lg)
-
-                        Spacer(minLength: theme.spacing.xxl)
                     }
+                    .coordinateSpace(name: "scroll")
+                    .onPreferenceChange(ScrollOffsetKey.self) { value in
+                        scrollOffset = value
+                    }
+
+                    // Bottom action buttons
+                    bottomButtons
                 }
-
-                // Bottom buttons
-                HStack(spacing: theme.spacing.md) {
-                    if currentStep > 0 {
-                        TerrainSecondaryButton(title: "Previous") {
-                            currentStep -= 1
-                        }
-                    }
-
-                    if currentStep < routineSteps.count - 1 {
-                        TerrainPrimaryButton(title: "Next Step") {
-                            currentStep += 1
-                        }
-                    } else {
-                        TerrainPrimaryButton(title: "Complete") {
-                            showFeedbackSheet = true
-                        }
-                    }
-                }
-                .padding(theme.spacing.lg)
-                .background(theme.colors.background)
             }
-            .background(theme.colors.background)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -227,9 +132,7 @@ struct RoutineDetailSheet: View {
                 )
             }
             .sheet(isPresented: $showFeedbackSheet, onDismiss: {
-                // After feedback sheet dismisses (either via button or swipe-down),
-                // fire the completion callback and close the routine sheet
-                onComplete()
+                onComplete(startedAt)
                 dismiss()
             }) {
                 PostRoutineFeedbackSheet(
@@ -241,13 +144,271 @@ struct RoutineDetailSheet: View {
         }
     }
 
-    // MARK: - Ingredient Matching
+    // MARK: - Scroll Content
 
-    /// Matches a chip display name (e.g. "Rice", "Fresh Ginger") to a SwiftData Ingredient.
-    /// Strips parenthetical suffixes like " (optional)" before matching.
-    /// Returns nil if no match — chip stays non-interactive.
+    private var scrollContent: some View {
+        VStack(spacing: 0) {
+            // Hero image with parallax
+            ParallaxHeroImage(
+                imageUri: routineModel.heroImageUri,
+                fallbackIcon: "cup.and.saucer.fill",
+                phase: currentPhase,
+                scrollOffset: scrollOffset
+            )
+
+            // Content sections with varied spacing
+            VStack(spacing: 0) {
+                // Title section (overlaps hero slightly)
+                titleSection
+                    .padding(.top, -theme.spacing.lg)
+
+                // Why section
+                whySection
+                    .padding(.top, theme.spacing.xl)
+
+                // Ingredients
+                ingredientsSection
+                    .padding(.top, theme.spacing.xl)
+
+                // All steps overview
+                allStepsSection
+                    .padding(.top, theme.spacing.lg)
+
+                Spacer(minLength: theme.spacing.xxl)
+            }
+            .padding(.horizontal, theme.spacing.lg)
+        }
+    }
+
+    // MARK: - Title Section
+
+    private var titleSection: some View {
+        VStack(spacing: theme.spacing.sm) {
+            Text(routineTitle)
+                .font(theme.typography.headlineLarge)
+                .foregroundColor(theme.colors.textPrimary)
+                .multilineTextAlignment(.center)
+
+            if !routineSubtitle.isEmpty {
+                Text(routineSubtitle)
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            // Duration & difficulty pills
+            HStack(spacing: theme.spacing.sm) {
+                metadataPill(icon: "clock", text: routineDuration)
+                metadataPill(icon: "leaf", text: routineDifficulty)
+            }
+            .padding(.top, theme.spacing.xs)
+        }
+        .padding(.horizontal, theme.spacing.md)
+        .padding(.vertical, theme.spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: theme.cornerRadius.xl)
+                .fill(theme.colors.surface)
+                .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+    }
+
+    private func metadataPill(icon: String, text: String) -> some View {
+        HStack(spacing: theme.spacing.xxs) {
+            Image(systemName: icon)
+                .font(.system(size: 11))
+            Text(text)
+                .font(theme.typography.labelSmall)
+        }
+        .foregroundColor(theme.colors.textTertiary)
+        .padding(.horizontal, theme.spacing.sm)
+        .padding(.vertical, theme.spacing.xxs)
+        .background(theme.colors.backgroundSecondary)
+        .cornerRadius(theme.cornerRadius.full)
+    }
+
+    // MARK: - Why Section (with left accent border)
+
+    private var whySection: some View {
+        HStack(spacing: 0) {
+            // Accent border
+            RoundedRectangle(cornerRadius: 2)
+                .fill(theme.colors.accent)
+                .frame(width: 4)
+
+            VStack(alignment: .leading, spacing: theme.spacing.sm) {
+                Text("Why this helps")
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.accent)
+
+                Text(routineWhyText)
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Terrain-specific "why" callout
+                if let terrainWhy = whyForYourTerrain {
+                    terrainCallout(terrainWhy)
+                }
+            }
+            .padding(theme.spacing.md)
+        }
+        .background(theme.colors.backgroundSecondary.opacity(0.5))
+        .cornerRadius(theme.cornerRadius.large)
+    }
+
+    private func terrainCallout(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: theme.spacing.xs) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 12))
+                .foregroundColor(theme.colors.accent)
+
+            Text(text)
+                .font(theme.typography.bodySmall)
+                .foregroundColor(theme.colors.textSecondary)
+                .italic()
+        }
+        .padding(theme.spacing.sm)
+        .background(theme.colors.accent.opacity(0.08))
+        .cornerRadius(theme.cornerRadius.medium)
+    }
+
+    // MARK: - Ingredients Section
+
+    private var ingredientsSection: some View {
+        VStack(spacing: theme.spacing.sm) {
+            HStack {
+                Image(systemName: "leaf.circle")
+                    .foregroundColor(theme.colors.accent)
+                Text("Ingredients")
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.textSecondary)
+            }
+
+            HStack {
+                Spacer()
+                FlowLayout(spacing: theme.spacing.xs) {
+                    ForEach(routineIngredients, id: \.self) { ingredientName in
+                        let matched = findIngredient(named: ingredientName)
+                        IngredientChip(
+                            name: ingredientName,
+                            isInCabinet: matched.map { isInCabinet($0.id) } ?? false,
+                            onTap: matched != nil ? {
+                                selectedIngredient = matched
+                                HapticManager.light()
+                            } : nil
+                        )
+                    }
+                }
+                Spacer()
+            }
+        }
+    }
+
+    // MARK: - Current Step Section
+
+    private var currentStepSection: some View {
+        VStack(spacing: theme.spacing.md) {
+            // Current step header
+            HStack {
+                Text("Current Step")
+                    .font(theme.typography.labelMedium)
+                    .foregroundColor(theme.colors.textSecondary)
+
+                Spacer()
+
+                // Timer if available
+                if routineSteps[currentStep].timerSeconds > 0 {
+                    if isTimerRunning {
+                        Text(timeString(from: timeRemaining))
+                            .font(theme.typography.headlineSmall)
+                            .foregroundColor(theme.colors.accent)
+                    } else {
+                        Button(action: { startTimer(seconds: routineSteps[currentStep].timerSeconds) }) {
+                            Label(timeString(from: routineSteps[currentStep].timerSeconds), systemImage: "timer")
+                                .font(theme.typography.labelMedium)
+                                .foregroundColor(theme.colors.accent)
+                        }
+                    }
+                }
+            }
+
+            // Step content (elevated)
+            Text(routineSteps[currentStep].text)
+                .font(theme.typography.bodyLarge)
+                .foregroundColor(theme.colors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(theme.spacing.lg)
+                .background(
+                    RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                        .fill(theme.colors.surface)
+                        .shadow(color: theme.colors.accent.opacity(0.15), radius: 12, x: 0, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                        .stroke(theme.colors.accent.opacity(0.2), lineWidth: 1)
+                )
+        }
+    }
+
+    // MARK: - All Steps Section
+
+    private var allStepsSection: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            Text("All steps")
+                .font(theme.typography.labelMedium)
+                .foregroundColor(theme.colors.textTertiary)
+
+            VStack(spacing: theme.spacing.xs) {
+                ForEach(Array(routineSteps.enumerated()), id: \.offset) { index, step in
+                    EnhancedStepRow(
+                        number: index + 1,
+                        text: step.text,
+                        isCompleted: index < currentStep,
+                        isCurrent: index == currentStep,
+                        isLast: index == routineSteps.count - 1
+                    )
+                }
+            }
+            .padding(theme.spacing.md)
+            .background(theme.colors.backgroundSecondary.opacity(0.5))
+            .cornerRadius(theme.cornerRadius.large)
+        }
+    }
+
+    // MARK: - Bottom Buttons
+
+    private var bottomButtons: some View {
+        HStack(spacing: theme.spacing.md) {
+            if currentStep > 0 {
+                TerrainSecondaryButton(title: "Previous") {
+                    withAnimation(theme.animation.standard) {
+                        currentStep -= 1
+                    }
+                }
+            }
+
+            if currentStep < routineSteps.count - 1 {
+                TerrainPrimaryButton(title: "Next Step") {
+                    withAnimation(theme.animation.standard) {
+                        currentStep += 1
+                    }
+                }
+            } else {
+                TerrainPrimaryButton(title: "Complete") {
+                    showFeedbackSheet = true
+                }
+            }
+        }
+        .padding(theme.spacing.lg)
+        .background(
+            theme.colors.background
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4)
+        )
+    }
+
+    // MARK: - Helpers
+
     private func findIngredient(named chipName: String) -> Ingredient? {
-        // Strip parenthetical suffix: "Chicken (optional)" → "Chicken"
         let cleaned = chipName.replacingOccurrences(
             of: #"\s*\(.*\)$"#,
             with: "",
@@ -256,18 +417,14 @@ struct RoutineDetailSheet: View {
 
         let lowered = cleaned.lowercased()
 
-        // Exact case-insensitive match on displayName
         if let exact = allIngredients.first(where: { $0.displayName.lowercased() == lowered }) {
             return exact
         }
 
-        // Fallback: contains match (handles "Fresh Ginger" ↔ "Ginger", "Rice" ↔ "White Rice")
         return allIngredients.first(where: {
             $0.displayName.lowercased().contains(lowered) || lowered.contains($0.displayName.lowercased())
         })
     }
-
-    // MARK: - Cabinet Helpers
 
     private func isInCabinet(_ ingredientId: String) -> Bool {
         cabinetItems.contains { $0.ingredientId == ingredientId }
@@ -303,8 +460,6 @@ struct RoutineDetailSheet: View {
         }
     }
 
-    // MARK: - Timer
-
     private func startTimer(seconds: Int) {
         timeRemaining = seconds
         isTimerRunning = true
@@ -318,52 +473,6 @@ struct RoutineDetailSheet: View {
             }
         }
     }
-}
-
-struct StepCard: View {
-    let stepNumber: Int
-    let totalSteps: Int
-    let stepText: String
-    let stepTimerSeconds: Int
-    let isTimerRunning: Bool
-    let timeRemaining: Int
-    let onStartTimer: (Int) -> Void
-
-    @Environment(\.terrainTheme) private var theme
-
-    var body: some View {
-        VStack(spacing: theme.spacing.md) {
-            HStack {
-                Text("Step \(stepNumber) of \(totalSteps)")
-                    .font(theme.typography.labelSmall)
-                    .foregroundColor(theme.colors.textTertiary)
-
-                Spacer()
-
-                if stepTimerSeconds > 0 {
-                    if isTimerRunning {
-                        Text(timeString(from: timeRemaining))
-                            .font(theme.typography.headlineSmall)
-                            .foregroundColor(theme.colors.accent)
-                    } else {
-                        Button(action: { onStartTimer(stepTimerSeconds) }) {
-                            Label(timeString(from: stepTimerSeconds), systemImage: "timer")
-                                .font(theme.typography.labelMedium)
-                                .foregroundColor(theme.colors.accent)
-                        }
-                    }
-                }
-            }
-
-            Text(stepText)
-                .font(theme.typography.bodyLarge)
-                .foregroundColor(theme.colors.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(theme.spacing.lg)
-        .background(theme.colors.accent.opacity(0.08))
-        .cornerRadius(theme.cornerRadius.large)
-    }
 
     private func timeString(from seconds: Int) -> String {
         let minutes = seconds / 60
@@ -375,39 +484,87 @@ struct StepCard: View {
     }
 }
 
-struct StepRow: View {
+// MARK: - Enhanced Step Row
+
+struct EnhancedStepRow: View {
     let number: Int
     let text: String
     let isCompleted: Bool
     let isCurrent: Bool
+    let isLast: Bool
 
     @Environment(\.terrainTheme) private var theme
 
     var body: some View {
         HStack(alignment: .top, spacing: theme.spacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(isCompleted ? theme.colors.success : (isCurrent ? theme.colors.accent : theme.colors.backgroundSecondary))
-                    .frame(width: 24, height: 24)
+            // Step indicator with connector
+            VStack(spacing: 0) {
+                ZStack {
+                    Circle()
+                        .fill(circleColor)
+                        .frame(width: 28, height: 28)
 
-                if isCompleted {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                } else {
-                    Text("\(number)")
-                        .font(theme.typography.labelSmall)
-                        .foregroundColor(isCurrent ? .white : theme.colors.textTertiary)
+                    if isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                    } else {
+                        Text("\(number)")
+                            .font(theme.typography.labelSmall)
+                            .foregroundColor(isCurrent ? .white : theme.colors.textTertiary)
+                    }
+                }
+
+                // Vertical connector line
+                if !isLast {
+                    Rectangle()
+                        .fill(isCompleted ? theme.colors.success : theme.colors.textTertiary.opacity(0.2))
+                        .frame(width: 2, height: 24)
                 }
             }
 
+            // Step text
             Text(text)
                 .font(theme.typography.bodyMedium)
-                .foregroundColor(isCompleted ? theme.colors.textTertiary : theme.colors.textPrimary)
-                .strikethrough(isCompleted)
+                .foregroundColor(textColor)
+                .strikethrough(isCompleted, color: theme.colors.textTertiary)
+                .padding(.top, 4)
+
+            Spacer()
+        }
+    }
+
+    private var circleColor: Color {
+        if isCompleted {
+            return theme.colors.success
+        } else if isCurrent {
+            return theme.colors.accent
+        } else {
+            return theme.colors.backgroundSecondary
+        }
+    }
+
+    private var textColor: Color {
+        if isCompleted {
+            return theme.colors.textTertiary
+        } else if isCurrent {
+            return theme.colors.textPrimary
+        } else {
+            return theme.colors.textSecondary
         }
     }
 }
+
+// MARK: - Scroll Offset Preference Key
+
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// MARK: - Preview
 
 #Preview {
     RoutineDetailSheet(
@@ -429,9 +586,10 @@ struct StepRow: View {
             ],
             why: RoutineWhy(
                 oneLine: LocalizedString(["en-US": "Congee is easily digestible and warming to the center."])
-            )
+            ),
+            heroImageUri: "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=800"
         ),
-        onComplete: {}
+        onComplete: { _ in }
     )
     .environment(\.terrainTheme, TerrainTheme.default)
 }

@@ -19,6 +19,8 @@ struct PreferencesSafetyView: View {
     @State private var showAuthSheet = false
     @State private var showSignOutConfirmation = false
     @State private var signOutError: String?
+    @State private var showingTerms = false
+    @State private var showingPrivacy = false
 
     let userProfile: UserProfile?
 
@@ -61,7 +63,7 @@ struct PreferencesSafetyView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Your data will remain on this device. You can sign back in anytime to resume syncing.")
+            Text("Local data will be cleared for privacy. Your data is safely stored in the cloud — sign back in anytime to restore it.")
         }
     }
 
@@ -380,19 +382,50 @@ struct PreferencesSafetyView: View {
 
                 Divider().padding(.leading, theme.spacing.md)
 
-                aboutLink("Privacy Policy", icon: "hand.raised", url: "https://terrain.app/privacy")
+                aboutButton("Privacy Policy", icon: "hand.raised") {
+                    showingPrivacy = true
+                }
 
                 Divider().padding(.leading, theme.spacing.md)
 
-                aboutLink("Terms of Service", icon: "doc.text", url: "https://terrain.app/terms")
+                aboutButton("Terms of Service", icon: "doc.text") {
+                    showingTerms = true
+                }
 
                 Divider().padding(.leading, theme.spacing.md)
 
-                aboutLink("Contact Support", icon: "envelope", url: "mailto:support@terrain.app")
+                aboutLink("Contact Support", icon: "envelope", url: LegalURLs.support.absoluteString)
             }
             .background(theme.colors.surface)
             .cornerRadius(theme.cornerRadius.large)
         }
+        .sheet(isPresented: $showingTerms) {
+            SafariView(url: LegalURLs.termsOfService)
+        }
+        .sheet(isPresented: $showingPrivacy) {
+            SafariView(url: LegalURLs.privacyPolicy)
+        }
+    }
+
+    private func aboutButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+            HapticManager.light()
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(theme.colors.textSecondary)
+                Text(title)
+                    .font(theme.typography.bodyMedium)
+                    .foregroundColor(theme.colors.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.colors.textTertiary)
+            }
+            .padding(theme.spacing.md)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 
     @ViewBuilder

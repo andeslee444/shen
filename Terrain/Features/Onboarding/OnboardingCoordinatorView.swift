@@ -15,6 +15,7 @@ final class OnboardingCoordinator {
         case welcome = 0
         case howItWorks
         case goals
+        case demographics
         case quiz
         case reveal
         case tutorial
@@ -37,6 +38,11 @@ final class OnboardingCoordinator {
     var scoringResult: TerrainScoringEngine.ScoringResult?
     var safetyPreferences = SafetyPreferences()
     var userName: String = ""
+
+    // Demographics
+    var selectedAge: Int? = nil
+    var selectedGender: String? = nil
+    var selectedEthnicity: String? = nil
 
     // Notification settings
     var notificationsEnabled: Bool = false
@@ -175,6 +181,15 @@ struct OnboardingCoordinatorView: View {
                             onBack: { coordinator.previousStep() }
                         )
 
+                    case .demographics:
+                        DemographicsView(
+                            selectedAge: Bindable(coordinator).selectedAge,
+                            selectedGender: Bindable(coordinator).selectedGender,
+                            selectedEthnicity: Bindable(coordinator).selectedEthnicity,
+                            onContinue: { coordinator.nextStep() },
+                            onBack: { coordinator.previousStep() }
+                        )
+
                     case .quiz:
                         QuizView(coordinator: coordinator)
 
@@ -270,6 +285,9 @@ struct OnboardingCoordinatorView: View {
             displayName: coordinator.userName.isEmpty ? nil : coordinator.userName,
             alcoholFrequency: coordinator.quizResponses.first(where: { $0.questionId == "q14_alcohol" })?.optionId,
             smokingStatus: coordinator.quizResponses.first(where: { $0.questionId == "q15_smoking" })?.optionId,
+            age: coordinator.selectedAge,
+            gender: coordinator.selectedGender,
+            ethnicity: coordinator.selectedEthnicity,
             safetyPreferences: coordinator.safetyPreferences,
             morningNotificationTime: coordinator.enableMorningNotification ? coordinator.morningNotificationTime : nil,
             eveningNotificationTime: coordinator.enableEveningNotification ? coordinator.eveningNotificationTime : nil,

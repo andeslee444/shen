@@ -1,6 +1,6 @@
 {
   "pack": {
-    "version": "1.4.0",
+    "version": "1.5.0",
     "default_locale": "en-US",
     "supported_locales": [
       "en-US"
@@ -3414,7 +3414,8 @@
       "review": {
         "status": "draft"
       },
-      "tier": "full"
+      "tier": "full",
+      "hero_image_uri": "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=800&q=80"
     },
     {
       "id": "ginger-honey-tea-lite",
@@ -3501,7 +3502,8 @@
       "review": {
         "status": "draft"
       },
-      "tier": "lite"
+      "tier": "lite",
+      "hero_image_uri": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=800&q=80"
     },
     {
       "id": "warm-start-congee-medium",
@@ -3674,7 +3676,8 @@
       "review": {
         "status": "draft"
       },
-      "tier": "full"
+      "tier": "full",
+      "hero_image_uri": "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=800&q=80"
     },
     {
       "id": "ginger-cinnamon-tea-medium",
@@ -4870,7 +4873,8 @@
       "review": {
         "status": "draft"
       },
-      "tier": "full"
+      "tier": "full",
+      "hero_image_uri": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=800&q=80"
     },
     {
       "id": "cucumber-mint-water-medium",
@@ -5125,7 +5129,8 @@
       "review": {
         "status": "draft"
       },
-      "tier": "full"
+      "tier": "full",
+      "hero_image_uri": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80"
     },
     {
       "id": "bitter-melon-prep-medium",
