@@ -588,6 +588,16 @@ struct UserProfileRow: Codable {
         profile.terrainModifier = terrainModifier
         profile.goals = goals.compactMap { Goal(rawValue: $0) }
         profile.notificationsEnabled = notificationPreferences.enabled
+        if let morningStr = notificationPreferences.morningTime {
+            profile.morningNotificationTime = SyncDateFormatters.iso8601Formatter.date(from: morningStr)
+        }
+        if let eveningStr = notificationPreferences.eveningTime {
+            profile.eveningNotificationTime = SyncDateFormatters.iso8601Formatter.date(from: eveningStr)
+        }
+        // Quiz responses (questionId → optionId dictionary back to QuizResponse array)
+        if !quizResponses.isEmpty {
+            profile.quizResponses = quizResponses.map { QuizResponse(questionId: $0.key, optionId: $0.value) }
+        }
         // Terrain vector
         profile.coldHeat = coldHeat
         profile.defExcess = defExcess
@@ -878,19 +888,29 @@ struct RoutineFeedbackDTO: Codable {
     var routineOrMovementId: String
     var feedback: String
     var timestamp: String
+    var startedAt: String?
+    var actualDurationSeconds: Int?
+    var activityType: String?
 
     enum CodingKeys: String, CodingKey {
         case routineOrMovementId = "routine_or_movement_id"
         case feedback
         case timestamp
+        case startedAt = "started_at"
+        case actualDurationSeconds = "actual_duration_seconds"
+        case activityType = "activity_type"
     }
 
     func toModel() -> RoutineFeedbackEntry {
         let parsedTimestamp = SyncDateFormatters.iso8601Formatter.date(from: timestamp) ?? Date()
+        let parsedStartedAt = startedAt.flatMap { SyncDateFormatters.iso8601Formatter.date(from: $0) }
         return RoutineFeedbackEntry(
             routineOrMovementId: routineOrMovementId,
             feedback: PostRoutineFeedback(rawValue: feedback) ?? .notSure,
-            timestamp: parsedTimestamp
+            timestamp: parsedTimestamp,
+            startedAt: parsedStartedAt,
+            actualDurationSeconds: actualDurationSeconds,
+            activityType: activityType.flatMap { ActivityType(rawValue: $0) }
         )
     }
 }
@@ -1088,7 +1108,10 @@ extension DailyLog {
                 RoutineFeedbackDTO(
                     routineOrMovementId: $0.routineOrMovementId,
                     feedback: $0.feedback.rawValue,
-                    timestamp: isoFormatter.string(from: $0.timestamp)
+                    timestamp: isoFormatter.string(from: $0.timestamp),
+                    startedAt: $0.startedAt.map { isoFormatter.string(from: $0) },
+                    actualDurationSeconds: $0.actualDurationSeconds,
+                    activityType: $0.activityType?.rawValue
                 )
             },
             quickFixCompletionTimes: Dictionary(

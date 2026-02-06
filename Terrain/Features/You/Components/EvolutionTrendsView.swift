@@ -21,6 +21,7 @@ struct EvolutionTrendsView: View {
     let modifier: TerrainScoringEngine.Modifier
     let terrainPulse: TerrainPulseInsight?
     let activityMinutes: ActivityMinutesResult?
+    let driftInsight: DailyLogDriftInsight?
 
     @Environment(\.terrainTheme) private var theme
 
@@ -35,6 +36,11 @@ struct EvolutionTrendsView: View {
                     terrainType: type,
                     modifier: modifier
                 )
+            }
+
+            // Daily log drift detection card
+            if let drift = driftInsight, drift.hasDrift {
+                DailyLogDriftCard(insight: drift)
             }
 
             // Intro card for new users (only show if no pulse)
@@ -326,6 +332,57 @@ struct CalendarView: View {
         if let newDate = calendar.date(byAdding: .month, value: 1, to: selectedMonth) {
             selectedMonth = newDate
         }
+    }
+}
+
+// MARK: - Daily Log Drift Card
+
+/// Advisory card that appears when daily thermalFeeling or dominantEmotion
+/// patterns diverge from the user's current terrain type over 14 days.
+struct DailyLogDriftCard: View {
+    let insight: DailyLogDriftInsight
+
+    @Environment(\.terrainTheme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.sm) {
+            HStack(spacing: theme.spacing.xs) {
+                Image(systemName: "arrow.triangle.swap")
+                    .foregroundColor(theme.colors.warning)
+                    .font(.system(size: 14))
+                Text(insight.headline)
+                    .font(theme.typography.labelLarge)
+                    .foregroundColor(theme.colors.textPrimary)
+            }
+
+            if let thermalSummary = insight.thermalSummary {
+                Text(thermalSummary)
+                    .font(theme.typography.bodySmall)
+                    .foregroundColor(theme.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let emotionSummary = insight.emotionSummary {
+                Text(emotionSummary)
+                    .font(theme.typography.bodySmall)
+                    .foregroundColor(theme.colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text("This is advisory only — consider retaking the quiz if this persists.")
+                .font(theme.typography.caption)
+                .foregroundColor(theme.colors.textTertiary)
+        }
+        .padding(theme.spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(theme.colors.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: theme.cornerRadius.large)
+                .stroke(theme.colors.warning.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(theme.cornerRadius.large)
+        .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 1)
+        .shadow(color: Color.black.opacity(0.08), radius: 16, x: 0, y: 8)
     }
 }
 

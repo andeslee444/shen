@@ -42,6 +42,7 @@ struct YouView: View {
     @State private var cachedDailyBriefItems: [(icon: String, text: String)] = []
     @State private var cachedTerrainPulse: TerrainPulseInsight?
     @State private var cachedActivityMinutes: ActivityMinutesResult?
+    @State private var cachedDriftInsight: DailyLogDriftInsight?
 
     private let constitutionService = ConstitutionService()
     private let trendEngine = TrendEngine()
@@ -119,9 +120,15 @@ struct YouView: View {
                 terrainType: type,
                 modifier: terrainModifier
             )
+            cachedDriftInsight = trendEngine.detectDailyLogDrift(
+                logs: logs,
+                terrainType: type,
+                modifier: terrainModifier
+            )
         } else {
             cachedAnnotatedTrends = []
             cachedTerrainPulse = nil
+            cachedDriftInsight = nil
         }
 
         // Compute activity minutes
@@ -469,7 +476,7 @@ struct YouView: View {
         VStack(spacing: 0) {
             Button {
                 HapticManager.light()
-                withAnimation(theme.animation.standard) {
+                withAnimation(.spring(duration: 0.35, bounce: 0.0)) {
                     isExpanded.wrappedValue.toggle()
                 }
             } label: {
@@ -481,9 +488,10 @@ struct YouView: View {
                         .font(theme.typography.labelLarge)
                         .foregroundColor(theme.colors.textPrimary)
                     Spacer()
-                    Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+                    Image(systemName: "chevron.down")
                         .foregroundColor(theme.colors.textTertiary)
                         .font(.system(size: 12))
+                        .rotationEffect(.degrees(isExpanded.wrappedValue ? -180 : 0))
                 }
                 .padding(theme.spacing.md)
             }
@@ -496,7 +504,7 @@ struct YouView: View {
 
             if isExpanded.wrappedValue {
                 content()
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(.opacity)
             }
         }
     }
@@ -514,7 +522,8 @@ struct YouView: View {
             terrainType: terrainType,
             modifier: terrainModifier,
             terrainPulse: cachedTerrainPulse,
-            activityMinutes: cachedActivityMinutes
+            activityMinutes: cachedActivityMinutes,
+            driftInsight: cachedDriftInsight
         )
     }
 

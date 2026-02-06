@@ -674,4 +674,92 @@ final class SuggestionEngineTests: XCTestCase {
 
         XCTAssertEqual(result.title, "Effective", "High-effectiveness routine should win")
     }
+
+    // MARK: - Diagnostic Signal Boost Tests (Phase 14)
+
+    func testSleepDisturbanceBoostsCalmsShen() {
+        let calming = makeIngredient(id: "jujube", name: "Jujube Seed", tags: ["calms_shen"])
+        let warming = makeIngredient(id: "ginger", name: "Ginger", tags: ["warming"])
+
+        let result = engine.suggest(
+            for: .calm,
+            terrainType: .neutralBalanced,
+            modifier: .none,
+            symptoms: [],
+            timeOfDay: .evening,
+            ingredients: [calming, warming],
+            routines: [],
+            sleepQuality: .hardToFallAsleep
+        )
+
+        XCTAssertEqual(result.title, "Jujube Seed",
+                       "Sleep disturbance should boost calms_shen ingredient")
+    }
+
+    func testColdFeelingBoostsWarming() {
+        let warming = makeIngredient(id: "ginger", name: "Ginger", tags: ["warming"])
+        let cooling = makeIngredient(id: "chrysanth", name: "Chrysanthemum", tags: ["cooling"])
+
+        let result = engine.suggest(
+            for: .warmth,
+            terrainType: .neutralBalanced,
+            modifier: .none,
+            symptoms: [],
+            timeOfDay: .afternoon,
+            ingredients: [warming, cooling],
+            routines: [],
+            thermalFeeling: .cold
+        )
+
+        XCTAssertEqual(result.title, "Ginger",
+                       "Cold feeling should boost warming ingredient")
+    }
+
+    func testHotFeelingBoostsCooling() {
+        let cooling = makeIngredient(id: "chrysanth", name: "Chrysanthemum", tags: ["cooling"])
+        let warming = makeIngredient(id: "ginger", name: "Ginger", tags: ["warming"])
+
+        let result = engine.suggest(
+            for: .calm,
+            terrainType: .neutralBalanced,
+            modifier: .none,
+            symptoms: [],
+            timeOfDay: .afternoon,
+            ingredients: [cooling, warming],
+            routines: [],
+            thermalFeeling: .hot
+        )
+
+        XCTAssertEqual(result.title, "Chrysanthemum",
+                       "Hot feeling should boost cooling ingredient")
+    }
+
+    func testComfortableFeelingNoBoost() {
+        // With comfortable feeling, no diagnostic boost should be applied
+        let warming = makeIngredient(id: "ginger", name: "Ginger", tags: ["warming"])
+
+        let resultWithComfort = engine.suggest(
+            for: .warmth,
+            terrainType: .neutralBalanced,
+            modifier: .none,
+            symptoms: [],
+            timeOfDay: .afternoon,
+            ingredients: [warming],
+            routines: [],
+            thermalFeeling: .comfortable
+        )
+
+        let resultWithout = engine.suggest(
+            for: .warmth,
+            terrainType: .neutralBalanced,
+            modifier: .none,
+            symptoms: [],
+            timeOfDay: .afternoon,
+            ingredients: [warming],
+            routines: []
+        )
+
+        XCTAssertEqual(resultWithComfort.score, resultWithout.score,
+                       "Comfortable feeling should not add diagnostic boost")
+    }
 }

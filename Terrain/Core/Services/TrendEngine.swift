@@ -1363,6 +1363,149 @@ final class TrendEngine {
         )
     }
 
+    // MARK: - Daily Log Drift Detection
+
+    /// Detects gradual terrain drift from thermalFeeling and dominantEmotion
+    /// patterns in daily logs. Unlike the pulse check-in (5-question quiz),
+    /// this watches for slow shifts — like a thermometer noticing the room
+    /// temperature is gradually changing even though nobody touched the dial.
+    func detectDailyLogDrift(
+        logs: [DailyLog],
+        terrainType: TerrainScoringEngine.PrimaryType,
+        modifier: TerrainScoringEngine.Modifier,
+        windowDays: Int = 14
+    ) -> DailyLogDriftInsight {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        guard let windowStart = calendar.date(byAdding: .day, value: -windowDays, to: today) else {
+            return noDriftInsight(for: terrainType)
+        }
+
+        let windowLogs = logs.filter { log in
+            let logDay = calendar.startOfDay(for: log.date)
+            return logDay >= windowStart && logDay <= today
+        }
+
+        // --- Thermal drift ---
+        let expectedRange = expectedThermalRange(for: terrainType)
+        let thermalValues = windowLogs.compactMap { $0.thermalFeeling?.thermalValue }
+        let thermalAvg: Double
+        let hasThermalDrift: Bool
+        var thermalSummary: String?
+
+        if thermalValues.count >= 7 {
+            thermalAvg = Double(thermalValues.reduce(0, +)) / Double(thermalValues.count)
+            // Drift = average is more than 1.5 units away from the expected range
+            let distanceFromRange: Double
+            if thermalAvg < expectedRange.lowerBound {
+                distanceFromRange = expectedRange.lowerBound - thermalAvg
+            } else if thermalAvg > expectedRange.upperBound {
+                distanceFromRange = thermalAvg - expectedRange.upperBound
+            } else {
+                distanceFromRange = 0
+            }
+            hasThermalDrift = distanceFromRange >= 1.5
+
+            if hasThermalDrift {
+                if thermalAvg > expectedRange.upperBound {
+                    thermalSummary = "You've been feeling warmer than your \(terrainType.nickname) pattern expects. This may signal your terrain is shifting warmer."
+                } else {
+                    thermalSummary = "You've been feeling cooler than your \(terrainType.nickname) pattern expects. This may signal your terrain is shifting cooler."
+                }
+            }
+        } else {
+            thermalAvg = 0
+            hasThermalDrift = false
+        }
+
+        // --- Emotion drift ---
+        let emotions = windowLogs.compactMap { $0.dominantEmotion }
+        var hasEmotionDrift = false
+        var emotionSummary: String?
+        var dominantEmotion: DominantEmotion?
+        var dominantEmotionCount = 0
+
+        if emotions.count >= 7 {
+            // Count frequency of each non-calm emotion
+            var counts: [DominantEmotion: Int] = [:]
+            for emotion in emotions where emotion != .calm {
+                counts[emotion, default: 0] += 1
+            }
+
+            if let (topEmotion, count) = counts.max(by: { $0.value < $1.value }), count >= 8 {
+                dominantEmotion = topEmotion
+                dominantEmotionCount = count
+
+                // Check if it matches current modifier
+                let matchesModifier = modifierMatchesEmotion(modifier, emotion: topEmotion)
+                if !matchesModifier {
+                    hasEmotionDrift = true
+                    emotionSummary = "\(topEmotion.displayName) has appeared \(count) times in the last \(windowDays) days. Your \(topEmotion.tcmOrgan.capitalized) system may need attention — consider retaking the quiz."
+                }
+            }
+        }
+
+        return DailyLogDriftInsight(
+            hasThermalDrift: hasThermalDrift,
+            thermalSummary: thermalSummary,
+            thermalAverage: thermalAvg,
+            expectedThermalRange: expectedRange,
+            hasEmotionDrift: hasEmotionDrift,
+            emotionSummary: emotionSummary,
+            dominantEmotion: dominantEmotion,
+            dominantEmotionCount: dominantEmotionCount
+        )
+    }
+
+    /// Expected thermal value range for a terrain type.
+    /// Cold terrains expect negative values, warm expect positive, neutral near zero.
+    private func expectedThermalRange(for type: TerrainScoringEngine.PrimaryType) -> ClosedRange<Double> {
+        switch type {
+        case .coldDeficient, .coldBalanced:
+            return -2.0...(-1.0)
+        case .warmBalanced, .warmExcess:
+            return 1.0...2.0
+        case .warmDeficient:
+            // Warm but thin — runs warm but can swing either way
+            return 0.0...2.0
+        case .neutralDeficient, .neutralBalanced, .neutralExcess:
+            return -0.5...0.5
+        }
+    }
+
+    /// Whether a modifier already accounts for the given dominant emotion.
+    /// If shen modifier is set and the dominant emotion is restless/anxious,
+    /// that's expected, not drift.
+    private func modifierMatchesEmotion(
+        _ modifier: TerrainScoringEngine.Modifier,
+        emotion: DominantEmotion
+    ) -> Bool {
+        switch modifier {
+        case .shen:
+            return emotion == .restless || emotion == .anxious
+        case .stagnation:
+            return emotion == .irritable
+        case .damp:
+            return emotion == .worried || emotion == .overwhelmed
+        case .dry, .none:
+            return false
+        }
+    }
+
+    /// Returns a no-drift result with the expected range for the terrain type.
+    private func noDriftInsight(for type: TerrainScoringEngine.PrimaryType) -> DailyLogDriftInsight {
+        DailyLogDriftInsight(
+            hasThermalDrift: false,
+            thermalSummary: nil,
+            thermalAverage: 0,
+            expectedThermalRange: expectedThermalRange(for: type),
+            hasEmotionDrift: false,
+            emotionSummary: nil,
+            dominantEmotion: nil,
+            dominantEmotionCount: 0
+        )
+    }
+
     private func generateStableInsight(
         terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier

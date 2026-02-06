@@ -93,7 +93,9 @@ final class SuggestionEngine {
         weatherCondition: String? = nil,
         alcoholFrequency: String? = nil,
         smokingStatus: String? = nil,
-        stepCount: Int? = nil
+        stepCount: Int? = nil,
+        sleepQuality: SleepQuality? = nil,
+        thermalFeeling: ThermalFeeling? = nil
     ) -> QuickSuggestion {
         var bestCandidate: QuickSuggestion?
 
@@ -106,6 +108,7 @@ final class SuggestionEngine {
         let seasonKey = season.contentPackKey
         let userGoalSet = Set(userGoals)
         let symptomHasThermalConflict = hasThermalConflict(in: symptomTagSet)
+        let diagnosticBoostTags = diagnosticSignalBoostTags(sleepQuality: sleepQuality, thermalFeeling: thermalFeeling)
 
         // Score ingredients
         for ingredient in ingredients {
@@ -167,6 +170,11 @@ final class SuggestionEngine {
             if let steps = stepCount {
                 if steps < 2000 && tags.contains("moves_qi") { score += 2 }
                 if steps > 10000 && tags.contains("supports_deficiency") { score += 2 }
+            }
+
+            // TCM diagnostic signal boost
+            for (tag, boost) in diagnosticBoostTags {
+                if tags.contains(tag) { score += boost }
             }
 
             // -4 Avoid-tag penalty
@@ -271,6 +279,11 @@ final class SuggestionEngine {
             if let steps = stepCount {
                 if steps < 2000 && tags.contains("moves_qi") { score += 2 }
                 if steps > 10000 && tags.contains("supports_deficiency") { score += 2 }
+            }
+
+            // TCM diagnostic signal boost (routines)
+            for (tag, boost) in diagnosticBoostTags {
+                if tags.contains(tag) { score += boost }
             }
 
             // -4 Avoid-tag penalty
@@ -460,6 +473,42 @@ final class SuggestionEngine {
         case .evening:   return ["calms_shen", "cooling"]
         case .night:     return ["calms_shen"]
         }
+    }
+
+    // MARK: - Diagnostic Signal Boost
+
+    /// Returns tag → boost pairs derived from daily check-in TCM signals.
+    /// Sleep disturbance boosts calming tags; thermal feeling boosts warming/cooling tags.
+    private func diagnosticSignalBoostTags(
+        sleepQuality: SleepQuality?,
+        thermalFeeling: ThermalFeeling?
+    ) -> [(String, Int)] {
+        var boosts: [(String, Int)] = []
+
+        if let sleep = sleepQuality {
+            switch sleep {
+            case .hardToFallAsleep, .wokeMiddleOfNight, .wokeEarly, .unrefreshing:
+                boosts.append(("calms_shen", 3))
+                boosts.append(("calming", 3))
+            case .fellAsleepEasily:
+                break
+            }
+        }
+
+        if let thermal = thermalFeeling {
+            switch thermal {
+            case .cold, .cool:
+                boosts.append(("warming", 2))
+                boosts.append(("tonifies_yang", 2))
+            case .hot, .warm:
+                boosts.append(("cooling", 2))
+                boosts.append(("clears_heat", 2))
+            case .comfortable:
+                break
+            }
+        }
+
+        return boosts
     }
 
     // MARK: - Weather Scoring

@@ -222,6 +222,7 @@ struct ModifierAreaRow: View {
         case .innerClimate: return "thermometer.medium"
         case .fluidBalance: return "drop"
         case .qiMovement: return "wind"
+        case .spiritRest: return "moon.stars"
         }
     }
 }

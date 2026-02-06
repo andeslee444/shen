@@ -38,6 +38,9 @@ struct HomeView: View {
     // Daily survey sheet state
     @State private var showingSurveySheet = false
 
+    // Terrain encyclopedia sheet state
+    @State private var showingTerrainEncyclopedia = false
+
     // Weather service — fetches once per calendar day
     @State private var weatherService = WeatherService()
 
@@ -93,7 +96,11 @@ struct HomeView: View {
             modifier: modifier,
             symptoms: selectedSymptoms,
             weatherCondition: todaysLog?.weatherCondition,
-            stepCount: healthService.dailyStepCount
+            stepCount: healthService.dailyStepCount,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState
         )
     }
 
@@ -109,7 +116,11 @@ struct HomeView: View {
             weatherCondition: todaysLog?.weatherCondition,
             alcoholFrequency: userProfile?.alcoholFrequency,
             smokingStatus: userProfile?.smokingStatus,
-            stepCount: healthService.dailyStepCount
+            stepCount: healthService.dailyStepCount,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState
         )
     }
 
@@ -131,7 +142,11 @@ struct HomeView: View {
             modifier: modifier,
             symptoms: selectedSymptoms,
             weatherCondition: todaysLog?.weatherCondition,
-            stepCount: healthService.dailyStepCount
+            stepCount: healthService.dailyStepCount,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState
         )
     }
 
@@ -139,7 +154,11 @@ struct HomeView: View {
         insightEngine.generateModifierAreaReadings(
             for: terrainType,
             modifier: modifier,
-            symptoms: selectedSymptoms
+            symptoms: selectedSymptoms,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState
         )
     }
 
@@ -162,8 +181,11 @@ struct HomeView: View {
                     HeadlineView(content: headline)
                         .accessibilityAddTraits(.isHeader)
 
-                    // 3. Type block
-                    TypeBlockView(components: typeBlockComponents)
+                    // 3. Type block (tappable → encyclopedia)
+                    TypeBlockView(
+                        components: typeBlockComponents,
+                        onTap: { showingTerrainEncyclopedia = true }
+                    )
 
                     // 4. Action buttons
                     VStack(spacing: theme.spacing.sm) {
@@ -282,6 +304,14 @@ struct HomeView: View {
                     }
                 )
                 .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showingTerrainEncyclopedia) {
+                TerrainEncyclopediaSheet(
+                    currentType: terrainType,
+                    currentModifier: modifier
+                )
+                .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $showingSurveySheet) {

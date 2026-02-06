@@ -12,34 +12,41 @@ import SwiftUI
 /// Uses nickname for emotional resonance rather than raw axis labels.
 struct TypeBlockView: View {
     let components: TypeBlockComponents
+    var onTap: () -> Void = {}
 
     @Environment(\.terrainTheme) private var theme
 
     var body: some View {
-        HStack(spacing: theme.spacing.xs) {
-            Text("Your terrain")
-                .font(theme.typography.caption)
-                .foregroundColor(theme.colors.textTertiary)
+        Button {
+            HapticManager.light()
+            onTap()
+        } label: {
+            HStack(spacing: theme.spacing.xs) {
+                Text("Your terrain")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
 
-            Text("·")
-                .font(theme.typography.caption)
-                .foregroundColor(theme.colors.textTertiary)
+                Text("·")
+                    .font(theme.typography.caption)
+                    .foregroundColor(theme.colors.textTertiary)
 
-            // Nickname badge (primary identity)
-            TypeChip(
-                label: components.nickname,
-                color: nicknameColor
-            )
-
-            // Modifier badge (if present) — friendly name
-            if let modifier = components.modifier {
+                // Nickname badge (primary identity)
                 TypeChip(
-                    label: modifier.friendlyName,
-                    color: modifierColor
+                    label: components.nickname,
+                    color: nicknameColor
                 )
+
+                // Modifier badge (if present) — friendly name
+                if let modifier = components.modifier {
+                    TypeChip(
+                        label: modifier.friendlyName,
+                        color: modifierColor
+                    )
+                }
             }
+            .padding(.horizontal, theme.spacing.lg)
         }
-        .padding(.horizontal, theme.spacing.lg)
+        .buttonStyle(ScaleButtonStyle())
     }
 
     private var nicknameColor: Color {

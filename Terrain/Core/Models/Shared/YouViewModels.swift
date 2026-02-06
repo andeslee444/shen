@@ -108,3 +108,36 @@ struct TerrainPulseInsight {
     let accentCategory: String?     // Which trend category this references (optional)
     let isUrgent: Bool              // True for declining trends needing attention
 }
+
+// MARK: - Daily Log Drift Detection
+
+/// Advisory insight from daily log pattern analysis.
+/// Unlike TerrainDriftDetector (pulse check-in), this detects gradual drift
+/// from thermalFeeling and dominantEmotion trends logged over 14 days.
+struct DailyLogDriftInsight {
+    let hasThermalDrift: Bool
+    let thermalSummary: String?         // e.g. "Your daily thermal patterns suggest a shift"
+    let thermalAverage: Double          // Rolling average of thermalValue (-2 to +2)
+    let expectedThermalRange: ClosedRange<Double>
+
+    let hasEmotionDrift: Bool
+    let emotionSummary: String?         // e.g. "Irritability has been dominant — Liver qi may need attention"
+    let dominantEmotion: DominantEmotion?
+    let dominantEmotionCount: Int       // How many times in window
+
+    /// True if either thermal or emotion drift was detected
+    var hasDrift: Bool { hasThermalDrift || hasEmotionDrift }
+
+    /// Combined advisory card headline
+    var headline: String {
+        if hasThermalDrift && hasEmotionDrift {
+            return "Your patterns are shifting"
+        } else if hasThermalDrift {
+            return "A thermal shift is emerging"
+        } else if hasEmotionDrift {
+            return "An emotional pattern is forming"
+        } else {
+            return "Your patterns are stable"
+        }
+    }
+}

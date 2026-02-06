@@ -712,7 +712,9 @@ struct DoView: View {
             weatherCondition: todaysLog?.weatherCondition,
             alcoholFrequency: userProfile?.alcoholFrequency,
             smokingStatus: userProfile?.smokingStatus,
-            stepCount: todaysLog?.stepCount
+            stepCount: todaysLog?.stepCount,
+            sleepQuality: todaysLog?.sleepQuality,
+            thermalFeeling: todaysLog?.thermalFeeling
         )
     }
 

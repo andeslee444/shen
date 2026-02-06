@@ -408,6 +408,7 @@ enum ModifierAreaType: String, Codable, Identifiable {
     case innerClimate   // Temperature imbalance
     case fluidBalance   // Damp/dry patterns
     case qiMovement     // Stagnation/flow
+    case spiritRest     // Shen disturbance (sleep/anxiety)
 
     var id: String { rawValue }
 
@@ -416,6 +417,7 @@ enum ModifierAreaType: String, Codable, Identifiable {
         case .innerClimate: return "Inner Climate"
         case .fluidBalance: return "Fluid Balance"
         case .qiMovement: return "Qi Movement"
+        case .spiritRest: return "Spirit & Rest"
         }
     }
 }

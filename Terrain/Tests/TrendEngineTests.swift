@@ -35,6 +35,8 @@ final class TrendEngineTests: XCTestCase {
         energyLevel: EnergyLevel? = nil,
         moodRating: Int? = nil,
         sleepQuality: SleepQuality? = nil,
+        thermalFeeling: ThermalFeeling? = nil,
+        dominantEmotion: DominantEmotion? = nil,
         routineFeedback: [RoutineFeedbackEntry] = []
     ) -> DailyLog {
         let log = DailyLog(
@@ -45,6 +47,8 @@ final class TrendEngineTests: XCTestCase {
         )
         log.energyLevel = energyLevel
         log.sleepQuality = sleepQuality
+        log.thermalFeeling = thermalFeeling
+        log.dominantEmotion = dominantEmotion
         return log
     }
 
@@ -529,5 +533,203 @@ final class TrendEngineTests: XCTestCase {
             let hasWatchFor = result.contains { $0.isWatchFor }
             XCTAssertTrue(hasWatchFor, "\(modifier) modifier should add at least one watch-for")
         }
+    }
+
+    // MARK: - Daily Log Drift Detection Tests
+
+    func testDetectDrift_NoDrift_ColdTerrainFeelsCold() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .cold,
+                dominantEmotion: .calm
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .coldDeficient,
+            modifier: .none
+        )
+
+        XCTAssertFalse(result.hasThermalDrift, "Cold terrain feeling cold should not trigger drift")
+        XCTAssertFalse(result.hasDrift, "No drift expected when patterns match terrain")
+    }
+
+    func testDetectDrift_ThermalDrift_ColdTerrainFeelsHot() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .hot // +2, expected range is -2...-1
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .coldDeficient,
+            modifier: .none
+        )
+
+        XCTAssertTrue(result.hasThermalDrift, "Cold terrain consistently feeling hot should trigger thermal drift")
+        XCTAssertNotNil(result.thermalSummary, "Should provide thermal summary")
+        XCTAssertTrue(result.thermalSummary?.contains("warmer") ?? false, "Summary should mention feeling warmer")
+    }
+
+    func testDetectDrift_ThermalDrift_WarmTerrainFeelsCold() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .cold // -2, expected range is 1...2
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .warmExcess,
+            modifier: .none
+        )
+
+        XCTAssertTrue(result.hasThermalDrift, "Warm terrain consistently feeling cold should trigger drift")
+        XCTAssertTrue(result.thermalSummary?.contains("cooler") ?? false, "Summary should mention feeling cooler")
+    }
+
+    func testDetectDrift_InsufficientData_NoDrift() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        // Only 5 days of thermal data — below 7-day threshold
+        let logs = (0..<5).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .hot
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .coldDeficient,
+            modifier: .none
+        )
+
+        XCTAssertFalse(result.hasThermalDrift, "Should not detect drift with fewer than 7 days of data")
+    }
+
+    func testDetectDrift_EmotionDrift_IrritableOnNeutral() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                dominantEmotion: daysAgo < 10 ? .irritable : .calm // 10 out of 14 = irritable
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .neutralBalanced,
+            modifier: .none
+        )
+
+        XCTAssertTrue(result.hasEmotionDrift, "Frequent irritability with no modifier should trigger emotion drift")
+        XCTAssertEqual(result.dominantEmotion, .irritable)
+        XCTAssertNotNil(result.emotionSummary)
+        XCTAssertTrue(result.emotionSummary?.contains("Liver") ?? false, "Irritability should mention Liver system")
+    }
+
+    func testDetectDrift_EmotionMatches_StagnationModifier_NoDrift() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                dominantEmotion: .irritable // Matches stagnation modifier
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .neutralBalanced,
+            modifier: .stagnation
+        )
+
+        XCTAssertFalse(result.hasEmotionDrift, "Irritable with stagnation modifier is expected, not drift")
+    }
+
+    func testDetectDrift_EmotionMatches_ShenModifier_NoDrift() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                dominantEmotion: .anxious // Matches shen modifier
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .neutralBalanced,
+            modifier: .shen
+        )
+
+        XCTAssertFalse(result.hasEmotionDrift, "Anxious with shen modifier is expected, not drift")
+    }
+
+    func testDetectDrift_BothThermalAndEmotion() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .hot,
+                dominantEmotion: daysAgo < 10 ? .irritable : .calm
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .coldDeficient,
+            modifier: .none
+        )
+
+        XCTAssertTrue(result.hasThermalDrift, "Should detect thermal drift")
+        XCTAssertTrue(result.hasEmotionDrift, "Should detect emotion drift")
+        XCTAssertTrue(result.hasDrift, "Combined drift flag should be true")
+        XCTAssertEqual(result.headline, "Your patterns are shifting")
+    }
+
+    func testDetectDrift_NeutralTerrain_ComfortableIsNoDrift() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let logs = (0..<14).map { daysAgo in
+            mockLog(
+                date: calendar.date(byAdding: .day, value: -daysAgo, to: today)!,
+                thermalFeeling: .comfortable // thermalValue 0, within -0.5...0.5
+            )
+        }
+
+        let result = engine.detectDailyLogDrift(
+            logs: logs,
+            terrainType: .neutralBalanced,
+            modifier: .none
+        )
+
+        XCTAssertFalse(result.hasThermalDrift, "Neutral terrain feeling comfortable should not drift")
+    }
+
+    func testDetectDrift_EmptyLogs_NoDrift() {
+        let result = engine.detectDailyLogDrift(
+            logs: [],
+            terrainType: .coldDeficient,
+            modifier: .none
+        )
+
+        XCTAssertFalse(result.hasDrift, "Empty logs should produce no drift")
+        XCTAssertFalse(result.hasThermalDrift)
+        XCTAssertFalse(result.hasEmotionDrift)
     }
 }

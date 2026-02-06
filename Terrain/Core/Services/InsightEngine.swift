@@ -18,18 +18,40 @@ final class InsightEngine {
 
     /// Generate the main headline for the day based on terrain type, symptoms, and weather
     /// Returns punchy headline (2-5 words) + flowing paragraph of personalized truths
+    ///
+    /// Priority order (highest wins):
+    /// 1. Symptom override (e.g. "stressed" → "Breathe first.")
+    /// 2. Diagnostic signal layer (sleep/emotion/thermal from daily check-in)
+    /// 3. Base terrain wisdom (default)
     func generateHeadline(
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier = .none,
         symptoms: Set<QuickSymptom> = [],
         weatherCondition: String? = nil,
-        stepCount: Int? = nil
+        stepCount: Int? = nil,
+        sleepQuality: SleepQuality? = nil,
+        dominantEmotion: DominantEmotion? = nil,
+        thermalFeeling: ThermalFeeling? = nil,
+        digestiveState: DigestiveState? = nil
     ) -> HeadlineContent {
         // Get base headline and truths for terrain
         var headline = baseWisdom(for: terrainType)
         var truths = baseTruths(for: terrainType, modifier: modifier)
+        var isDiagnosticAdjusted = false
 
-        // Layer in symptom-specific content (highest priority)
+        // Layer 2: Diagnostic signal headlines (mid priority — between base and symptoms)
+        if let diagnosticContent = diagnosticSignalHeadline(
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            terrainType: terrainType
+        ) {
+            headline = diagnosticContent.headline
+            truths.insert(diagnosticContent.truth, at: 0)
+            isDiagnosticAdjusted = true
+        }
+
+        // Layer 1: Symptom-specific content (highest priority — overrides diagnostics)
         if !symptoms.isEmpty {
             let symptomContent = symptomWisdomAndTruths(for: symptoms, terrainType: terrainType)
             headline = symptomContent.wisdom
@@ -57,8 +79,67 @@ final class InsightEngine {
         return HeadlineContent(
             headline: headline,
             paragraph: paragraph,
-            isSymptomAdjusted: !symptoms.isEmpty
+            isSymptomAdjusted: !symptoms.isEmpty || isDiagnosticAdjusted
         )
+    }
+
+    /// Returns a diagnostic-signal-driven headline + truth when daily check-in data warrants it.
+    /// Returns nil if no signals are strong enough to override the base wisdom.
+    private func diagnosticSignalHeadline(
+        sleepQuality: SleepQuality?,
+        dominantEmotion: DominantEmotion?,
+        thermalFeeling: ThermalFeeling?,
+        terrainType: TerrainScoringEngine.PrimaryType
+    ) -> (headline: String, truth: String)? {
+        // Priority within diagnostics: sleep disturbance > emotional overwhelm > thermal drift
+
+        // Sleep disturbance
+        if let sleep = sleepQuality {
+            switch sleep {
+            case .hardToFallAsleep:
+                return ("Settle first.", "Your mind ran ahead of your body last night. Today, settling the spirit is the priority before anything else.")
+            case .wokeMiddleOfNight:
+                return ("Release held.", "Waking mid-night signals tension the Liver couldn't process. Release what you're holding before it compounds.")
+            case .wokeEarly:
+                return ("Nourish deep.", "Early waking means reserves ran out before morning. Today is about refilling, not spending.")
+            case .unrefreshing:
+                return ("Lighten up.", "Sleep happened but restoration didn't. Your body is carrying weight it couldn't process overnight.")
+            case .fellAsleepEasily:
+                break
+            }
+        }
+
+        // Emotional overwhelm
+        if let emotion = dominantEmotion {
+            switch emotion {
+            case .overwhelmed:
+                return ("Do less.", "Overwhelm is your body's circuit breaker tripping. Simplify today—less input, more space.")
+            case .anxious:
+                return ("Ground down.", "Anxiety lifts everything upward. Today's work is bringing energy back to your center and feet.")
+            case .irritable:
+                return ("Smooth the flow.", "Irritability is Liver qi pressing outward. Movement, sour flavors, and patience ease the pressure.")
+            case .restless:
+                return ("Find anchor.", "Restlessness scatters the Shen. Your spirit needs a place to land today—routine and warmth provide it.")
+            case .sad:
+                return ("Breathe open.", "Grief closes the chest. Deep breaths and gentle movement help the Lung process what's heavy.")
+            case .worried, .calm:
+                break
+            }
+        }
+
+        // Thermal drift from terrain
+        if let thermal = thermalFeeling {
+            let isColdTerrain = terrainType == .coldDeficient || terrainType == .coldBalanced
+            let isWarmTerrain = terrainType == .warmExcess || terrainType == .warmBalanced
+            if isColdTerrain && (thermal == .hot || thermal == .warm) {
+                return ("Honor the shift.", "Your body feels warm despite a cold pattern. This is deficiency heat—rest, don't push through the false energy.")
+            }
+            if isWarmTerrain && (thermal == .cold || thermal == .cool) {
+                return ("Honor the shift.", "Feeling cold despite inner warmth means yang is temporarily low. Warm drinks and rest help your fire recover.")
+            }
+        }
+
+        return nil
     }
 
     // MARK: - Two-Word Wisdom
@@ -355,7 +436,11 @@ final class InsightEngine {
         weatherCondition: String? = nil,
         alcoholFrequency: String? = nil,
         smokingStatus: String? = nil,
-        stepCount: Int? = nil
+        stepCount: Int? = nil,
+        sleepQuality: SleepQuality? = nil,
+        dominantEmotion: DominantEmotion? = nil,
+        thermalFeeling: ThermalFeeling? = nil,
+        digestiveState: DigestiveState? = nil
     ) -> (dos: [DoDontItem], donts: [DoDontItem]) {
         var dos = baseDos(for: terrainType)
         var donts = baseDonts(for: terrainType)
@@ -368,6 +453,17 @@ final class InsightEngine {
 
         // Add weather-specific items
         addWeatherItems(weatherCondition: weatherCondition, dos: &dos, donts: &donts)
+
+        // Add TCM diagnostic signal items (daily check-in)
+        addDiagnosticSignalItems(
+            terrainType: terrainType,
+            sleepQuality: sleepQuality,
+            dominantEmotion: dominantEmotion,
+            thermalFeeling: thermalFeeling,
+            digestiveState: digestiveState,
+            dos: &dos,
+            donts: &donts
+        )
 
         // Add lifestyle-aware items
         if alcoholFrequency == "weekly" || alcoholFrequency == "daily" {
@@ -597,6 +693,87 @@ final class InsightEngine {
             dos.insert(DoDontItem(text: "Protect your neck", priority: 0, whyForYou: "In TCM, wind enters through the back of the neck. A scarf or collar shields this vulnerable point."), at: 0)
         default:
             break
+        }
+    }
+
+    private func addDiagnosticSignalItems(
+        terrainType: TerrainScoringEngine.PrimaryType,
+        sleepQuality: SleepQuality?,
+        dominantEmotion: DominantEmotion?,
+        thermalFeeling: ThermalFeeling?,
+        digestiveState: DigestiveState?,
+        dos: inout [DoDontItem],
+        donts: inout [DoDontItem]
+    ) {
+        // Sleep quality signals
+        if let sleep = sleepQuality {
+            switch sleep {
+            case .hardToFallAsleep:
+                dos.insert(DoDontItem(text: "Calming tea by 8pm", priority: 0, whyForYou: "Difficulty falling asleep signals unsettled Shen. A warm calming tea gives your spirit a gentle cue to begin winding down."), at: 0)
+                donts.insert(DoDontItem(text: "Screens after 9pm", priority: 0, whyForYou: "Screens stimulate an already-active mind. Your Shen needs darkness and quiet to settle for sleep."), at: 0)
+            case .wokeMiddleOfNight:
+                dos.insert(DoDontItem(text: "Gentle stretching before bed", priority: 0, whyForYou: "Waking between 1-3 AM often indicates Liver qi stagnation. Gentle stretching before bed helps release held tension."), at: 0)
+                donts.insert(DoDontItem(text: "Late meals", priority: 0, whyForYou: "Late eating forces your Liver and digestion to work during their repair window. Earlier dinners protect your sleep cycle."), at: 0)
+            case .wokeEarly:
+                dos.insert(DoDontItem(text: "Nourishing evening snack", priority: 0, whyForYou: "Early waking can signal yin deficiency. A small nourishing snack before bed helps sustain you through the night."), at: 0)
+            case .unrefreshing:
+                dos.insert(DoDontItem(text: "Lighter dinners", priority: 0, whyForYou: "Unrefreshing sleep often signals dampness. Lighter evening meals give your spleen less to process overnight."), at: 0)
+            case .fellAsleepEasily:
+                break
+            }
+        }
+
+        // Dominant emotion signals
+        if let emotion = dominantEmotion {
+            switch emotion {
+            case .irritable:
+                dos.insert(DoDontItem(text: "Sour foods (lemon water)", priority: 0, whyForYou: "Sour flavors soothe the Liver in TCM. When irritability rises, lemon water or vinegar-based dressings help smooth qi flow."), at: 0)
+                donts.insert(DoDontItem(text: "Spicy food today", priority: 0, whyForYou: "Spice adds heat to rising Liver qi. When you're already irritable, pungent foods fan the flames."), at: 0)
+            case .worried:
+                dos.insert(DoDontItem(text: "Warm, sweet root vegetables", priority: 0, whyForYou: "Worry taxes the Spleen. Naturally sweet root vegetables (sweet potato, squash) nourish it directly."), at: 0)
+                donts.insert(DoDontItem(text: "Overthinking at night", priority: 0, whyForYou: "Nighttime worry spirals deplete the Spleen further. Write worries down and close the notebook—literally set them aside."), at: 0)
+            case .anxious:
+                dos.insert(DoDontItem(text: "Grounding breathwork", priority: 0, whyForYou: "Anxiety lifts qi upward. Grounding breathwork (long exhales, belly breathing) brings energy back down to your center."), at: 0)
+                donts.insert(DoDontItem(text: "Stimulants", priority: 0, whyForYou: "Caffeine and stimulants accelerate an already-racing nervous system. Your body needs calming, not fuel for anxiety."), at: 0)
+            case .overwhelmed:
+                dos.insert(DoDontItem(text: "One thing at a time", priority: 0, whyForYou: "Overwhelm depletes both Spleen and Kidney. Simplifying your to-do list is a form of self-care today."), at: 0)
+            case .sad:
+                dos.insert(DoDontItem(text: "Deep breathing exercises", priority: 0, whyForYou: "Sadness affects the Lung in TCM. Deep, slow breathing opens the chest and helps grief move through."), at: 0)
+            case .restless:
+                dos.insert(DoDontItem(text: "Evening wind-down ritual", priority: 0, whyForYou: "Restlessness signals unsettled Shen. A consistent evening ritual teaches your spirit where to land."), at: 0)
+            case .calm:
+                break
+            }
+        }
+
+        // Thermal feeling vs terrain mismatch
+        if let thermal = thermalFeeling {
+            let isColdTerrain = terrainType == .coldDeficient || terrainType == .coldBalanced
+            let isWarmTerrain = terrainType == .warmExcess || terrainType == .warmBalanced
+
+            if isColdTerrain && (thermal == .hot || thermal == .warm) {
+                // Deficiency heat — cold terrain feeling hot
+                dos.insert(DoDontItem(text: "Light cooling foods today", priority: 0, whyForYou: "Feeling hot on a cold terrain signals deficiency heat—your yin can't anchor yang. Light cooling foods calm the false fire without deepening the cold."), at: 0)
+            } else if isWarmTerrain && (thermal == .cold || thermal == .cool) {
+                // Yang depletion — warm terrain feeling cold
+                dos.insert(DoDontItem(text: "Warm drinks, rest", priority: 0, whyForYou: "Feeling cold despite warm terrain means your yang is temporarily depleted. Warm drinks and rest help your fire recover."), at: 0)
+            }
+        }
+
+        // Digestive state signals
+        if let digestion = digestiveState {
+            if digestion.stoolQuality == .loose {
+                dos.insert(DoDontItem(text: "Warm congee", priority: 0, whyForYou: "Loose stools signal Spleen qi deficiency. Congee is the gentlest way to nourish your digestion—warm, soft, and easy to process."), at: 0)
+                donts.insert(DoDontItem(text: "Cold or raw foods", priority: 0, whyForYou: "Cold and raw foods demand more digestive fire. With loose stools, your Spleen can't afford the extra work."), at: 0)
+            }
+            if digestion.stoolQuality == .sticky {
+                dos.insert(DoDontItem(text: "Light warm foods", priority: 0, whyForYou: "Sticky stools indicate dampness accumulation. Light, warm foods help your Spleen process and drain what's stuck."), at: 0)
+                donts.insert(DoDontItem(text: "Dairy and sugar", priority: 0, whyForYou: "Dairy and sugar generate more dampness—adding weight to a system already struggling to drain."), at: 0)
+            }
+            if digestion.stoolQuality == .constipated {
+                dos.insert(DoDontItem(text: "More fluids and fiber", priority: 0, whyForYou: "Constipation often signals intestinal dryness or heat. Extra fluids and fiber moisten and move things along."), at: 0)
+                donts.insert(DoDontItem(text: "Drying foods", priority: 0, whyForYou: "Crackers, toast, and excess coffee dry the intestines further. Favor moistening foods instead."), at: 0)
+            }
         }
     }
 
@@ -1341,24 +1518,32 @@ final class InsightEngine {
         modifier: TerrainScoringEngine.Modifier = .none,
         symptoms: Set<QuickSymptom> = [],
         weatherCondition: String? = nil,
-        stepCount: Int? = nil
+        stepCount: Int? = nil,
+        sleepQuality: SleepQuality? = nil,
+        dominantEmotion: DominantEmotion? = nil,
+        thermalFeeling: ThermalFeeling? = nil,
+        digestiveState: DigestiveState? = nil
     ) -> [LifeAreaReading] {
         var readings: [LifeAreaReading] = []
 
-        readings.append(generateEnergyReading(for: terrainType, modifier: modifier, symptoms: symptoms, stepCount: stepCount))
-        readings.append(generateDigestionReading(for: terrainType, modifier: modifier, symptoms: symptoms))
-        readings.append(generateSleepReading(for: terrainType, modifier: modifier, symptoms: symptoms))
-        readings.append(generateMoodReading(for: terrainType, modifier: modifier, symptoms: symptoms))
+        readings.append(generateEnergyReading(for: terrainType, modifier: modifier, symptoms: symptoms, stepCount: stepCount, thermalFeeling: thermalFeeling))
+        readings.append(generateDigestionReading(for: terrainType, modifier: modifier, symptoms: symptoms, digestiveState: digestiveState))
+        readings.append(generateSleepReading(for: terrainType, modifier: modifier, symptoms: symptoms, sleepQuality: sleepQuality))
+        readings.append(generateMoodReading(for: terrainType, modifier: modifier, symptoms: symptoms, dominantEmotion: dominantEmotion))
         readings.append(generateSeasonalityReading(for: terrainType, modifier: modifier, weatherCondition: weatherCondition))
 
         return readings
     }
 
-    /// Generate modifier areas when conditions warrant (Inner Climate, Fluid Balance, Qi Movement)
+    /// Generate modifier areas when conditions warrant (Inner Climate, Fluid Balance, Qi Movement, Spirit & Rest)
     func generateModifierAreaReadings(
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier = .none,
-        symptoms: Set<QuickSymptom> = []
+        symptoms: Set<QuickSymptom> = [],
+        sleepQuality: SleepQuality? = nil,
+        dominantEmotion: DominantEmotion? = nil,
+        thermalFeeling: ThermalFeeling? = nil,
+        digestiveState: DigestiveState? = nil
     ) -> [ModifierAreaReading] {
         var readings: [ModifierAreaReading] = []
 
@@ -1377,6 +1562,33 @@ final class InsightEngine {
                 balanceAdvice: "Cooling foods and calm activities bring the temperature down. Avoid spicy foods and late-night intensity.",
                 reasons: [ReadingReason(source: "Quiz", detail: "Your quiz revealed warm-excess patterns")]
             ))
+        } else if case .warmDeficient = terrainType {
+            // Yin deficiency heat — warm-deficient produces false heat from depleted yin
+            readings.append(ModifierAreaReading(
+                type: .innerClimate,
+                reading: "Your warmth burns from depletion, not abundance. Yin deficiency creates heat that rises at night—flushing, restlessness, dry throat. The fire looks real but the fuel is low.",
+                balanceAdvice: "Nourish yin with moistening foods (pear, lily bulb, black sesame). Avoid stimulants that fan the false fire.",
+                reasons: [ReadingReason(source: "Quiz", detail: "Warm-deficient pattern produces yin deficiency heat")]
+            ))
+        } else if let thermal = thermalFeeling {
+            // Thermal feeling contradicts terrain — drift signal
+            let isColdTerrain = terrainType == .coldDeficient || terrainType == .coldBalanced
+            let isWarmTerrain = terrainType == .warmBalanced || terrainType == .warmExcess
+            if isColdTerrain && (thermal == .hot || thermal == .warm) {
+                readings.append(ModifierAreaReading(
+                    type: .innerClimate,
+                    reading: "You feel warm despite a cold terrain. This heat from deficiency is your body's distress signal—yin is depleted and can't anchor yang. It's not true warmth, it's depletion showing.",
+                    balanceAdvice: "Rest and hydrate. Avoid pushing through—this warmth is a symptom, not strength.",
+                    reasons: [ReadingReason(source: "Check-in", detail: "Feeling \(thermal.rawValue) contradicts your cold terrain")]
+                ))
+            } else if isWarmTerrain && (thermal == .cold || thermal == .cool) {
+                readings.append(ModifierAreaReading(
+                    type: .innerClimate,
+                    reading: "Feeling cold despite warm terrain signals temporary yang depletion. Your body's fire is flickering—fatigue, overwork, or illness may have drawn down reserves.",
+                    balanceAdvice: "Warm drinks, rest, and avoiding cold exposure help your yang recover.",
+                    reasons: [ReadingReason(source: "Check-in", detail: "Feeling \(thermal.rawValue) contradicts your warm terrain")]
+                ))
+            }
         }
 
         // Fluid Balance — damp/dry patterns
@@ -1394,6 +1606,23 @@ final class InsightEngine {
                 balanceAdvice: "Moistening foods like pear, honey, and soups nourish your fluids. Sip warm water throughout the day.",
                 reasons: [ReadingReason(source: "Quiz", detail: "Your responses indicate a dry pattern")]
             ))
+        } else if let digestion = digestiveState {
+            // Digestive signals can indicate fluid imbalance even without damp/dry modifier
+            if digestion.stoolQuality == .sticky {
+                readings.append(ModifierAreaReading(
+                    type: .fluidBalance,
+                    reading: "Sticky stools are a damp signal even without a damp modifier. Your body is accumulating moisture it can't process—heavy meals and dairy compound it.",
+                    balanceAdvice: "Light warm foods, avoid dairy and sugar. Gentle movement helps your spleen drain excess dampness.",
+                    reasons: [ReadingReason(source: "Check-in", detail: "Sticky stools indicate dampness accumulation")]
+                ))
+            } else if digestion.stoolQuality == .constipated {
+                readings.append(ModifierAreaReading(
+                    type: .fluidBalance,
+                    reading: "Constipation often signals dryness in the intestines. Even without an overall dry pattern, your fluids may not be reaching the lower body.",
+                    balanceAdvice: "More fluids, fiber, and moistening foods (pear, honey, sesame). Avoid drying foods and excess coffee.",
+                    reasons: [ReadingReason(source: "Check-in", detail: "Constipation indicates intestinal dryness")]
+                ))
+            }
         }
 
         // Qi Movement — stagnation patterns
@@ -1403,6 +1632,14 @@ final class InsightEngine {
                 reading: "Your energy tends to get stuck. When qi doesn't flow, it shows up as tension, frustration, or feeling physically tight. Movement is medicine for your pattern.",
                 balanceAdvice: "Physical activity, stretching, and deep breathing help move what's stuck. Avoid prolonged sitting and suppressed emotions.",
                 reasons: [ReadingReason(source: "Quiz", detail: "Your responses indicate qi stagnation")]
+            ))
+        } else if dominantEmotion == .irritable {
+            // Irritability is a Liver qi rising signal even without stagnation modifier
+            readings.append(ModifierAreaReading(
+                type: .qiMovement,
+                reading: "Irritability signals Liver qi rising—energy pushing upward instead of flowing smoothly. It's your body asking for release, not more pressure.",
+                balanceAdvice: "Sour foods (lemon water), stretching, and walks help the Liver relax. Avoid confrontation and stimulants today.",
+                reasons: [ReadingReason(source: "Check-in", detail: "Irritability indicates Liver qi rising")]
             ))
         } else if symptoms.contains(.stiff) || symptoms.contains(.stressed) {
             readings.append(ModifierAreaReading(
@@ -1415,6 +1652,34 @@ final class InsightEngine {
             ))
         }
 
+        // Spirit & Rest — Shen disturbance
+        let shenTriggered = modifier == .shen
+            || sleepQuality == .hardToFallAsleep
+            || dominantEmotion == .restless
+            || dominantEmotion == .anxious
+        if shenTriggered {
+            var reasons: [ReadingReason] = []
+            if modifier == .shen {
+                reasons.append(ReadingReason(source: "Quiz", detail: "Your Shen modifier indicates an active mind"))
+            }
+            if sleepQuality == .hardToFallAsleep {
+                reasons.append(ReadingReason(source: "Check-in", detail: "Difficulty falling asleep signals unsettled Shen"))
+            }
+            if dominantEmotion == .restless {
+                reasons.append(ReadingReason(source: "Check-in", detail: "Restlessness reflects Shen disturbance"))
+            }
+            if dominantEmotion == .anxious {
+                reasons.append(ReadingReason(source: "Check-in", detail: "Anxiety roots in unsettled Shen"))
+            }
+
+            readings.append(ModifierAreaReading(
+                type: .spiritRest,
+                reading: "Your mind runs faster than your body can settle. Shen disturbance shows up as racing thoughts, light sleep, or anxiety without clear cause. The spirit needs anchoring.",
+                balanceAdvice: "Evening rituals that signal safety—warm feet, dim lights, journaling. Calming herbs like jujube seed and passionflower settle the Shen.",
+                reasons: reasons
+            ))
+        }
+
         return readings
     }
 
@@ -1424,7 +1689,8 @@ final class InsightEngine {
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier,
         symptoms: Set<QuickSymptom>,
-        stepCount: Int?
+        stepCount: Int?,
+        thermalFeeling: ThermalFeeling? = nil
     ) -> LifeAreaReading {
         var focusLevel: FocusLevel = .neutral
         var reasons: [ReadingReason] = []
@@ -1482,6 +1748,21 @@ final class InsightEngine {
             reasons.append(ReadingReason(source: "Symptoms", detail: "You checked 'tired' today"))
         }
 
+        // Thermal feeling — terrain drift detection
+        if let thermal = thermalFeeling {
+            let isColdTerrain = terrainType == .coldDeficient || terrainType == .coldBalanced
+            let isWarmTerrain = terrainType == .warmExcess || terrainType == .warmBalanced
+            if isColdTerrain && (thermal == .hot || thermal == .warm) {
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Your cold terrain is showing deficiency heat—feeling warm when your pattern runs cool. This is a signal to rest, not a sign of excess energy."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Feeling \(thermal.rawValue) contradicts cold terrain"))
+            } else if isWarmTerrain && (thermal == .cold || thermal == .cool) {
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Feeling cold despite warm terrain suggests temporary yang depletion. Your internal fire needs stoking—rest, warm drinks, and light activity."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Feeling \(thermal.rawValue) contradicts warm terrain"))
+            }
+        }
+
         // Step count observations
         if let steps = stepCount {
             if steps < 2000 {
@@ -1510,7 +1791,8 @@ final class InsightEngine {
     private func generateDigestionReading(
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier,
-        symptoms: Set<QuickSymptom>
+        symptoms: Set<QuickSymptom>,
+        digestiveState: DigestiveState? = nil
     ) -> LifeAreaReading {
         var focusLevel: FocusLevel = .neutral
         var reasons: [ReadingReason] = []
@@ -1566,6 +1848,42 @@ final class InsightEngine {
             reasons.append(ReadingReason(source: "Symptoms", detail: "You checked 'bloating' today"))
         }
 
+        // Digestive state signals from daily check-in
+        if let digestion = digestiveState {
+            switch digestion.stoolQuality {
+            case .loose:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Loose stools signal your Spleen qi struggling to hold. Warmth and gentle foods support what's weakened—cold and raw push it further."
+                balanceAdvice = "Warm congee, cooked vegetables, and avoiding cold drinks protect your digestive center."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Loose stools indicate Spleen qi deficiency"))
+            case .sticky:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Sticky stools point to dampness accumulating in your digestion. The Spleen can't drain what's building up—heavy meals compound it."
+                balanceAdvice = "Light warm meals, avoid dairy and sugar. Gentle movement helps your body process excess moisture."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Sticky stools indicate dampness"))
+            case .constipated:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Constipation signals dryness or heat in the intestines. Fluids aren't reaching where they're needed—moistening from above helps."
+                balanceAdvice = "More fluids, fiber-rich foods, and moistening ingredients (pear, honey, sesame) soften and move."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Constipation indicates intestinal dryness or heat"))
+            case .mixed:
+                focusLevel = max(focusLevel, .moderate)
+                reasons.append(ReadingReason(source: "Check-in", detail: "Variable digestion suggests Liver-Spleen disharmony"))
+            case .normal:
+                break
+            }
+
+            switch digestion.appetiteLevel {
+            case .none, .low:
+                focusLevel = max(focusLevel, .moderate)
+                reasons.append(ReadingReason(source: "Check-in", detail: "Low appetite indicates weakened Spleen qi"))
+            case .strong:
+                reasons.append(ReadingReason(source: "Check-in", detail: "Strong appetite may indicate stomach heat"))
+            case .normal:
+                break
+            }
+        }
+
         return LifeAreaReading(
             type: .digestion,
             focusLevel: focusLevel,
@@ -1578,7 +1896,8 @@ final class InsightEngine {
     private func generateSleepReading(
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier,
-        symptoms: Set<QuickSymptom>
+        symptoms: Set<QuickSymptom>,
+        sleepQuality: SleepQuality? = nil
     ) -> LifeAreaReading {
         var focusLevel: FocusLevel = .neutral
         var reasons: [ReadingReason] = []
@@ -1644,6 +1963,34 @@ final class InsightEngine {
             reasons.append(ReadingReason(source: "Symptoms", detail: "You checked 'poor sleep' today"))
         }
 
+        // Sleep quality signals from daily check-in
+        if let sleep = sleepQuality {
+            switch sleep {
+            case .hardToFallAsleep:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Difficulty falling asleep signals an unsettled Shen—your spirit can't find its resting place. Racing thoughts and restlessness keep the mind running past bedtime."
+                balanceAdvice = "Calming tea by 8pm, warm feet, dim lights. Evening rituals teach your spirit where to land."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Hard to fall asleep indicates Shen disturbance"))
+            case .wokeMiddleOfNight:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Waking between 1-3 AM maps to the Liver meridian in TCM. Tension, frustration, or unprocessed emotions surface during the Liver's repair window."
+                balanceAdvice = "Gentle stretching before bed, release held tension. Avoid late meals that burden the Liver's overnight work."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Waking mid-night suggests Liver qi stagnation"))
+            case .wokeEarly:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Early waking often maps to Lung meridian time (3-5 AM) and can signal yin deficiency—your body runs out of nourishment before morning."
+                balanceAdvice = "Nourishing evening food, earlier bedtime, and moistening practices help sustain you through the night."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Early waking suggests yin deficiency"))
+            case .unrefreshing:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Sleeping but not refreshing points to dampness or Spleen deficiency—the body repairs inefficiently when moisture accumulates."
+                balanceAdvice = "Lighter dinners, avoid dairy before bed, and gentle morning movement help clear overnight stagnation."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Unrefreshing sleep suggests dampness"))
+            case .fellAsleepEasily:
+                break
+            }
+        }
+
         return LifeAreaReading(
             type: .sleep,
             focusLevel: focusLevel,
@@ -1656,7 +2003,8 @@ final class InsightEngine {
     private func generateMoodReading(
         for terrainType: TerrainScoringEngine.PrimaryType,
         modifier: TerrainScoringEngine.Modifier,
-        symptoms: Set<QuickSymptom>
+        symptoms: Set<QuickSymptom>,
+        dominantEmotion: DominantEmotion? = nil
     ) -> LifeAreaReading {
         var focusLevel: FocusLevel = .neutral
         var reasons: [ReadingReason] = []
@@ -1720,6 +2068,44 @@ final class InsightEngine {
             reading = "Stress is present and pressing. Your nervous system is in high alert—the body needs signals of safety."
             balanceAdvice = "Deep breaths, reduced stimulation, and permission to pause. You don't have to solve everything today."
             reasons.append(ReadingReason(source: "Symptoms", detail: "You checked 'stressed' today"))
+        }
+
+        // Dominant emotion signals from daily check-in
+        if let emotion = dominantEmotion {
+            switch emotion {
+            case .irritable:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Irritability maps to Liver qi rising in TCM. Energy pushes upward instead of flowing smoothly—it shows as a short fuse and tight jaw."
+                balanceAdvice = "Sour foods soothe the Liver. Stretching, walks, and avoiding confrontation let the pressure release gently."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Irritability indicates Liver qi rising"))
+            case .worried:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Worry is the Spleen's emotion in TCM. When you overthink, the Spleen weakens—and weak digestion feeds more worry. It's a loop."
+                balanceAdvice = "Ground yourself with warm, naturally sweet foods (sweet potato, squash). Write worries down, then set them aside."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Worry taxes the Spleen"))
+            case .anxious:
+                focusLevel = max(focusLevel, .priority)
+                reading = "Anxiety often roots in Kidney deficiency—the deep reserves that anchor your nervous system. When they're low, everything feels urgent."
+                balanceAdvice = "Grounding breathwork (long exhales), warm baths, and rest rebuild what anxiety depletes."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Anxiety suggests Kidney deficiency"))
+            case .sad:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Sadness sits in the Lung in TCM. The chest tightens, breath shallows, and the body contracts. Grief needs space to move through."
+                balanceAdvice = "Deep breathing opens the chest. White foods (pear, lily bulb, daikon) nourish the Lung."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Sadness affects the Lung"))
+            case .restless:
+                focusLevel = max(focusLevel, .moderate)
+                reading = "Restlessness reflects unsettled Shen. Your spirit can't find a place to land—thoughts scatter, attention drifts, settling feels impossible."
+                balanceAdvice = "Calming routines, less stimulation, and grounding practices (bare feet, warm baths) help the Shen settle."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Restlessness indicates unsettled Shen"))
+            case .overwhelmed:
+                focusLevel = max(focusLevel, .priority)
+                reading = "Overwhelm depletes both Spleen and Kidney. The system is overloaded—too many inputs, not enough processing power."
+                balanceAdvice = "Simplify. One thing at a time. Nourish with warm simple foods and give yourself permission to do less."
+                reasons.append(ReadingReason(source: "Check-in", detail: "Overwhelm depletes Spleen and Kidney"))
+            case .calm:
+                break
+            }
         }
 
         return LifeAreaReading(

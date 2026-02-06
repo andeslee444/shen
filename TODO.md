@@ -1,6 +1,6 @@
 # TODO - Terrain iOS App
 
-Last updated: 2026-02-05 (Phase 14 complete — 276 tests passing)
+Last updated: 2026-02-06 (Post-audit sync fixes — 330 tests passing)
 
 ## Tab Structure (Updated Phase 3)
 
@@ -167,6 +167,12 @@ Last updated: 2026-02-05 (Phase 14 complete — 276 tests passing)
 - [x] Wired into YouView Terrain sub-tab: "Terrain Pulse" card with 90-day prominence logic
 - [x] TerrainDriftDetectorTests: 9 tests covering no-change, minor-shift, significant-drift, engine consistency
 
+### Post-Audit Sync Fixes (2026-02-06)
+- [x] Dropped 3 orphaned RPC functions (get_mood_analytics, get_streak_analytics, get_activity_duration_analytics) — security vulnerability, never called from app
+- [x] RoutineFeedbackDTO: added startedAt, actualDurationSeconds, activityType to sync (previously lost on device-switch)
+- [x] UserProfileRow.apply(): restore quizResponses from Supabase (was push-only, never pulled down)
+- [x] UserProfileRow.apply(): restore morningNotificationTime and eveningNotificationTime from NotificationPrefsDTO (was push-only)
+
 ### Remaining (Phase 14b — Content Integration)
 - [ ] InsightEngine: shift all content by cycle phase ("Luteal phase — warming, grounding foods.")
 - [ ] SuggestionEngine: boost warming ingredients during luteal, blood-building during follicular
@@ -231,6 +237,63 @@ Last updated: 2026-02-05 (Phase 14 complete — 276 tests passing)
 **File**: `Terrain/Features/You/YouView.swift`
 **Status**: ✅ Implemented with DisclosureGroups
 **Details**: Progressive disclosure via collapsible sections + Daily Brief card on terrain sub-tab
+
+## Pre-Launch Manual QA Checklist
+
+Consolidated from REVIEW_LOG.md — all features with unverified manual testing.
+
+### Home Tab
+- [ ] Life areas: 5 rows with dot indicators (○ ◐ ●) → tap one → detail sheet with reading, advice, accuracy buttons, reasons
+- [ ] Modifier areas: Cold+Damp user sees "Conditions in play" (Fluid Balance); Neutral+Balanced sees nothing
+- [ ] Headline: flowing paragraph style (not bullet points)
+- [ ] Header: date, temperature (°F), step count displayed; graceful when weather/health unavailable
+- [ ] Check-in: "More details" drawer → select sleep quality + emotion → kill/relaunch → verify persisted
+- [ ] Check-in TCM signals: digestiveState JSONB round-trips correctly through Supabase sync
+
+### Do Tab
+- [ ] Tier selection: Full (~10 min movement), Medium (~5 min), Lite (~90 sec) — different routines per tier
+- [ ] Phase awareness: before 5PM → morning header + warming routines; after 5PM → evening + calming
+- [ ] Per-level completion: complete Full → switch to Medium → Medium is NOT checked
+- [ ] Detail sheet: parallax hero image scrolls at ~40% speed; ambient background warm AM / cool PM
+- [ ] Duration tracking: complete routine → check Supabase `routine_feedback` has `actualDurationSeconds`
+- [ ] Card shadows, Nourish/Move tint colors, coaching note, completion overlay visible
+
+### You Tab
+- [ ] Trends: TerrainPulseCard shows terrain-specific copy; trend cards reordered by priority per type
+- [ ] Trends: ActivityLogCard shows correct routine vs movement minutes
+- [ ] Trends: compare two terrain types → different priority order + different pulse copy
+- [ ] Pattern map: 5 colorful gradient bars with emojis matching onboarding HowItWorksView style
+- [ ] Timer leak: open/close routine detail sheet repeatedly → no memory growth
+- [ ] Headache and Cramps category icons visible (not blank)
+
+### Onboarding
+- [ ] Full flow: Welcome → HowItWorks → Goals → Demographics → Quiz → Reveal → Tutorial → Safety → Notifications → Permissions → Account → Complete
+- [ ] Demographics: age wheel + gender chips + ethnicity list → "Welcome to the wisdom of Traditional Chinese Medicine"
+- [ ] Permissions: "Allow Access" triggers location then health sequentially (test on real device); "Not now" skips
+- [ ] Walk through for 2 terrain types (cold-deficient + warm-excess) → verify tutorial content matches type
+
+### Sync & Auth
+- [ ] Sign in → verify sync succeeds without "sync issue" message
+- [ ] Apple Sign In on simulator → verify helpful error message
+- [ ] Sign out → local data cleared → sign back in → data re-syncs from cloud
+- [ ] Two-device sync: log mood + mark ingredient as staple on device A → verify on device B
+- [ ] Two-device sync: verify notification times, quiz responses, and routine feedback duration all round-trip
+
+### Legal & Settings
+- [ ] Welcome screen: tap "Terms" / "Privacy Policy" → SafariView opens with correct URL and warm brown tint
+- [ ] You tab → Settings → About → Terms/Privacy → SafariView; Contact Support → Mail app
+- [ ] Notifications: toggle settings → verify iOS actually reschedules (not just database update)
+- [ ] Notification actions: "Did This" sets `microActionCompletedAt`; "Start Ritual" → Do tab
+
+### Ingredients
+- [ ] Filter by Headache: tofu, lettuce, adzuki-bean should NOT appear
+- [ ] Filter by Stiffness: different results from Cramps
+- [ ] In Season toggle: August/September → `late_summer` season
+
+### Movements
+- [ ] Hip Opening Stretch frames 3/5/6 → seated icon (not standing)
+- [ ] Morning Qi Flow frames 7/8 → tai chi icon
+- [ ] `figure.flexibility` does NOT appear in any movement icon
 
 ## Pending External Steps
 

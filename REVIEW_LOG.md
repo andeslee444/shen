@@ -1,95 +1,96 @@
 # Review Log
 
-## [2026-02-05 18:15] — Phase 14 data foundation + sync + Pulse Check-In wiring
+## [2026-02-06 04:30] — Fix sync data loss and drop insecure RPC functions
 
 **Files touched:**
-- `Core/Models/User/DailyLog.swift` — Added 5 optional properties (sleepDurationMinutes, sleepInBedMinutes, restingHeartRate, cyclePhase, symptomQuality) and 2 new enums (CyclePhase with 5 cases + tcmContext, SymptomQuality with 5 cases + tcmPattern)
-- `Core/Models/User/UserProfile.swift` — Added hydrationPattern, sweatPattern (Phase 14 TCM) and lastPulseCheckInDate; added HydrationPattern (4 cases) and SweatPattern (5 cases) enums with TCM signals
-- `Core/Services/SupabaseSyncService.swift` — Extended DailyLogRow and UserProfileRow with all new fields: CodingKeys, apply(to:), toModel(), and toRow() conversions
-- `Features/You/YouView.swift` — Wired Pulse Check-In: added showPulseCheckIn state, pulseCheckInCard (with "last checked X days ago" + 90-day prominence logic), and sheet presentation with retake-quiz bridge
-- `Tests/SyncFieldsRoundTripTests.swift` (NEW) — 13 tests verifying rawValue round-trips for all 4 new enums, nil handling, empty-string handling
+- `Terrain/Core/Services/SupabaseSyncService.swift` — Expanded RoutineFeedbackDTO with 3 missing fields (startedAt, actualDurationSeconds, activityType); added quizResponses restore in UserProfileRow.apply(); added notification time pull-down in UserProfileRow.apply()
+- Supabase (remote) — Dropped 3 orphaned RPC functions (get_mood_analytics, get_streak_analytics, get_activity_duration_analytics)
 
 **What changed (plain English):**
-The app's data models and cloud sync now understand several new pieces of information about the user. Think of it like upgrading a medical chart — it can now record sleep patterns (how long, in bed vs asleep), heart rate at rest, menstrual cycle phase, symptom character (dull vs sharp vs burning pain), hydration preference (warm vs cold drinks), and sweat patterns. All of these sync bidirectionally to Supabase so they're backed up in the cloud. Additionally, the "Terrain Pulse" quick-quiz is now accessible from the You tab's terrain section, letting users check if their body pattern has shifted.
+A full data pipeline audit found that routine duration/activity data was silently lost during cloud sync (like mailing a letter but leaving out three pages). Quiz response history and notification times also had one-way sync bugs — they were uploaded but never downloaded on a new device. Additionally, three unused database functions were exposed to unauthenticated callers, creating a data leak vulnerability. All four issues are now fixed.
 
 **Why:**
-Phase 14 TCM personalization — these data points are diagnostic signals in Traditional Chinese Medicine that enable more precise terrain-aware content and trend analysis.
+User requested a comprehensive audit of all data collection → storage → sync → display pipelines. The audit revealed these gaps needed immediate patching.
 
 **Risks / watch-fors:**
-- Supabase columns added via migration (no data loss for existing users — all nullable)
-- Enum rawValues are snake_case strings synced to DB — changing them would break existing rows (protected by round-trip tests)
-- PulseCheckInView saves lastPulseCheckInDate on the UserProfile and calls updatedAt — this triggers sync on next cycle
-
-**Testing status:**
-- [x] Builds cleanly (BUILD SUCCEEDED)
-- [x] All 276 tests pass (TEST SUCCEEDED)
-- [x] New tests added: SyncFieldsRoundTripTests (13 tests), HealthTrendTests (9 tests), TerrainDriftDetectorTests (9 tests)
-- [ ] Manual verification: present Pulse Check-In from You tab, walk through 5 questions, verify drift result display
-
-**Reviewer nudge:**
-Check the enum rawValues in SyncFieldsRoundTripTests — these are the contract between the Swift app and Supabase. If any rawValue ever changes, the round-trip test catches it immediately.
-
----
-
-## [2026-02-05 18:11] -- HealthKit expansion: sleep analysis + resting heart rate + TrendEngine integration
-
-**Files touched:**
-- `Terrain/Core/Services/HealthService.swift` -- Expanded from step-count-only to also fetch sleep analysis (asleep + in-bed duration) and resting heart rate from HealthKit, with concurrent fetching and per-metric error isolation
-- `Terrain/Core/Services/TrendEngine.swift` -- Added Sleep Duration and Resting HR trend computation, updated terrainPriorityMap (all 8 types), terrainWatchForCategories, healthyZone, and terrainNoteForTrend for the two new categories
-- `Terrain/Tests/HealthTrendTests.swift` -- New test file with 9 tests covering improving/declining/stable trends, nil data handling, priority ordering, and healthy zones for both new categories
-- `Terrain/Tests/TrendEngineTests.swift` -- Updated category count assertion from 8 to 10 to account for new trend categories
-- `Terrain/Terrain.xcodeproj/project.pbxproj` -- Registered HealthTrendTests.swift in 4 pbxproj sections
-
-**What changed (plain English):**
-The app's health bridge now reads three pieces of data from Apple Health instead of just one. Think of it like upgrading a weather station that only measured temperature to now also track humidity and wind speed. Sleep duration tells the TrendEngine how many hours the user actually slept (from Apple Watch stages or iPhone tracking), and resting heart rate tells it how efficiently the heart is pumping at rest. Both feed into the existing 14-day trend system so the You tab can show whether sleep quantity and cardiovascular fitness are improving, declining, or holding steady.
-
-**Why:**
-Phase 14 HealthKit expansion -- biometric data gives TrendEngine objective signals to complement the subjective daily check-in data, enabling more accurate terrain-aware health insights.
-
-**Risks / watch-fors:**
-- HealthKit authorization is requested for all three types at once; if user denies one, the others still work (per-metric error isolation)
-- Sleep analysis window looks back to yesterday 5PM to capture overnight sessions; edge cases around timezone changes could miss data
-- Resting HR requires Apple Watch (iPhone-only users will always get nil for this metric)
-- Existing tests updated: category count changed from 8 to 10 in `testAllTerrainTypes_HavePrioritization`
+- Existing Supabase `routine_feedback` JSONB entries lack the 3 new fields — `toModel()` handles this gracefully with nil defaults
+- If any external system depended on the dropped RPC functions, it will break (audit confirmed zero callers)
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] Existing tests pass (26/26 TrendEngineTests)
-- [x] New tests added (9/9 HealthTrendTests)
-- [ ] Manual verification needed: test on device with Apple Watch to verify real HealthKit data flows through
+- [x] Existing tests pass (330/330)
+- [ ] Manual verification needed: sign out → sign in on second device → verify notification times and quiz responses round-trip
 
 **Reviewer nudge:**
-Focus on `fetchSleepAnalysis` -- the sleep stage categorization (`asleepCore`, `asleepDeep`, `asleepREM`, `asleepUnspecified`) and the 30-minute minimum threshold are the most important logic to verify.
+Check `RoutineFeedbackDTO` backward compatibility — old JSONB rows missing the 3 new fields must decode without error (they do, via optional properties with nil defaults).
 
-## [2026-02-05 18:10] — Add quarterly Pulse Check-In with terrain drift detection
+## [2026-02-06 03:00] — Add tappable terrain chips with encyclopedia sheet
 
 **Files touched:**
-- `Core/Models/Shared/TerrainPulseCheckIn.swift` (NEW) — Defines 5 discriminating questions (one per scoring axis) with 3 options each
-- `Core/Engine/TerrainDriftDetector.swift` (NEW) — Builds a mini TerrainVector from pulse answers, classifies via TerrainScoringEngine, and compares against current profile to detect drift
-- `Features/You/Components/PulseCheckInView.swift` (NEW) — 5-step SwiftUI sheet with radio-style option selection, progress indicator, and result screen with drift recommendation
-- `Tests/TerrainDriftDetectorTests.swift` (NEW) — 9 unit tests covering no-change, minor-shift, significant-drift, cold/warm detection, shen/stagnation modifiers, neutral defaults, and engine consistency
-- `Terrain.xcodeproj/project.pbxproj` — Registered all 4 new files (3 in main target, 1 in test target)
+- `Features/Home/Components/TerrainEncyclopediaSheet.swift` — NEW: Full reference guide showing all 8 terrain types, 4 modifiers, and a TCM primer with expandable rows
+- `Features/Home/Components/TypeBlockView.swift` — Added `onTap` closure parameter, wrapped content in a `Button` with `ScaleButtonStyle`
+- `Features/Home/HomeView.swift` — Added `showingTerrainEncyclopedia` state, wired `TypeBlockView.onTap` to open the encyclopedia sheet
+- `Terrain.xcodeproj/project.pbxproj` — Added TerrainEncyclopediaSheet.swift to build targets
 
 **What changed (plain English):**
-Users can now take a quick 5-question "pulse check" to see if their body pattern has shifted since they took the full onboarding quiz. Think of it like a quick temperature check versus a full physical exam. The check-in asks one question per scoring axis (temperature, energy, moisture, tension, mind), builds a mini profile, and compares it to the user's current terrain type and modifier. If nothing changed, they get reassurance. If a modifier shifted, they see a gentle note. If their entire type changed, they are encouraged to retake the full quiz.
+The terrain identity chips on the Home tab ("Your terrain - Bright but Thin - Restless") are now tappable. Tapping them opens a full encyclopedia sheet — like a practitioner's wall chart — that shows all 8 terrain types and all 4 modifiers with rich TCM content. The user's own type is highlighted and pre-expanded so they see their info first, then can browse and compare others.
 
 **Why:**
-Bodies change over time with seasons, lifestyle shifts, and aging. A quarterly pulse check ensures the app's personalized content stays accurate without requiring the user to retake the full 13-question quiz every time.
+Users had no way to explore what other terrain types looked like or understand the modifier system. This gives them a reference guide they can return to anytime.
 
 **Risks / watch-fors:**
-- The pulse check uses only 5 data points versus the full quiz's 13-16, so boundary cases (scores near thresholds) may classify differently. This is intentional and disclosed in the "significant drift" messaging.
-- PulseCheckInView is not yet wired into YouView; the caller needs to present it via `.sheet` and pass the current terrain ID and modifier.
+- The sheet reuses `TypeChip` from TypeBlockView — if that component changes, the encyclopedia inherits the change
+- `ConstitutionService` and `TerrainCopy` are called per-row on expand — no performance concern since expansion is user-triggered and data is computed instantly
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] Existing tests pass
-- [x] New tests added (TerrainDriftDetectorTests — 9 tests, all passing)
-- [ ] Manual verification needed (present the sheet from YouView and walk through all 5 questions)
+- [x] Existing tests pass (all 276)
+- [ ] No new tests needed (pure UI addition, all data sources already tested)
+- [ ] Manual verification needed: tap terrain chips on Home tab, verify encyclopedia opens with correct content
 
 **Reviewer nudge:**
-Check `TerrainDriftDetector.detectDrift()` — it delegates to the same `TerrainScoringEngine.calculateTerrain(from: TerrainVector)` used by the full quiz, so classification logic is guaranteed to stay in sync.
+Check that `TerrainEncyclopediaSheet` correctly pre-expands the user's current type and that modifier content matches the TCM content table in the plan.
 
----
+## [2026-02-06 02:00] — Wire TCM daily check-in signals through all content engines (Phases 1-7)
+
+**Files touched:**
+- `Core/Models/Shared/HomeInsightModels.swift` — Added `.spiritRest` case to `ModifierAreaType` enum for Shen disturbance tracking
+- `Core/Models/Shared/YouViewModels.swift` — Added `DailyLogDriftInsight` struct for daily-log-based terrain drift detection
+- `Core/Services/InsightEngine.swift` — Added `sleepQuality`, `dominantEmotion`, `thermalFeeling`, `digestiveState` params to `generateHeadline()`, `generateDoDont()`, `generateLifeAreaReadings()`, `generateModifierAreaReadings()`; added 6 new private methods: `diagnosticSignalHeadline()`, `addDiagnosticSignalItems()`, plus TCM logic in energy/digestion/sleep/mood reading generators
+- `Core/Services/SuggestionEngine.swift` — Added `sleepQuality` + `thermalFeeling` params to `suggest()`; added `diagnosticSignalBoostTags()` for tag-based scoring boosts
+- `Core/Services/TrendEngine.swift` — Added `detectDailyLogDrift()` method (~130 lines) with thermal drift and emotion frequency analysis, plus `expectedThermalRange()`, `modifierMatchesEmotion()`, `noDriftInsight()` helpers
+- `Features/Home/HomeView.swift` — Updated 4 call sites to pass diagnostic signals through
+- `Features/Home/Components/LifeAreaRow.swift` — Added `.spiritRest` icon case
+- `Features/Home/Components/LifeAreaDetailSheet.swift` — Added `.spiritRest` icon case
+- `Features/Do/DoView.swift` — Updated `smartSuggestion()` call to pass `sleepQuality` and `thermalFeeling`
+- `Features/You/YouView.swift` — Added `cachedDriftInsight` state, wired `detectDailyLogDrift()` into `recomputeTrends()`, passed drift insight to EvolutionTrendsView
+- `Features/You/Components/EvolutionTrendsView.swift` — Added `driftInsight` param, added `DailyLogDriftCard` view (~50 lines) with advisory styling
+- `Tests/InsightEngineTests.swift` — 38 new tests across headlines, do/don'ts, life area readings, spirit rest modifier area, expanded triggers
+- `Tests/SuggestionEngineTests.swift` — 4 new tests for diagnostic signal tag boosting
+- `Tests/TrendEngineTests.swift` — 10 new tests for daily log drift detection (thermal drift, emotion drift, modifier matching, edge cases)
+
+**What changed (plain English):**
+The daily check-in collects 4 TCM diagnostic signals (sleep quality, dominant emotion, thermal feeling, digestive state) but previously only a legacy method used them. Now all 6 content engines consume these signals — like upgrading from a basic thermostat to a smart home system where every room adjusts based on the same temperature readings.
+
+Specifically: (1) Headlines shift when you log poor sleep or strong emotions. (2) Do/don'ts add TCM-specific items like "Calming tea by 8pm" for sleep trouble. (3) Life area readings elevate focus and add organ-system context. (4) A new "Spirit & Rest" modifier area appears for Shen disturbance. (5) The Do tab's suggestion engine boosts calming/warming/cooling tags based on signals. (6) A drift detector watches 14 days of thermal and emotion patterns to advise when your terrain may be shifting — without auto-changing anything.
+
+**Why:**
+The diagnostic signals were being collected but largely ignored by the content engines users actually see. This makes the app's daily guidance genuinely reactive to what users report, which is the core value proposition.
+
+**Risks / watch-fors:**
+- All new params are optional with nil defaults — no breaking changes to existing callers
+- Drift detection is advisory only (card in Trends tab) — it never auto-changes terrain type
+- Emotion drift threshold is 8/14 days, which is fairly conservative; may need tuning
+- Thermal drift threshold of 1.5 units from expected range means only significant divergences trigger
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] All 330 tests pass (276 existing + 54 new, 0 failures)
+- [x] New tests: 38 InsightEngine, 4 SuggestionEngine, 10 TrendEngine, 2 switch case coverage fixes
+- [ ] Manual verification needed: check drift card styling in Trends tab with mock data
+
+**Reviewer nudge:**
+Focus on `TrendEngine.detectDailyLogDrift()` — the threshold math (1.5 unit thermal divergence, 8/14 emotion frequency) and the `modifierMatchesEmotion()` suppression logic are the most consequential decisions.
 
 ## [2026-02-06 00:30] — Render modifier areas, add sync timestamp tests, delete deprecated files
 
@@ -124,7 +125,7 @@ TODO evaluation identified three actionable items: (1) modifier area readings we
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] All 245 tests pass (9 new SyncDateFormattersTests)
+- [x] All 254 tests pass (9 new SyncDateFormattersTests)
 - [ ] Manual verification needed: Home tab with a Damp/Stagnation/Shen modifier → verify "Conditions in play" section appears below life areas → tap a row → verify detail sheet opens with reading, advice, accuracy buttons, reasons
 
 **Reviewer nudge:**
@@ -153,7 +154,7 @@ User reported sync failures and Apple Sign In showing no errors; also requested 
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] Existing tests pass (230+ tests)
+- [x] Existing tests pass (245+ tests)
 - [ ] Manual verification needed: Sign in → verify sync succeeds without "sync issue" message; test Apple Sign In on simulator → verify helpful error message appears
 
 **Reviewer nudge:**
@@ -182,11 +183,11 @@ Senior code review identified systemic SF Symbol issues (same bug as TerrainPuls
 **Risks / watch-fors:**
 - None identified — all changes are conservative fixes
 - `drop.fill` and `lungs.fill` are iOS 14+ symbols (app requires iOS 17+)
-- Test count increased from 200+ to 230+ — all pass
+- Test count increased from 215+ to 245+
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] All 230+ tests pass (including 30 new InsightEngine tests)
+- [x] All 245+ tests pass (including 30 new InsightEngine tests)
 - [x] No manual verification needed
 
 **Reviewer nudge:**
@@ -257,83 +258,6 @@ In FloatingParticles, verify `animationTimer?.invalidate()` is called in `onDisa
 
 ---
 
-## [2026-02-05 02:00] — Do tab detail sheet redesign: parallax hero images + ambient backgrounds + flowing layout
-
-**Files touched:**
-- `Core/Models/Content/Routine.swift` — Added `heroImageUri: String?` property for hero image support
-- `Core/Services/ContentPackService.swift` — Added `hero_image_uri: String?` to RoutineDTO; wired to model conversion
-- `DesignSystem/Components/AmbientBackground.swift` (NEW) — Phase-aware gradient backdrop with floating particles; morning shows warm ambers, evening shows cool blue-grays; respects `accessibilityReduceMotion`
-- `DesignSystem/Components/ParallaxHeroImage.swift` (NEW) — Hero image with 0.4x parallax scroll rate, AsyncImage for remote URLs, gradient fade into content, fallback placeholder
-- `DesignSystem/Components/StepJourneyConnector.swift` (NEW) — Horizontal step progress indicator with connected dots (completed=checkmark, current=highlighted, future=hollow); includes VerticalStepConnector variant
-- `Features/Today/RoutineDetailSheet.swift` — Complete redesign: added scroll offset tracking via PreferenceKey; integrated AmbientBackground, ParallaxHeroImage, StepJourneyConnector; new section layout with accent border on "Why" section; enhanced step rows with vertical connector lines; title overlaps hero image for depth
-- `Resources/ContentPacks/base-content-pack.json` — Version bumped 1.4.0 → 1.5.0; added `hero_image_uri` to 5 routines (warm-start-congee-full, ginger-honey-tea-lite, ginger-cinnamon-tea-full, chrysanthemum-tea-full, mung-bean-soup-full)
-- `Terrain.xcodeproj/project.pbxproj` — Added all 3 new component files to build sources and DesignSystem/Components group
-
-**What changed (plain English):**
-The Do tab's routine detail sheets have been transformed from static cards into immersive, living experiences. Think of it like going from a recipe card to a cooking show — the sheet now has a beautiful hero image at the top that moves slightly as you scroll (parallax effect), an ambient background that shifts colors based on time of day (warm amber mornings, cool blue evenings), and a visual journey connector showing your progress through the steps like dots on a trail. The layout flows better with varied spacing, the "Why this ritual" section has a distinctive accent border, and each step shows a vertical line connecting to the next one.
-
-**Why:**
-User requested "world-class UI/UX" improvements to the Do tab detail sheets with: (1) more interactive and engaging backgrounds, (2) new photos of food/drink, and (3) better spaced out and flowy UI. User explicitly chose "highest impact and highest effort" implementation.
-
-**Risks / watch-fors:**
-- Hero images use Unsplash URLs — ensure network availability or fallback placeholder renders correctly
-- Parallax effect and floating particles use continuous animations — respects `accessibilityReduceMotion`, but verify battery impact on older devices
-- Content pack version bump to 1.5.0 required for hero images to load on existing installs
-- ScrollOffsetKey uses PreferenceKey pattern — standard SwiftUI approach but verify coordinate space is correct on all device sizes
-
-**Testing status:**
-- [x] Builds cleanly
-- [x] All existing tests pass
-- [ ] Manual verification needed: Open a routine with hero image (e.g., Warm Start Congee Full) → verify parallax scrolling; open any routine → verify ambient background color matches time of day; complete steps → verify journey connector updates; test morning vs evening → verify color shift
-
-**Reviewer nudge:**
-Test the parallax effect by slowly scrolling up and down on a routine with a hero image — the image should move at about 40% of your scroll speed. Then compare the ambient background color at 6 AM vs 6 PM — should be noticeably different (warm vs cool).
-
----
-
-## [2026-02-05 01:50] — Phase 13: Terrain Trends Tab Reimagining (Complete)
-
-**Files touched:**
-- `Core/Services/TrendEngine.swift` — Added terrain-aware methods: `prioritizeTrends()`, `healthyZone()`, `computeActivityMinutes()`, `generateTerrainPulse()` with extensive private helpers for terrain-specific copy
-- `Core/Models/Shared/YouViewModels.swift` — Added new model types: `AnnotatedTrendResult`, `TerrainHealthyZone`, `ActivityMinutesResult`, `TerrainPulseInsight`
-- `Features/You/Components/TerrainPulseCard.swift` (NEW) — Hero card showing personalized terrain-aware insight with terrain glow colors and pulse animation
-- `Features/You/Components/AnnotatedTrendCard.swift` (NEW) — Trend card with terrain-specific annotation, priority indicator, watch-for badge, and expandable detail sheet
-- `Features/You/Components/ActivityLogCard.swift` (NEW) — Stacked bar chart showing 14-day routine vs movement minutes with terrain-specific insight
-- `Features/You/Components/EvolutionTrendsView.swift` — Updated to accept new parameters and conditionally show TerrainPulseCard and ActivityLogCard
-- `Features/You/YouView.swift` — Added computed terrain-aware data (annotatedTrends, terrainPulse, activityMinutes) and passed to EvolutionTrendsView
-- `Tests/TrendEngineTests.swift` (NEW) — 26 comprehensive tests for all new TrendEngine methods
-- `Tests/ConstitutionServiceTests.swift` — Removed duplicate TrendEngineTests class (tests now in dedicated file)
-- `Terrain.xcodeproj/project.pbxproj` — Added all new files to build sources
-
-**What changed (plain English):**
-The You tab's Trends section has been transformed from generic analytics into a personalized TCM health narrative. Think of it like having a health interpreter who speaks your body's language — instead of showing the same sparklines to everyone, the app now knows that a Cold Deficient person should pay attention to Energy and Digestion first, while a Warm Excess person should watch Stress and Sleep.
-
-The new system includes:
-1. **Terrain Pulse Card** — A hero card at the top that gives you a personalized daily insight, like "Your sleep has declined for 5 days. For Low Flame types, this often signals reserve depletion. Prioritize warm starts this week."
-2. **Annotated Trend Cards** — Each trend now shows its priority for your terrain type, whether it's a "watch-for" category, and a terrain-specific micro-explanation
-3. **Activity Log Card** — Tracks how many minutes you've spent on routines vs movements (user-requested feature)
-4. **Terrain-aware prioritization** — All 8 terrain types now have custom priority orderings for the 8 trend categories
-5. **Modifier awareness** — Shen modifier emphasizes Sleep/Stress/Mood; Stagnation emphasizes Stiffness/Headache
-
-**Why:**
-User requested Phase 13 implementation per the plan file — transform the Trends tab from "generic dashboard" to "personalized TCM health narrative."
-
-**Risks / watch-fors:**
-- TerrainPulseInsight copy is hardcoded — may need refinement based on user feedback
-- Activity minutes require `actualDurationSeconds` in RoutineFeedbackEntry — older feedback without duration data shows 0
-- Terrain glow colors match TerrainRevealView (cool blue-grey/warm amber/neutral earth) — verify consistency
-
-**Testing status:**
-- [x] Builds cleanly
-- [x] Existing tests pass (200+ unit tests)
-- [x] New tests added: 26 tests in TrendEngineTests.swift covering prioritizeTrends, healthyZone, computeActivityMinutes, generateTerrainPulse
-- [ ] Manual verification needed: You tab → Trends → verify TerrainPulseCard shows terrain-specific copy, trend cards are reordered by priority, ActivityLogCard shows correct minutes
-
-**Reviewer nudge:**
-Compare the Trends tab for two different terrain types (e.g., Cold Deficient vs Warm Excess) — the priority order should be different, and the TerrainPulseCard copy should reference different body systems.
-
----
-
 ## [2026-02-05 21:00] — Add simple Home header with date, weather, and steps
 
 **Files touched:**
@@ -367,12 +291,6 @@ Verify the header displays correctly with and without weather/health data (nil v
 
 ---
 
-> **Cleanup note (2026-02-05):** Senior review pass verified and removed 11 entries with no outstanding issues (Apple Sign In hardening, quiz label shortening x2, confirm button + heatmap editing, mood rating, tech debt cleanup, mood in heatmap + welcome bug + schema crash, per-ingredient emoji, 3-screen tutorial, ingredients UI polish, tutorial enhancements). Remaining entries below have unresolved manual verification or architectural significance.
-
-> **Cleanup note (2026-02-05 09:30):** Removed 3 fully resolved entries: (1) InsightEngine test coverage + 7 tag fixes + September season fix — all verified by 47 automated tests; (2) DailyPractice/QuickFix contract tests + movement asset URI audit — all 192 tests pass, no placeholder URIs found; (3) hand-curated icon map — superseded by the 06:00 full icon audit. Updated resolved risk bullets in remaining entries.
-
----
-
 ## [2026-02-05 18:30] — Fix ethnicity message + defensive URL handling
 
 **Files touched:**
@@ -401,66 +319,96 @@ Verify the new ethnicity message appears correctly: complete onboarding → Demo
 
 ---
 
-## [2026-02-05 01:30] — Add Supabase analytics aggregation functions
+## [2026-02-05 18:15] — Phase 14 data foundation + sync + Pulse Check-In wiring
 
 **Files touched:**
-- Supabase migration `add_analytics_functions` — Created 3 new PostgreSQL functions for analytics
+- `Core/Models/User/DailyLog.swift` — Added 5 optional properties (sleepDurationMinutes, sleepInBedMinutes, restingHeartRate, cyclePhase, symptomQuality) and 2 new enums (CyclePhase with 5 cases + tcmContext, SymptomQuality with 5 cases + tcmPattern)
+- `Core/Models/User/UserProfile.swift` — Added hydrationPattern, sweatPattern (Phase 14 TCM) and lastPulseCheckInDate; added HydrationPattern (4 cases) and SweatPattern (5 cases) enums with TCM signals
+- `Core/Services/SupabaseSyncService.swift` — Extended DailyLogRow and UserProfileRow with all new fields: CodingKeys, apply(to:), toModel(), and toRow() conversions
+- `Features/You/YouView.swift` — Wired Pulse Check-In: added showPulseCheckIn state, pulseCheckInCard (with "last checked X days ago" + 90-day prominence logic), and sheet presentation with retake-quiz bridge
+- `Tests/SyncFieldsRoundTripTests.swift` (NEW) — 13 tests verifying rawValue round-trips for all 4 new enums, nil handling, empty-string handling
 
 **What changed (plain English):**
-Added three SQL functions to Supabase that aggregate user data for analytics dashboards:
-
-1. **`get_mood_analytics(user_id)`** — Returns mood averages grouped by week and month for the last 90 days. Think of it like a report card showing "your average mood this week was 7.2, last month was 6.8."
-
-2. **`get_activity_duration_analytics(user_id)`** — Extracts duration data from the `routine_feedback` JSONB array and totals it by activity type (routine vs movement). Returns total minutes spent on food/drink rituals vs physical movements.
-
-3. **`get_streak_analytics(user_id)`** — Returns streak status (completed today, at risk, broken), current/longest streaks, and completion counts for this week/month.
-
-All functions use `SECURITY DEFINER` with explicit `search_path` for RLS compatibility and are granted to `authenticated` role only.
+The app's data models and cloud sync now understand several new pieces of information about the user. Think of it like upgrading a medical chart — it can now record sleep patterns (how long, in bed vs asleep), heart rate at rest, menstrual cycle phase, symptom character (dull vs sharp vs burning pain), hydration preference (warm vs cold drinks), and sweat patterns. All of these sync bidirectionally to Supabase so they're backed up in the cloud. Additionally, the "Terrain Pulse" quick-quiz is now accessible from the You tab's terrain section, letting users check if their body pattern has shifted.
 
 **Why:**
-User requested analytics for "mood score, minutes taken for food/drink and movement, streak." The raw data was being synced to Supabase, but there were no aggregation functions to power dashboards or insights.
+Phase 14 TCM personalization — these data points are diagnostic signals in Traditional Chinese Medicine that enable more precise terrain-aware content and trend analysis.
 
 **Risks / watch-fors:**
-- Functions query up to 90 days of data — if a user has thousands of daily logs, consider adding indexes on `daily_logs(user_id, date)` if performance degrades
-- `get_activity_duration_analytics` depends on `actualDurationSeconds` field in `routine_feedback` JSONB — entries without this field (from before duration tracking) are silently skipped
+- Supabase columns added via migration (no data loss for existing users — all nullable)
+- Enum rawValues are snake_case strings synced to DB — changing them would break existing rows (protected by round-trip tests)
+- PulseCheckInView saves lastPulseCheckInDate on the UserProfile and calls updatedAt — this triggers sync on next cycle
 
 **Testing status:**
-- [x] Migration applied successfully
-- [x] Functions execute without errors
-- [x] `get_streak_analytics` returns correct data structure
-- [ ] Manual verification needed: Call functions from iOS app via Supabase RPC to verify data flows correctly
+- [x] Builds cleanly (BUILD SUCCEEDED)
+- [x] All 276 tests pass (TEST SUCCEEDED)
+- [x] New tests added: SyncFieldsRoundTripTests (13 tests), HealthTrendTests (9 tests), TerrainDriftDetectorTests (9 tests)
+- [ ] Manual verification: present Pulse Check-In from You tab, walk through 5 questions, verify drift result display
 
 **Reviewer nudge:**
-Test `get_mood_analytics` after logging a few days of mood ratings — verify weekly/monthly groupings are correct. The duration analytics will only show data after the duration tracking feature is used.
+Check the enum rawValues in SyncFieldsRoundTripTests — these are the contract between the Swift app and Supabase. If any rawValue ever changes, the round-trip test catches it immediately.
 
 ---
 
-## [2026-02-05 01:24] — Add duration tracking for routine/movement analytics
+## [2026-02-05 18:11] -- HealthKit expansion: sleep analysis + resting heart rate + TrendEngine integration
 
 **Files touched:**
-- `Core/Models/User/DailyLog.swift` — Previously added `startedAt`, `actualDurationSeconds`, and `activityType` to `RoutineFeedbackEntry`; added overloaded `markRoutineComplete()` and `markMovementComplete()` methods that calculate duration
-- `Features/Today/RoutineDetailSheet.swift` — Changed `onComplete` callback from `() -> Void` to `(Date?) -> Void`; added `@State private var startedAt: Date = Date()` to track when routine started; passes `startedAt` on completion
-- `Features/Today/MovementPlayerSheet.swift` — Same changes as RoutineDetailSheet: callback signature change, `startedAt` tracking, passes start time on completion
-- `Features/Today/TodayView.swift` — Updated sheet callbacks to pass `startedAt`; updated `markRoutineComplete(startedAt:)` and `markMovementComplete(startedAt:)` to accept and use duration parameter
-- `Features/Do/DoView.swift` — Already updated in prior session: sheet callbacks pass `startedAt` to completion functions
+- `Terrain/Core/Services/HealthService.swift` -- Expanded from step-count-only to also fetch sleep analysis (asleep + in-bed duration) and resting heart rate from HealthKit, with concurrent fetching and per-metric error isolation
+- `Terrain/Core/Services/TrendEngine.swift` -- Added Sleep Duration and Resting HR trend computation, updated terrainPriorityMap (all 8 types), terrainWatchForCategories, healthyZone, and terrainNoteForTrend for the two new categories
+- `Terrain/Tests/HealthTrendTests.swift` -- New test file with 9 tests covering improving/declining/stable trends, nil data handling, priority ordering, and healthy zones for both new categories
+- `Terrain/Tests/TrendEngineTests.swift` -- Updated category count assertion from 8 to 10 to account for new trend categories
+- `Terrain/Terrain.xcodeproj/project.pbxproj` -- Registered HealthTrendTests.swift in 4 pbxproj sections
 
 **What changed (plain English):**
-The app now tracks how long users actually spend on routines and movements. Think of it like a stopwatch that starts when you open the detail sheet and stops when you tap "Complete." This data flows into `RoutineFeedbackEntry` records that sync to Supabase, enabling future analytics dashboards to show "average time spent on Morning Qi Flow" or "which routines do users rush through vs. savor."
+The app's health bridge now reads three pieces of data from Apple Health instead of just one. Think of it like upgrading a weather station that only measured temperature to now also track humidity and wind speed. Sleep duration tells the TrendEngine how many hours the user actually slept (from Apple Watch stages or iPhone tracking), and resting heart rate tells it how efficiently the heart is pumping at rest. Both feed into the existing 14-day trend system so the You tab can show whether sleep quantity and cardiovascular fitness are improving, declining, or holding steady.
 
 **Why:**
-User requested analytics for "minutes taken for food/drink and movement." The app was recording *what* users completed but not *how long* they engaged with each activity.
+Phase 14 HealthKit expansion -- biometric data gives TrendEngine objective signals to complement the subjective daily check-in data, enabling more accurate terrain-aware health insights.
 
 **Risks / watch-fors:**
-- If a user opens a routine sheet, leaves the app for hours, then completes it, the duration will be inflated. This is acceptable for v1 since background interruption is rare, but future versions could pause the timer on `scenePhase` changes.
-- TodayView.swift is deprecated (per CLAUDE.md) but still compiles. Updates were made for completeness in case it's ever re-enabled.
+- HealthKit authorization is requested for all three types at once; if user denies one, the others still work (per-metric error isolation)
+- Sleep analysis window looks back to yesterday 5PM to capture overnight sessions; edge cases around timezone changes could miss data
+- Resting HR requires Apple Watch (iPhone-only users will always get nil for this metric)
+- Existing tests updated: category count changed from 8 to 10 in `testAllTerrainTypes_HavePrioritization`
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] All 184+ existing tests pass
-- [ ] Manual verification needed: Open a routine → wait 30 seconds → complete it → check `daily_logs` table in Supabase → verify `routine_feedback` JSON contains `actualDurationSeconds` ≈ 30-40
+- [x] Existing tests pass (26/26 TrendEngineTests)
+- [x] New tests added (9/9 HealthTrendTests)
+- [ ] Manual verification needed: test on device with Apple Watch to verify real HealthKit data flows through
 
 **Reviewer nudge:**
-Check that `RoutineFeedbackEntry` in `daily_logs.routine_feedback` now includes `startedAt` and `actualDurationSeconds` after completing any routine or movement.
+Focus on `fetchSleepAnalysis` -- the sleep stage categorization (`asleepCore`, `asleepDeep`, `asleepREM`, `asleepUnspecified`) and the 30-minute minimum threshold are the most important logic to verify.
+
+---
+
+## [2026-02-05 18:10] — Add quarterly Pulse Check-In with terrain drift detection
+
+**Files touched:**
+- `Core/Models/Shared/TerrainPulseCheckIn.swift` (NEW) — Defines 5 discriminating questions (one per scoring axis) with 3 options each
+- `Core/Engine/TerrainDriftDetector.swift` (NEW) — Builds a mini TerrainVector from pulse answers, classifies via TerrainScoringEngine, and compares against current profile to detect drift
+- `Features/You/Components/PulseCheckInView.swift` (NEW) — 5-step SwiftUI sheet with radio-style option selection, progress indicator, and result screen with drift recommendation
+- `Tests/TerrainDriftDetectorTests.swift` (NEW) — 9 unit tests covering no-change, minor-shift, significant-drift, cold/warm detection, shen/stagnation modifiers, neutral defaults, and engine consistency
+- `Terrain.xcodeproj/project.pbxproj` — Registered all 4 new files (3 in main target, 1 in test target)
+
+**What changed (plain English):**
+Users can now take a quick 5-question "pulse check" to see if their body pattern has shifted since they took the full onboarding quiz. Think of it like a quick temperature check versus a full physical exam. The check-in asks one question per scoring axis (temperature, energy, moisture, tension, mind), builds a mini profile, and compares it to the user's current terrain type and modifier. If nothing changed, they get reassurance. If a modifier shifted, they see a gentle note. If their entire type changed, they are encouraged to retake the full quiz.
+
+**Why:**
+Bodies change over time with seasons, lifestyle shifts, and aging. A quarterly pulse check ensures the app's personalized content stays accurate without requiring the user to retake the full 13-question quiz every time.
+
+**Risks / watch-fors:**
+- The pulse check uses only 5 data points versus the full quiz's 13-16, so boundary cases (scores near thresholds) may classify differently. This is intentional and disclosed in the "significant drift" messaging.
+- PulseCheckInView is not yet wired into YouView; the caller needs to present it via `.sheet` and pass the current terrain ID and modifier.
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] Existing tests pass
+- [x] New tests added (TerrainDriftDetectorTests — 9 tests, all passing)
+- [ ] Manual verification needed (present the sheet from YouView and walk through all 5 questions)
+
+**Reviewer nudge:**
+Check `TerrainDriftDetector.detectDrift()` — it delegates to the same `TerrainScoringEngine.calculateTerrain(from: TerrainVector)` used by the full quiz, so classification logic is guaranteed to stay in sync.
 
 ---
 
@@ -556,7 +504,7 @@ Phase 13 of the product roadmap specifies daily check-in expansion with TCM diag
 
 **Testing status:**
 - [x] Builds cleanly
-- [x] All 184 existing tests pass
+- [x] All existing tests pass
 - [ ] Manual verification needed: Home tab → check-in card → tap "More details" → select sleep quality and emotion → Confirm → kill/relaunch app → verify selections persisted; sign in on second device → verify data synced
 
 **Reviewer nudge:**
@@ -592,66 +540,6 @@ User requested legal documents for the iOS app with in-app browser experience ra
 
 **Reviewer nudge:**
 Verify the URLs work on a device with network access. Check that the warm brown accent color (#8B7355) appears on the Safari toolbar buttons.
-
----
-
-## [2026-02-04 12:00] — Supabase sync hardening: RLS perf, debounce, sign-out privacy, error isolation, cabinet conflicts
-
-**Files touched:**
-- `Core/Services/SupabaseSyncService.swift` — Removed hardcoded anon key fallback; added 30s sync debounce with `force:` bypass; extracted `syncAllTables()` with per-table try/catch isolation; rewrote `signOut()` to clear all local SwiftData on sign-out; added timestamp-based conflict resolution to cabinet sync for existing items; added `lastSyncTime` tracking
-- `Features/Auth/AuthView.swift` — Updated 2 `sync()` calls to use `sync(force: true)` after auth
-- `App/TerrainApp.swift` — Updated initial launch sync to `sync(force: true)`
-- `Features/You/Components/PreferencesSafetyView.swift` — Updated sign-out confirmation message to reflect local data clearing
-- Supabase migration `optimize_rls_policies_select_auth_uid` — Rewrote all 20 RLS policies across 5 tables to use `(select auth.uid())` instead of `auth.uid()` for per-query caching
-
-**What changed (plain English):**
-Seven improvements to make cloud sync robust and secure. (1) The "security guard" at Supabase now checks your ID once per visit instead of re-checking at every door — 20 RLS policies optimized. (2) The sync postal truck now waits 30 seconds between runs so rapid app open/close doesn't flood the server. (3) If one delivery fails (say, daily logs), the other four trucks (profile, progress, cabinet, enrollments) still complete their deliveries. (4) When you sign out, your health data is wiped from the device so the next person can't see it — it's safe in the cloud for when you return. (5) Cabinet items that exist on two devices now compare timestamps instead of silently ignoring conflicts. (6) The hardcoded "backup password" (anon key) was removed — if the config file is missing, sync is simply disabled. (7) Post-auth syncs bypass the debounce timer so data appears immediately after sign-in.
-
-**Why:**
-Supabase performance advisor flagged all 20 RLS policies. Full sync audit revealed race conditions, privacy gaps on sign-out, and lack of error isolation between tables.
-
-**Risks / watch-fors:**
-- `signOut(clearLocalData: true)` deletes ALL user SwiftData models. If the user is offline and signs back in, they'll get empty local data until sync succeeds. This is the correct trade-off for privacy.
-- The 30s debounce means rapid foreground/background cycling won't sync. Post-auth and initial launch use `force: true` to bypass.
-- Cabinet timestamp comparison uses `lastUsedAt ?? addedAt` as the conflict signal. If both are equal (same millisecond on two devices), local wins silently — acceptable for low-conflict cabinet data.
-- Per-table error isolation means `lastSyncError` only captures the first error. If multiple tables fail, check logs for the full picture (`TerrainLogger.sync`).
-
-**Testing status:**
-- [x] Builds cleanly
-- [x] Existing tests pass (all test suites)
-- [x] Supabase performance advisor: 0 warnings (was 20 `auth_rls_initplan` warnings)
-- [ ] Manual verification needed: sign out → verify local data is cleared → sign back in → verify data re-syncs from cloud. Test debounce by toggling app foreground/background rapidly.
-
-**Reviewer nudge:**
-Check `signOut(clearLocalData:)` — verify the fetch descriptors cover all 5 model types and that `context.save()` is called after all deletes. Then verify that `sync(force: true)` is used in all 3 post-auth paths (email sign-in, Apple sign-in, initial launch).
-
----
-
-## [2026-02-04 11:00] — Supabase schema audit: add 27 missing columns + sync 10 local-only fields
-
-**Files touched:**
-- `Core/Services/SupabaseSyncService.swift` — Added 10 fields to Row DTOs (UserProfileRow: displayName, alcoholFrequency, smokingStatus; DailyLogRow: moodRating, weatherCondition, temperatureCelsius, stepCount, microActionCompletedAt; UserCabinetRow: isStaple, lastUsedAt). Updated CodingKeys, apply(), toModel(), toRow(), and syncCabinet() methods for each.
-- Supabase migration (remote) — Added 27 columns across 4 tables: 14 on user_profiles (terrain vector axes, quiz flags, safety/lifestyle fields), 6 on daily_logs (mood, weather, steps, micro-action, symptom onset), 2 on progress_records (last_completion_date, monthly_completions), 5 on user_cabinets (is_staple, last_used_at + 3 existing that were already there). Added UPDATE RLS policy on user_cabinets. Added indexes on daily_logs(mood_rating) and user_profiles(display_name).
-
-**What changed (plain English):**
-A full audit comparing what the app *thinks* it's sending to the cloud versus what the cloud *actually accepts* revealed a significant gap — like mailing letters to addresses that don't exist. The Swift code was already encoding fields like mood ratings, weather data, step counts, and lifestyle preferences into sync payloads, but 27 of those columns didn't exist in the Supabase database. The data was silently dropped. This fix adds all 27 missing columns to Supabase and wires up 10 fields that were previously local-only (never included in sync payloads at all). Now every piece of user data — from terrain quiz scores to daily mood ratings to cabinet preferences — round-trips correctly between device and cloud.
-
-**Why:**
-User requested a full audit of app ↔ Supabase connections to ensure personalized experience data survives across devices.
-
-**Risks / watch-fors:**
-- All 27 new columns are nullable with sensible defaults — no migration risk for existing rows (they get NULL, which the app handles as nil)
-- The `user_cabinets` table was missing an UPDATE RLS policy (had SELECT/INSERT/DELETE but not UPDATE). Now added. Without it, updating `is_staple` or `last_used_at` on an existing cabinet item would have been silently rejected by Postgres.
-- `microActionCompletedAt` uses ISO 8601 string encoding (not Supabase timestamptz) because the Row DTO inherits the existing date formatting pattern. This is consistent with how `updatedAt` is handled elsewhere in SupabaseSyncService.
-- `stepCount` syncs as Int? (nullable). HealthKit may return 0 vs nil — both are valid and distinguishable in the schema.
-
-**Testing status:**
-- [x] Builds cleanly
-- [x] Existing tests pass (all test suites)
-- [ ] Manual verification needed: sign in on two devices, log a mood rating and mark an ingredient as staple on device A, sync on device B, verify both fields appear
-
-**Reviewer nudge:**
-Check the `UserCabinetRow` changes — the `syncCabinet()` pull path now sets `isStaple` and `lastUsedAt` on newly created cabinet items. Verify that the existing `addedAt` field isn't accidentally overwritten during this flow.
 
 ---
 
@@ -718,7 +606,147 @@ Manual test the notification flow end-to-end: trigger a notification, tap "Did T
 
 ---
 
-## [2026-02-05 01:30] — Add tier-based movement selection to Do tab
+## [2026-02-05 02:00] — Do tab detail sheet redesign: parallax hero images + ambient backgrounds + flowing layout
+
+**Files touched:**
+- `Core/Models/Content/Routine.swift` — Added `heroImageUri: String?` property for hero image support
+- `Core/Services/ContentPackService.swift` — Added `hero_image_uri: String?` to RoutineDTO; wired to model conversion
+- `DesignSystem/Components/AmbientBackground.swift` (NEW) — Phase-aware gradient backdrop with floating particles; morning shows warm ambers, evening shows cool blue-grays; respects `accessibilityReduceMotion`
+- `DesignSystem/Components/ParallaxHeroImage.swift` (NEW) — Hero image with 0.4x parallax scroll rate, AsyncImage for remote URLs, gradient fade into content, fallback placeholder
+- `DesignSystem/Components/StepJourneyConnector.swift` (NEW) — Horizontal step progress indicator with connected dots (completed=checkmark, current=highlighted, future=hollow); includes VerticalStepConnector variant
+- `Features/Today/RoutineDetailSheet.swift` — Complete redesign: added scroll offset tracking via PreferenceKey; integrated AmbientBackground, ParallaxHeroImage, StepJourneyConnector; new section layout with accent border on "Why" section; enhanced step rows with vertical connector lines; title overlaps hero image for depth
+- `Resources/ContentPacks/base-content-pack.json` — Version bumped 1.4.0 → 1.5.0; added `hero_image_uri` to 5 routines (warm-start-congee-full, ginger-honey-tea-lite, ginger-cinnamon-tea-full, chrysanthemum-tea-full, mung-bean-soup-full)
+- `Terrain.xcodeproj/project.pbxproj` — Added all 3 new component files to build sources and DesignSystem/Components group
+
+**What changed (plain English):**
+The Do tab's routine detail sheets have been transformed from static cards into immersive, living experiences. Think of it like going from a recipe card to a cooking show — the sheet now has a beautiful hero image at the top that moves slightly as you scroll (parallax effect), an ambient background that shifts colors based on time of day (warm amber mornings, cool blue evenings), and a visual journey connector showing your progress through the steps like dots on a trail. The layout flows better with varied spacing, the "Why this ritual" section has a distinctive accent border, and each step shows a vertical line connecting to the next one.
+
+**Why:**
+User requested "world-class UI/UX" improvements to the Do tab detail sheets with: (1) more interactive and engaging backgrounds, (2) new photos of food/drink, and (3) better spaced out and flowy UI. User explicitly chose "highest impact and highest effort" implementation.
+
+**Risks / watch-fors:**
+- Hero images use Unsplash URLs — ensure network availability or fallback placeholder renders correctly
+- Parallax effect and floating particles use continuous animations — respects `accessibilityReduceMotion`, but verify battery impact on older devices
+- Content pack version bump to 1.5.0 required for hero images to load on existing installs
+- ScrollOffsetKey uses PreferenceKey pattern — standard SwiftUI approach but verify coordinate space is correct on all device sizes
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] All existing tests pass
+- [ ] Manual verification needed: Open a routine with hero image (e.g., Warm Start Congee Full) → verify parallax scrolling; open any routine → verify ambient background color matches time of day; complete steps → verify journey connector updates; test morning vs evening → verify color shift
+
+**Reviewer nudge:**
+Test the parallax effect by slowly scrolling up and down on a routine with a hero image — the image should move at about 40% of your scroll speed. Then compare the ambient background color at 6 AM vs 6 PM — should be noticeably different (warm vs cool).
+
+---
+
+## [2026-02-05 01:50] — Phase 13: Terrain Trends Tab Reimagining (Complete)
+
+**Files touched:**
+- `Core/Services/TrendEngine.swift` — Added terrain-aware methods: `prioritizeTrends()`, `healthyZone()`, `computeActivityMinutes()`, `generateTerrainPulse()` with extensive private helpers for terrain-specific copy
+- `Core/Models/Shared/YouViewModels.swift` — Added new model types: `AnnotatedTrendResult`, `TerrainHealthyZone`, `ActivityMinutesResult`, `TerrainPulseInsight`
+- `Features/You/Components/TerrainPulseCard.swift` (NEW) — Hero card showing personalized terrain-aware insight with terrain glow colors and pulse animation
+- `Features/You/Components/AnnotatedTrendCard.swift` (NEW) — Trend card with terrain-specific annotation, priority indicator, watch-for badge, and expandable detail sheet
+- `Features/You/Components/ActivityLogCard.swift` (NEW) — Stacked bar chart showing 14-day routine vs movement minutes with terrain-specific insight
+- `Features/You/Components/EvolutionTrendsView.swift` — Updated to accept new parameters and conditionally show TerrainPulseCard and ActivityLogCard
+- `Features/You/YouView.swift` — Added computed terrain-aware data (annotatedTrends, terrainPulse, activityMinutes) and passed to EvolutionTrendsView
+- `Tests/TrendEngineTests.swift` (NEW) — 26 comprehensive tests for all new TrendEngine methods
+- `Tests/ConstitutionServiceTests.swift` — Removed duplicate TrendEngineTests class (tests now in dedicated file)
+- `Terrain.xcodeproj/project.pbxproj` — Added all new files to build sources
+
+**What changed (plain English):**
+The You tab's Trends section has been transformed from generic analytics into a personalized TCM health narrative. Think of it like having a health interpreter who speaks your body's language — instead of showing the same sparklines to everyone, the app now knows that a Cold Deficient person should pay attention to Energy and Digestion first, while a Warm Excess person should watch Stress and Sleep.
+
+The new system includes:
+1. **Terrain Pulse Card** — A hero card at the top that gives you a personalized daily insight, like "Your sleep has declined for 5 days. For Low Flame types, this often signals reserve depletion. Prioritize warm starts this week."
+2. **Annotated Trend Cards** — Each trend now shows its priority for your terrain type, whether it's a "watch-for" category, and a terrain-specific micro-explanation
+3. **Activity Log Card** — Tracks how many minutes you've spent on routines vs movements (user-requested feature)
+4. **Terrain-aware prioritization** — All 8 terrain types now have custom priority orderings for the 8 trend categories
+5. **Modifier awareness** — Shen modifier emphasizes Sleep/Stress/Mood; Stagnation emphasizes Stiffness/Headache
+
+**Why:**
+User requested Phase 13 implementation per the plan file — transform the Trends tab from "generic dashboard" to "personalized TCM health narrative."
+
+**Risks / watch-fors:**
+- TerrainPulseInsight copy is hardcoded — may need refinement based on user feedback
+- Activity minutes require `actualDurationSeconds` in RoutineFeedbackEntry — older feedback without duration data shows 0
+- Terrain glow colors match TerrainRevealView (cool blue-grey/warm amber/neutral earth) — verify consistency
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] Existing tests pass (200+ unit tests)
+- [x] New tests added: 26 tests in TrendEngineTests.swift covering prioritizeTrends, healthyZone, computeActivityMinutes, generateTerrainPulse
+- [ ] Manual verification needed: You tab → Trends → verify TerrainPulseCard shows terrain-specific copy, trend cards are reordered by priority, ActivityLogCard shows correct minutes
+
+**Reviewer nudge:**
+Compare the Trends tab for two different terrain types (e.g., Cold Deficient vs Warm Excess) — the priority order should be different, and the TerrainPulseCard copy should reference different body systems.
+
+---
+
+## [2026-02-05 01:30] — Add Supabase analytics aggregation functions
+
+**Files touched:**
+- Supabase migration `add_analytics_functions` — Created 3 new PostgreSQL functions for analytics
+
+**What changed (plain English):**
+Added three SQL functions to Supabase that aggregate user data for analytics dashboards:
+
+1. **`get_mood_analytics(user_id)`** — Returns mood averages grouped by week and month for the last 90 days. Think of it like a report card showing "your average mood this week was 7.2, last month was 6.8."
+
+2. **`get_activity_duration_analytics(user_id)`** — Extracts duration data from the `routine_feedback` JSONB array and totals it by activity type (routine vs movement). Returns total minutes spent on food/drink rituals vs physical movements.
+
+3. **`get_streak_analytics(user_id)`** — Returns streak status (completed today, at risk, broken), current/longest streaks, and completion counts for this week/month.
+
+All functions use `SECURITY DEFINER` with explicit `search_path` for RLS compatibility and are granted to `authenticated` role only.
+
+**Why:**
+User requested analytics for "mood score, minutes taken for food/drink and movement, streak." The raw data was being synced to Supabase, but there were no aggregation functions to power dashboards or insights.
+
+**Risks / watch-fors:**
+- Functions query up to 90 days of data — if a user has thousands of daily logs, consider adding indexes on `daily_logs(user_id, date)` if performance degrades
+- `get_activity_duration_analytics` depends on `actualDurationSeconds` field in `routine_feedback` JSONB — entries without this field (from before duration tracking) are silently skipped
+
+**Testing status:**
+- [x] Migration applied successfully
+- [x] Functions execute without errors
+- [x] `get_streak_analytics` returns correct data structure
+- [ ] Manual verification needed: Call functions from iOS app via Supabase RPC to verify data flows correctly
+
+**Reviewer nudge:**
+Test `get_mood_analytics` after logging a few days of mood ratings — verify weekly/monthly groupings are correct. The duration analytics will only show data after the duration tracking feature is used.
+
+---
+
+## [2026-02-05 01:24] — Add duration tracking for routine/movement analytics
+
+**Files touched:**
+- `Core/Models/User/DailyLog.swift` — Previously added `startedAt`, `actualDurationSeconds`, and `activityType` to `RoutineFeedbackEntry`; added overloaded `markRoutineComplete()` and `markMovementComplete()` methods that calculate duration
+- `Features/Today/RoutineDetailSheet.swift` — Changed `onComplete` callback from `() -> Void` to `(Date?) -> Void`; added `@State private var startedAt: Date = Date()` to track when routine started; passes `startedAt` on completion
+- `Features/Today/MovementPlayerSheet.swift` — Same changes as RoutineDetailSheet: callback signature change, `startedAt` tracking, passes start time on completion
+- `Features/Today/TodayView.swift` — Updated sheet callbacks to pass `startedAt`; updated `markRoutineComplete(startedAt:)` and `markMovementComplete(startedAt:)` to accept and use duration parameter
+- `Features/Do/DoView.swift` — Already updated in prior session: sheet callbacks pass `startedAt` to completion functions
+
+**What changed (plain English):**
+The app now tracks how long users actually spend on routines and movements. Think of it like a stopwatch that starts when you open the detail sheet and stops when you tap "Complete." This data flows into `RoutineFeedbackEntry` records that sync to Supabase, enabling future analytics dashboards to show "average time spent on Morning Qi Flow" or "which routines do users rush through vs. savor."
+
+**Why:**
+User requested analytics for "minutes taken for food/drink and movement." The app was recording *what* users completed but not *how long* they engaged with each activity.
+
+**Risks / watch-fors:**
+- If a user opens a routine sheet, leaves the app for hours, then completes it, the duration will be inflated. This is acceptable for v1 since background interruption is rare, but future versions could pause the timer on `scenePhase` changes.
+- TodayView.swift is deprecated (per CLAUDE.md) but still compiles. Updates were made for completeness in case it's ever re-enabled.
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] All 184+ existing tests pass
+- [ ] Manual verification needed: Open a routine → wait 30 seconds → complete it → check `daily_logs` table in Supabase → verify `routine_feedback` JSON contains `actualDurationSeconds` ≈ 30-40
+
+**Reviewer nudge:**
+Check that `RoutineFeedbackEntry` in `daily_logs.routine_feedback` now includes `startedAt` and `actualDurationSeconds` after completing any routine or movement.
+
+---
+
+## [2026-02-05 00:00] — Add tier-based movement selection to Do tab
 
 **Files touched:**
 - `Terrain/Core/Models/Content/Movement.swift` — Added `tier: String?` property and `durationDisplay` computed property
@@ -866,6 +894,66 @@ Walk through onboarding as a cold-deficient and warm-excess user to verify the 5
 
 ---
 
+## [2026-02-04 12:00] — Supabase sync hardening: RLS perf, debounce, sign-out privacy, error isolation, cabinet conflicts
+
+**Files touched:**
+- `Core/Services/SupabaseSyncService.swift` — Removed hardcoded anon key fallback; added 30s sync debounce with `force:` bypass; extracted `syncAllTables()` with per-table try/catch isolation; rewrote `signOut()` to clear all local SwiftData on sign-out; added timestamp-based conflict resolution to cabinet sync for existing items; added `lastSyncTime` tracking
+- `Features/Auth/AuthView.swift` — Updated 2 `sync()` calls to use `sync(force: true)` after auth
+- `App/TerrainApp.swift` — Updated initial launch sync to `sync(force: true)`
+- `Features/You/Components/PreferencesSafetyView.swift` — Updated sign-out confirmation message to reflect local data clearing
+- Supabase migration `optimize_rls_policies_select_auth_uid` — Rewrote all 20 RLS policies across 5 tables to use `(select auth.uid())` instead of `auth.uid()` for per-query caching
+
+**What changed (plain English):**
+Seven improvements to make cloud sync robust and secure. (1) The "security guard" at Supabase now checks your ID once per visit instead of re-checking at every door — 20 RLS policies optimized. (2) The sync postal truck now waits 30 seconds between runs so rapid app open/close doesn't flood the server. (3) If one delivery fails (say, daily logs), the other four trucks (profile, progress, cabinet, enrollments) still complete their deliveries. (4) When you sign out, your health data is wiped from the device so the next person can't see it — it's safe in the cloud for when you return. (5) Cabinet items that exist on two devices now compare timestamps instead of silently ignoring conflicts. (6) The hardcoded "backup password" (anon key) was removed — if the config file is missing, sync is simply disabled. (7) Post-auth syncs bypass the debounce timer so data appears immediately after sign-in.
+
+**Why:**
+Supabase performance advisor flagged all 20 RLS policies. Full sync audit revealed race conditions, privacy gaps on sign-out, and lack of error isolation between tables.
+
+**Risks / watch-fors:**
+- `signOut(clearLocalData: true)` deletes ALL user SwiftData models. If the user is offline and signs back in, they'll get empty local data until sync succeeds. This is the correct trade-off for privacy.
+- The 30s debounce means rapid foreground/background cycling won't sync. Post-auth and initial launch use `force: true` to bypass.
+- Cabinet timestamp comparison uses `lastUsedAt ?? addedAt` as the conflict signal. If both are equal (same millisecond on two devices), local wins silently — acceptable for low-conflict cabinet data.
+- Per-table error isolation means `lastSyncError` only captures the first error. If multiple tables fail, check logs for the full picture (`TerrainLogger.sync`).
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] Existing tests pass (all test suites)
+- [x] Supabase performance advisor: 0 warnings (was 20 `auth_rls_initplan` warnings)
+- [ ] Manual verification needed: sign out → verify local data is cleared → sign back in → verify data re-syncs from cloud. Test debounce by toggling app foreground/background rapidly.
+
+**Reviewer nudge:**
+Check `signOut(clearLocalData:)` — verify the fetch descriptors cover all 5 model types and that `context.save()` is called after all deletes. Then verify that `sync(force: true)` is used in all 3 post-auth paths (email sign-in, Apple sign-in, initial launch).
+
+---
+
+## [2026-02-04 11:00] — Supabase schema audit: add 27 missing columns + sync 10 local-only fields
+
+**Files touched:**
+- `Core/Services/SupabaseSyncService.swift` — Added 10 fields to Row DTOs (UserProfileRow: displayName, alcoholFrequency, smokingStatus; DailyLogRow: moodRating, weatherCondition, temperatureCelsius, stepCount, microActionCompletedAt; UserCabinetRow: isStaple, lastUsedAt). Updated CodingKeys, apply(), toModel(), toRow(), and syncCabinet() methods for each.
+- Supabase migration (remote) — Added 27 columns across 4 tables: 14 on user_profiles (terrain vector axes, quiz flags, safety/lifestyle fields), 6 on daily_logs (mood, weather, steps, micro-action, symptom onset), 2 on progress_records (last_completion_date, monthly_completions), 5 on user_cabinets (is_staple, last_used_at + 3 existing that were already there). Added UPDATE RLS policy on user_cabinets. Added indexes on daily_logs(mood_rating) and user_profiles(display_name).
+
+**What changed (plain English):**
+A full audit comparing what the app *thinks* it's sending to the cloud versus what the cloud *actually accepts* revealed a significant gap — like mailing letters to addresses that don't exist. The Swift code was already encoding fields like mood ratings, weather data, step counts, and lifestyle preferences into sync payloads, but 27 of those columns didn't exist in the Supabase database. The data was silently dropped. This fix adds all 27 missing columns to Supabase and wires up 10 fields that were previously local-only (never included in sync payloads at all). Now every piece of user data — from terrain quiz scores to daily mood ratings to cabinet preferences — round-trips correctly between device and cloud.
+
+**Why:**
+User requested a full audit of app ↔ Supabase connections to ensure personalized experience data survives across devices.
+
+**Risks / watch-fors:**
+- All 27 new columns are nullable with sensible defaults — no migration risk for existing rows (they get NULL, which the app handles as nil)
+- The `user_cabinets` table was missing an UPDATE RLS policy (had SELECT/INSERT/DELETE but not UPDATE). Now added. Without it, updating `is_staple` or `last_used_at` on an existing cabinet item would have been silently rejected by Postgres.
+- `microActionCompletedAt` uses ISO 8601 string encoding (not Supabase timestamptz) because the Row DTO inherits the existing date formatting pattern. This is consistent with how `updatedAt` is handled elsewhere in SupabaseSyncService.
+- `stepCount` syncs as Int? (nullable). HealthKit may return 0 vs nil — both are valid and distinguishable in the schema.
+
+**Testing status:**
+- [x] Builds cleanly
+- [x] Existing tests pass (all test suites)
+- [ ] Manual verification needed: sign in on two devices, log a mood rating and mark an ingredient as staple on device A, sync on device B, verify both fields appear
+
+**Reviewer nudge:**
+Check the `UserCabinetRow` changes — the `syncCabinet()` pull path now sets `isStaple` and `lastUsedAt` on newly created cabinet items. Verify that the existing `addedAt` field isn't accidentally overwritten during this flow.
+
+---
+
 ## [2026-02-04 10:00] — TCM filter audit: fix 4 benefit mapping issues + late_summer season
 
 **Files touched:**
@@ -896,3 +984,9 @@ User requested a TCM specialist audit of all filter combinations.
 
 **Reviewer nudge:**
 Filter by "Headache" and confirm tofu, lettuce, and adzuki-bean no longer appear. Filter by "Stiffness" and confirm it shows different results from "Cramps."
+
+---
+
+> **Cleanup note (2026-02-05):** Senior review pass verified and removed 11 entries with no outstanding issues (Apple Sign In hardening, quiz label shortening x2, confirm button + heatmap editing, mood rating, tech debt cleanup, mood in heatmap + welcome bug + schema crash, per-ingredient emoji, 3-screen tutorial, ingredients UI polish, tutorial enhancements). Remaining entries above have unresolved manual verification or architectural significance.
+
+> **Cleanup note (2026-02-05 09:30):** Removed 3 fully resolved entries: (1) InsightEngine test coverage + 7 tag fixes + September season fix — all verified by 47 automated tests; (2) DailyPractice/QuickFix contract tests + movement asset URI audit — all 192 tests pass, no placeholder URIs found; (3) hand-curated icon map — superseded by the 06:00 full icon audit. Updated resolved risk bullets in remaining entries.

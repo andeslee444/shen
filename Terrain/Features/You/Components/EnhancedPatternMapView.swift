@@ -18,7 +18,7 @@ struct EnhancedPatternMapView: View {
     // MARK: - Axis Configuration
 
     private struct AxisDisplay {
-        let emoji: String
+        let icon: String
         let label: String
         let leftLabel: String
         let rightLabel: String
@@ -32,7 +32,7 @@ struct EnhancedPatternMapView: View {
     private var axes: [AxisDisplay] {
         [
             AxisDisplay(
-                emoji: "🌡️",
+                icon: "thermometer.medium",
                 label: "Temperature",
                 leftLabel: "Cold",
                 rightLabel: "Hot",
@@ -43,7 +43,7 @@ struct EnhancedPatternMapView: View {
                 maxVal: 10
             ),
             AxisDisplay(
-                emoji: "🔋",
+                icon: "bolt",
                 label: "Energy",
                 leftLabel: "Depleted",
                 rightLabel: "Full",
@@ -54,7 +54,7 @@ struct EnhancedPatternMapView: View {
                 maxVal: 10
             ),
             AxisDisplay(
-                emoji: "💧",
+                icon: "drop",
                 label: "Moisture",
                 leftLabel: "Damp",
                 rightLabel: "Dry",
@@ -65,7 +65,7 @@ struct EnhancedPatternMapView: View {
                 maxVal: 10
             ),
             AxisDisplay(
-                emoji: "🌊",
+                icon: "wind",
                 label: "Flow",
                 leftLabel: "Stuck",
                 rightLabel: "Free",
@@ -76,7 +76,7 @@ struct EnhancedPatternMapView: View {
                 maxVal: 10
             ),
             AxisDisplay(
-                emoji: "🧠",
+                icon: "moon.stars",
                 label: "Mind",
                 leftLabel: "Restless",
                 rightLabel: "Settled",
@@ -111,10 +111,12 @@ struct EnhancedPatternMapView: View {
 
     private func axisRow(_ axis: AxisDisplay) -> some View {
         VStack(alignment: .leading, spacing: theme.spacing.xs) {
-            // Emoji + label
+            // Icon + label
             HStack(spacing: theme.spacing.xs) {
-                Text(axis.emoji)
-                    .font(.system(size: 18))
+                Image(systemName: axis.icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(theme.colors.accent)
+                    .frame(width: 20)
                 Text(axis.label)
                     .font(theme.typography.labelMedium)
                     .foregroundColor(theme.colors.textPrimary)

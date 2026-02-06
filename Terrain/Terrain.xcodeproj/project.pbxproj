@@ -93,6 +93,7 @@
 		E1000010000000000000000B /* HomeHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000010000000000000000B /* HomeHeaderView.swift */; };
 		E1000010000000000000000C /* LifeAreaRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000010000000000000000C /* LifeAreaRow.swift */; };
 		E1000010000000000000000D /* LifeAreaDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000010000000000000000D /* LifeAreaDetailSheet.swift */; };
+		E100001000000000000000FF /* TerrainEncyclopediaSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E200001000000000000000FF /* TerrainEncyclopediaSheet.swift */; };
 		E1000010000000000000000E /* DailySurveySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2000010000000000000000E /* DailySurveySheet.swift */; };
 
 		/* Features/Do */
@@ -297,6 +298,7 @@
 		E2000010000000000000000B /* HomeHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeHeaderView.swift; sourceTree = "<group>"; };
 		E2000010000000000000000C /* LifeAreaRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeAreaRow.swift; sourceTree = "<group>"; };
 		E2000010000000000000000D /* LifeAreaDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeAreaDetailSheet.swift; sourceTree = "<group>"; };
+		E200001000000000000000FF /* TerrainEncyclopediaSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainEncyclopediaSheet.swift; sourceTree = "<group>"; };
 		E2000010000000000000000E /* DailySurveySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySurveySheet.swift; sourceTree = "<group>"; };
 
 		/* Features/Do */
@@ -662,6 +664,7 @@
 				E2000010000000000000000B /* HomeHeaderView.swift */,
 				E2000010000000000000000C /* LifeAreaRow.swift */,
 				E2000010000000000000000D /* LifeAreaDetailSheet.swift */,
+				E200001000000000000000FF /* TerrainEncyclopediaSheet.swift */,
 				E2000010000000000000000E /* DailySurveySheet.swift */,
 				A1B2C3D4E5F6A7B8C9D0E1F5 /* WeatherHealthBarView.swift */,
 			);
@@ -1003,6 +1006,7 @@
 				E1000010000000000000000B /* HomeHeaderView.swift in Sources */,
 				E1000010000000000000000C /* LifeAreaRow.swift in Sources */,
 				E1000010000000000000000D /* LifeAreaDetailSheet.swift in Sources */,
+				E100001000000000000000FF /* TerrainEncyclopediaSheet.swift in Sources */,
 				E1000010000000000000000E /* DailySurveySheet.swift in Sources */,
 				E10000110000000000000001 /* DoView.swift in Sources */,
 				E10000110000000000000002 /* DayPhase.swift in Sources */,
